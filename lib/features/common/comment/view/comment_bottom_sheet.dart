@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 enum CommentType { post, video }
 
@@ -175,6 +176,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       Padding(
                         padding: const EdgeInsets.only(left: 48.0),
                         child: GetBuilder<CommentController>(
+                          init: getOrPut(() => CommentController()),
                           id: 'replies-${comment.sId}',
                           // optional ID if you want to update only specific comment
                           builder: (commentController) {

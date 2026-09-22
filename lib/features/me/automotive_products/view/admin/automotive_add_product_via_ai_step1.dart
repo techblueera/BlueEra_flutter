@@ -308,6 +308,7 @@ class _AutomotiveAddProductViaAiStep1State extends State<AutomotiveAddProductVia
   // ─────────────────────────────────────────────────────────────
   Widget _buildImageSection() {
     return GetBuilder<AutomotiveProductController>(
+      init: getOrPut(() => AutomotiveProductController()),
       builder: (c) {
         final images = c.step1Images;
         if (images.isEmpty) return _emptyImageDropTile();

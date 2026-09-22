@@ -322,6 +322,7 @@ class _ManufacturerAddProductViaAiStep1State
   // ─────────────────────────────────────────────────────────────
   Widget _buildImageSection() {
     return GetBuilder<ManufacturerProductController>(
+      init: getOrPut(() => ManufacturerProductController()),
       builder: (c) {
         final images = c.step1Images;
         if (images.isEmpty) return _emptyImageDropTile();

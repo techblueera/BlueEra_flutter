@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class AutomotiveStep1Section extends StatefulWidget {
   final AutomotiveProductController controller;
@@ -364,6 +365,7 @@ class _AutomotiveStep1SectionState extends State<AutomotiveStep1Section> {
                 ),
               ),
               GetBuilder<AutomotiveProductController>(
+                init: getOrPut(() => AutomotiveProductController()),
                 id: "addIcon",
                 builder: (_) {
                   return AnimatedSwitcher(

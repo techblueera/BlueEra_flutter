@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class VehicleImagesWidget extends StatelessWidget {
   final VehicleRentalServiceController controller;
@@ -42,6 +43,7 @@ class VehicleImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.vehicleNumberPlateImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadVehicleNumberPlateImage,
@@ -98,6 +100,7 @@ class VehicleImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.vehicleRightSideImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadVehicleRightSideImages,
@@ -154,6 +157,7 @@ class VehicleImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.vehicleLeftSideImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadVehicleNumberPlateImage,
@@ -210,6 +214,7 @@ class VehicleImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.vehicleFrontImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadVehicleFrontImages,
@@ -266,6 +271,7 @@ class VehicleImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.vehicleBackImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadVehicleBackImages,

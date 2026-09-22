@@ -28,6 +28,7 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/common_drop_down.dart';
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';
 import '../../controller/email_verification_controller.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   @override
@@ -597,6 +598,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                               ),
                               SizedBox(height: SizeConfig.paddingXSL),
                               GetBuilder<AuthController>(
+                                init: getOrPut(() => AuthController()),
                                   builder: (authController) {
                                     final selectedValue = personalCreateProfileController.selectedProfession.value;
 

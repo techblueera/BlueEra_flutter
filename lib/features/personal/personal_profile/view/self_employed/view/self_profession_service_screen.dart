@@ -729,6 +729,7 @@ class _SelfProfessionServiceScreenState
   // ─────────────────────────────────────────────
   Widget _galleryGrid(List<String> apiPhotos) {
     return GetBuilder<SelfWorkServiceController>(
+      init: getOrPut(() => SelfWorkServiceController()),
       id: 'professionPhotos',
       builder: (controller) {
         final photos = controller.professionData.value.photos ?? apiPhotos;

@@ -3,6 +3,7 @@ import 'package:BlueEra/features/common/reel/controller/video_player_controller.
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class YoutubeStyleVideoPlayer extends StatelessWidget {
   final String videoUrl;
@@ -16,6 +17,7 @@ class YoutubeStyleVideoPlayer extends StatelessWidget {
 
     return SafeArea(
       child: GetBuilder<YoutubeStyleVideoPlayerController>(
+        init: getOrPut(() => YoutubeStyleVideoPlayerController()),
         builder: (_) {
           if (!controller.videoController.value.isInitialized) {
             return const Center(child: CircularProgressIndicator());

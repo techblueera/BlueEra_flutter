@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class OttVideoPlayerScreen extends StatefulWidget {
   OttVideoPlayerScreen({super.key, required this.videoItems});
@@ -67,6 +68,7 @@ class _OttVideoPlayerScreenState extends State<OttVideoPlayerScreen> {
               )
             : SafeArea(
               child: GetBuilder<OttVideoPlayerController>(
+                init: getOrPut(() => OttVideoPlayerController()),
                   builder: (_) {
                     return Center(
                       child: controller.isInitialized.value

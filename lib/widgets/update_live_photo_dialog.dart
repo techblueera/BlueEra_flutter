@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 Future<void> showLivePhotoDialog({
   required BuildContext context,
@@ -52,6 +53,7 @@ Future<void> showLivePhotoDialog({
                   final containerWidth = (constraints.maxWidth - (spacing * 2)) / 3;
 
                   return GetBuilder<ViewBusinessDetailsController>(
+                    init: getOrPut(() => ViewBusinessDetailsController()),
                     id: 'livePhotos',
                     builder: (controller) {
                       final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];

@@ -20,6 +20,7 @@ import '../../../../widgets/local_assets.dart';
 import '../../auth/model/get_all_jobs_model.dart';
 import '../../jobs/view/all_job_post_screen.dart';
 import '../../jobs/view/job_details_screen.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class JobServiceBottomSheet extends StatefulWidget {
   final VoidCallback onClose;
@@ -94,7 +95,7 @@ class _JobServiceBottomSheetState extends State<JobServiceBottomSheet> {
                SizedBox(height: SizeConfig.size10),
 
                /// Scrollable content below tabs
-               GetBuilder<JobController>(builder: (controller) {
+               GetBuilder<JobController>(init: getOrPut(() => JobController()), builder: (controller) {
                  return controller.allJobs.isNotEmpty?Expanded(
                    child: Padding(
                      padding: const EdgeInsets.only(bottom: 50.0),

@@ -308,6 +308,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   // ─────────────────────────────────────────────────────────────
   Widget _buildImageSection() {
     return GetBuilder<ProductController>(
+      init: getOrPut(() => ProductController()),
       builder: (c) {
         final images = c.step1Images;
         if (images.isEmpty) return _emptyImageDropTile();

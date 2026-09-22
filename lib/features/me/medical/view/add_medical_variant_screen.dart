@@ -58,6 +58,7 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
             color: AppColors.white,
             padding: EdgeInsets.all(SizeConfig.size15),
             child: SafeArea(child: GetBuilder<MedicalController>(
+              init: getOrPut(() => MedicalController()),
               builder: (controller) {
                 return CustomBtn(
                   onTap: controller.canSubmitProducts

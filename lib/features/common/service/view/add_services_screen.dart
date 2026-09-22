@@ -622,6 +622,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
             ),
           ),
           GetBuilder<AddServiceController>(
+            init: getOrPut(() => AddServiceController()),
             id: "addIcon",
             builder: (_) {
               return AnimatedSwitcher(

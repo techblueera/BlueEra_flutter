@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class roomImagesWidget extends StatelessWidget {
   final String rentalId;
@@ -45,6 +46,7 @@ class roomImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.roomImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadRoomImages,
@@ -100,6 +102,7 @@ class roomImagesWidget extends StatelessWidget {
                   child: Column(
                     children: [
                       GetBuilder<CommonMultipleImageSectionController>(
+                        init: getOrPut(() => CommonMultipleImageSectionController()),
                         id: CommonMultipleImageSectionController.kitchenImageId,
                         builder: (ctrl) => CommonMultipleImageUploadSection(
                           title: AppStrings.uploadKitchenImages,
@@ -155,6 +158,7 @@ class roomImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.bathroomImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadBathroomImages,
@@ -212,6 +216,7 @@ class roomImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.roadSideImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadRoadSideImages,
@@ -271,6 +276,7 @@ class roomImagesWidget extends StatelessWidget {
                     child: Column(
                       children: [
                         GetBuilder<CommonMultipleImageSectionController>(
+                          init: getOrPut(() => CommonMultipleImageSectionController()),
                           id: CommonMultipleImageSectionController.otherImageId,
                           builder: (ctrl) => CommonMultipleImageUploadSection(
                             title: AppStrings.uploadOtherImages,

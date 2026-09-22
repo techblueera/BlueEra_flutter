@@ -272,6 +272,7 @@ setState(() {
         ),
         SizedBox(height: SizeConfig.paddingXSL),
         GetBuilder<AuthController>(
+          init: getOrPut(() => AuthController()),
             builder: (authController) {
               print("lsdkcmlskmdc ${selectedProfession} ${selectedProfession==POLITICIAN} ${POLITICIAN}");
               final dataList = authController
