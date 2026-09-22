@@ -1503,14 +1503,6 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
       errorMessage.value = '';
       final response = await BusinessProfileRepo().getServices(
           businessId: visitBusinessId, queryParam: {'type': 'service'});
-      final queryParam = {
-        'type': 'service',
-      };
-
-      await BusinessProfileRepo().getServices(
-        businessId: visitBusinessId,
-        queryParam: queryParam,
-      );
 
       if (response.isSuccess) {
         businessServiceResponse.value = ApiResponse.complete(response);
