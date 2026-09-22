@@ -171,6 +171,14 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        // The callback can fire while this element is on its way out — a
+        // system back landing during a route transition, or a pop triggered
+        // from elsewhere while the screen tears down. `context` is then
+        // defunct, and commonConformationDialog hands it straight to
+        // showDialog → Navigator.of → StatefulElement.state, which throws
+        // "Null check operator used on a null value". `mounted` is the only
+        // thing that says whether this context is still usable.
+        if (!mounted) return;
         commonConformationDialog(
           context: context,
           text: AppStrings.exitConfirmation.tr,

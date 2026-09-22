@@ -438,6 +438,11 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
             !controller.isCaller.value) {
           return;
         }
+        // Same guard as otp_page_screen: a pop callback can fire while this
+        // element is being torn down, and `Navigator.of` on a defunct one
+        // throws "Null check operator used on a null value" out of
+        // StatefulElement.state. Nothing to navigate away from at that point.
+        if (!mounted) return;
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
           _landOnAppIfPoppedToRoot();
