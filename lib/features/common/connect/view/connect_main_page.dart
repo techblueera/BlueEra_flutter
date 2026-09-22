@@ -62,6 +62,7 @@ import '../../../../widgets/glass_surface.dart';
 import 'goods_multi_order_booking_main.dart';
 import '../widget/customer_ongoing_ride_card.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 enum SavedFeedTab {
   posts;
@@ -1163,7 +1164,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           final isBiz = selectedIndex == 1;
           _handleLockSelectedChats(ids, isBiz);
         }),
-        PopupMenuButton<String>(
+        AppPopupMenuButton<String>(
           icon: const Icon(Icons.more_vert, color: Colors.black),
           offset: const Offset(0, 40),
           color: Colors.white,

@@ -23,6 +23,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ReferralHistoryScreenNew extends StatefulWidget {
   const ReferralHistoryScreenNew({super.key});
@@ -169,7 +170,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
           : AppStrings.filterByDate.tr,
     );
     if (!active) return iconBox;
-    return PopupMenuButton<String>(
+    return AppPopupMenuButton<String>(
       tooltip: AppStrings.dateFilterOptions.tr,
       position: PopupMenuPosition.under,
       offset: const Offset(0, 8),

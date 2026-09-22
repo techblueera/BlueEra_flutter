@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class SocialFeedScreen extends StatefulWidget {
   SocialFeedScreen({super.key});
@@ -181,7 +182,7 @@ class DepartmentCard extends StatelessWidget {
                       child: CustomText(data.title ?? "",
                           fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    PopupMenuButton(
+                    AppPopupMenuButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       icon: Icon(Icons.more_vert,

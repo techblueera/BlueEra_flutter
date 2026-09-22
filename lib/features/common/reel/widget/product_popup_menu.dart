@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ProductPopUpMenu extends StatelessWidget {
   final String channelId;
@@ -20,7 +21,7 @@ class ProductPopUpMenu extends StatelessWidget {
     return Positioned(
       top: 0,
       right: 0,
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         padding: EdgeInsets.zero,
         offset: const Offset(-6, 36),
         color: AppColors.white,

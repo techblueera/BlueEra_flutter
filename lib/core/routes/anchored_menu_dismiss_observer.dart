@@ -29,20 +29,69 @@ import 'package:get/get_navigation/src/dialog/dialog_route.dart';
 /// Dismissing on push closes the window, and matches what a user expects when
 /// they navigate away with a menu open.
 class AnchoredMenuDismissObserver extends NavigatorObserver {
+  /// The anchored menu currently on top, if any.
+  ///
+  /// Tracked rather than derived from each callback's arguments, because for
+  /// half the navigation events the menu is not one of them. `didPush` hands
+  /// over the pushed route and the one under it, so an open menu IS the
+  /// `previousRoute` and can be recognised — but `didPop` and `didRemove` hand
+  /// over the route that went and the one revealed, and when something else in
+  /// the history is popped or removed out from under a menu, the menu is
+  /// neither. `NavigatorObserver` exposes no way to enumerate history, so the
+  /// only way to reach it is to have kept a reference from when it was pushed.
+  ///
+  /// The earlier version of this class only overrode `didPush`/`didReplace`
+  /// and looked at the arguments, so `Get.offAll`, `Get.until` and a
+  /// programmatic `removeRoute` on the page beneath an open menu all slipped
+  /// through — which is why the crash survived into 14.0.88+347.
+  Route<dynamic>? _openMenu;
+
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    // `route` is what was just pushed; when that is the menu itself,
-    // `previousRoute` is the ordinary page underneath and nothing happens.
-    _dismiss(previousRoute);
+    if (_isAnchoredMenu(route)) {
+      _openMenu = route;
+      return;
+    }
+    _dismissOpenMenu();
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _forget(route);
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _forget(route);
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    _dismiss(oldRoute);
+    if (oldRoute != null && identical(oldRoute, _openMenu)) {
+      _openMenu = null;
+    }
+    if (newRoute != null && _isAnchoredMenu(newRoute)) {
+      _openMenu = newRoute;
+      return;
+    }
+    _dismissOpenMenu();
   }
 
-  void _dismiss(Route<dynamic>? route) {
-    if (route == null || !_isAnchoredMenu(route)) return;
+  /// The menu leaving by itself — dismissed by a tap outside, or a selection —
+  /// is the ordinary case and needs no action beyond dropping the reference.
+  /// Anything else leaving while a menu is open is the dangerous one.
+  void _forget(Route<dynamic> route) {
+    if (identical(route, _openMenu)) {
+      _openMenu = null;
+      return;
+    }
+    _dismissOpenMenu();
+  }
+
+  void _dismissOpenMenu() {
+    final Route<dynamic>? route = _openMenu;
+    if (route == null) return;
+    _openMenu = null;
     // Not synchronously: observers run inside the navigator's history flush,
     // and mutating history from there re-enters it. A microtask still lands
     // before the next frame builds and lays out, which is the frame that would

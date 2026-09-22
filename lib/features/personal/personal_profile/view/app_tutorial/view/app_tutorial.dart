@@ -9,6 +9,7 @@ import '../../../../../../widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
 import '../../../../../common/auth/model/adminvideo_model.dart';
 import '../../../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AppTutorialScreen extends StatefulWidget {
   const AppTutorialScreen({super.key});
@@ -244,7 +245,7 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
                   Positioned(
                     bottom: 8,
                     right: 8,
-                    child: PopupMenuButton<double>(
+                    child: AppPopupMenuButton<double>(
                       initialValue: _speed,
                       onSelected: (v) {
                         _controller!.setPlaybackSpeed(v);

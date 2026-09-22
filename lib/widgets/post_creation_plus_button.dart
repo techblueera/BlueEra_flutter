@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// The "+" create-post control used in the Social section header, and anywhere
 /// else that needs the *same* entry point (currently the My Post empty state).
@@ -45,7 +46,7 @@ class PostCreationPlusButton extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return PopupMenuButton<PostCreationMenu>(
+    return AppPopupMenuButton<PostCreationMenu>(
       padding: EdgeInsets.zero,
       offset: offset,
       color: AppColors.white,

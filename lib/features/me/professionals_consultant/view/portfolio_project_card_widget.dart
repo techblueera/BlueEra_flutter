@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 // ignore: must_be_immutable
 class PortfolioProjectCardWidget extends StatelessWidget {
@@ -163,7 +164,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
   Widget _buildPopupMenu(
     BuildContext context,
   ) {
-    return PopupMenuButton(
+    return AppPopupMenuButton(
       icon: Icon(Icons.more_vert, color: Colors.grey),
       onSelected: (value) async {
         if (value == 'edit') {
@@ -492,7 +493,7 @@ class _JobSeekerPortfolioProjectCardWidgetState
   Widget _buildPopupMenu(
     BuildContext context,
   ) {
-    return PopupMenuButton(
+    return AppPopupMenuButton(
       icon: Icon(Icons.more_vert, color: Colors.grey),
       onSelected: (value) async {
         if (value == 'edit') {

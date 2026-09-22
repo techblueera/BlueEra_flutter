@@ -10,6 +10,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/wallet/controlle
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class StaticsTab extends StatefulWidget {
   final ReferralController controller;
@@ -130,7 +131,7 @@ class _StaticsTabState extends State<StaticsTab> {
           color: AppColors.mainTextColor,
         ),
         const Spacer(),
-        PopupMenuButton<String>(
+        AppPopupMenuButton<String>(
           initialValue: _selectedFilter,
           tooltip: AppStrings.filterLabel.tr,
           position: PopupMenuPosition.under,

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'channel_setting_controller.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ChannelSettingScreen extends StatelessWidget {
   const ChannelSettingScreen({super.key});
@@ -228,7 +229,7 @@ class ChannelSettingScreen extends StatelessWidget {
     required List<String> options,
     required Function(String) onChanged,
   }) {
-    return Obx(() => PopupMenuButton<String>(
+    return Obx(() => AppPopupMenuButton<String>(
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size12,

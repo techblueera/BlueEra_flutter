@@ -8,6 +8,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class DepartmentScreen extends StatefulWidget {
   DepartmentScreen({super.key, required this.isEdit});
@@ -139,7 +140,7 @@ class DepartmentCard extends StatelessWidget {
                     child: CustomText(data.name ?? "",
                         fontSize: 18, fontWeight: FontWeight.bold)),
                 if (isEdit)
-                  PopupMenuButton(
+                  AppPopupMenuButton(
                     onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
                     itemBuilder: (context) => [
                       const PopupMenuItem(

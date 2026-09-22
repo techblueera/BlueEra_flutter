@@ -16,6 +16,7 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 
 import '../../../../widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class BusinessProfileHeader extends StatefulWidget {
   BusinessProfileHeader({super.key, required this.businessProfileDetails});
@@ -179,7 +180,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                     child: SizedBox(
                       height: 28,
                       width: 28,
-                      child: PopupMenuButton<String>(
+                      child: AppPopupMenuButton<String>(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 0,

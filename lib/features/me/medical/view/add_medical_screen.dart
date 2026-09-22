@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AddMedicalScreen extends StatefulWidget {
   const AddMedicalScreen({super.key});
@@ -247,7 +248,7 @@ class _AddMedicalScreenState extends State<AddMedicalScreen> {
   }
 
   Widget _groceryPopUpMenu(int i) {
-    return PopupMenuButton<String>(
+    return AppPopupMenuButton<String>(
       padding: EdgeInsets.zero,
       offset: const Offset(-6, 36),
       color: AppColors.white,

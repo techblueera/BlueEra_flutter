@@ -22,6 +22,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class SymbolFullscreenViewer extends StatefulWidget {
   final List<SymbolUserGroup> groups;
@@ -1694,7 +1695,7 @@ class _CommentTile extends StatelessWidget {
             ),
           ),
           if (isOwn)
-            PopupMenuButton<String>(
+            AppPopupMenuButton<String>(
               padding: EdgeInsets.zero,
               iconSize: 18,
               icon: Icon(Icons.more_vert,

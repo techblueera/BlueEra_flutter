@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Shared form-building primitives for the "List Your Property"
 /// (For Sale: Houses & Apartments) static create flow. Used across
@@ -846,7 +847,7 @@ class _RentalAreaFieldState extends State<RentalAreaField> {
   Widget _unitDropdown() {
     return Obx(() {
       final currentUnit = _ctrl.areaUnit.value;
-      return PopupMenuButton<String>(
+      return AppPopupMenuButton<String>(
         initialValue: currentUnit,
         tooltip: AppStrings.selectUnitTooltip.tr,
         onSelected: (val) => _ctrl.areaUnit.value = val,

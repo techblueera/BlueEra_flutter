@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../../widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class CourseListScreen extends StatefulWidget {
   CourseListScreen({super.key, required this.isEdit});
@@ -125,7 +126,7 @@ class CourseCard extends StatelessWidget {
   Widget _buildPopupMenu(
     BuildContext context,
   ) {
-    return PopupMenuButton(
+    return AppPopupMenuButton(
       icon: Icon(Icons.more_vert, color: Colors.grey),
       onSelected: (value) async {
         if (value == 'edit') {

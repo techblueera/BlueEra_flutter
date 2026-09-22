@@ -14,6 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Lists every room of a given [roomType] for the hotel, with a per-row
 /// image carousel, price, bed type / occupancy, and a delete action.
@@ -246,7 +247,7 @@ class _RoomCardState extends State<_RoomCard> {
     return Positioned(
       top: 12,
       right: 12,
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         onSelected: (value) {
           if (value == 'delete') widget.onDelete(widget.room);
         },

@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AllJobPostScreen extends StatefulWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
@@ -256,7 +257,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                   Container(
                                                     width: SizeConfig.size20,
                                                     height: SizeConfig.size30,
-                                                    child: PopupMenuButton<String>(
+                                                    child: AppPopupMenuButton<String>(
                                                       padding: EdgeInsets.zero,
                                                       offset: const Offset(-6, 36),
                                                       color: AppColors.white,

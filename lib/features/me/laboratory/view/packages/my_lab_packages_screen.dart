@@ -13,6 +13,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// "My Packages" — the caller's own package catalog.
 ///
@@ -495,7 +496,7 @@ class _CardMenu extends StatelessWidget {
     return SizedBox(
       width: 20,
       height: 20,
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         icon: Icon(Icons.more_vert, size: 18, color: AppColors.grey7E),
         padding: EdgeInsets.zero,
         onSelected: (v) {

@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AllBusinessProductsScreen extends StatefulWidget {
   final String? productCategoryName;
@@ -232,7 +233,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
 
     if (categories.isEmpty) return label;
 
-    return PopupMenuButton<CategoryData>(
+    return AppPopupMenuButton<CategoryData>(
       tooltip: '',
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(

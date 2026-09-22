@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// "Choose Room" card — room-type chips + horizontal room list with the
 /// Add / View-All / per-card Edit / Delete affordances. Shared between the
@@ -183,7 +184,7 @@ class _RoomMoreMenu extends StatelessWidget {
         color: AppColors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: PopupMenuButton<int>(
+      child: AppPopupMenuButton<int>(
         padding: EdgeInsets.zero,
         icon: const Icon(Icons.more_vert, size: 20, color: AppColors.black),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

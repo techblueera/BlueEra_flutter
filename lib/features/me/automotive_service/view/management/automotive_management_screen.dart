@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'automotive_add_management_form_screen.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AutomotiveManagementScreen extends StatelessWidget {
   const AutomotiveManagementScreen({super.key});
@@ -112,7 +113,7 @@ class AutomotiveManagementScreen extends StatelessWidget {
                         SizedBox(
                           width: 24, // Control the exact width
                           height: 24, // Control the exact height
-                          child: PopupMenuButton<String>(
+                          child: AppPopupMenuButton<String>(
                             padding: EdgeInsets.zero,
                             // Removes internal button padding
                             iconSize: 20,

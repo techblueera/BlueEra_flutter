@@ -17,6 +17,7 @@ import '../../wallet/controller/wallet_controller.dart';
 import '../../wallet/model/bank_details_model.dart';
 import '../../wallet/model/upi_details_model.dart';
 import '../widget/upi_qr_widget.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class PaymentSettingScreen extends StatefulWidget {
   const PaymentSettingScreen({super.key});
@@ -728,7 +729,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
           ),
         ],
       ),
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         padding: EdgeInsets.zero,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

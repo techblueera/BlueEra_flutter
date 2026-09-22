@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Everything an action needs that the action string itself doesn't carry.
 /// One instance per rendered order card.
@@ -338,7 +339,7 @@ class OrderActionBar extends StatelessWidget {
   Widget _overflowButton(BuildContext context, List<String> actions) {
     return SizedBox(
       height: OrderUi.buttonHeight,
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         tooltip: 'More',
         padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

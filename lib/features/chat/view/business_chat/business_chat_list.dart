@@ -25,6 +25,7 @@ import '../reminder_chat/reminder_chat_list.dart';
 import 'ride_chat_registry.dart';
 import '../widget/component_widgets.dart';
 import '../../../../widgets/glass_surface.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Where a business-list row belongs:
 ///   [chats] — the main Chat tab (buyers, normal chats, groups)
@@ -895,7 +896,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          PopupMenuButton<_OrderDateFilter>(
+          AppPopupMenuButton<_OrderDateFilter>(
             offset: const Offset(0, 42),
             color: Colors.white,
             elevation: 3,

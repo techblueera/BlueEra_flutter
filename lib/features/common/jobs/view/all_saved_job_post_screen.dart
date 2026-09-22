@@ -25,6 +25,7 @@ import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AllSavedJobPostScreen extends StatefulWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
@@ -259,7 +260,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                               Container(
                                                 width: SizeConfig.size20,
                                                 height: SizeConfig.size30,
-                                                child: PopupMenuButton<String>(
+                                                child: AppPopupMenuButton<String>(
                                                   padding: EdgeInsets.zero,
                                                   offset: const Offset(-6, 36),
                                                   color: AppColors.white,

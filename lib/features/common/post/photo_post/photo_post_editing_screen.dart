@@ -19,6 +19,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class PhotoPostEditingScreen extends StatefulWidget {
   PhotoPostEditingScreen({Key? key}) : super(key: key);
@@ -335,8 +336,8 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
     );
   }
 
-  PopupMenuButton _photoPhotoPopUpMenu() {
-    return PopupMenuButton<String>(
+  AppPopupMenuButton<String> _photoPhotoPopUpMenu() {
+    return AppPopupMenuButton<String>(
       padding: EdgeInsets.zero,
       offset: const Offset(-6, 36),
       color: AppColors.white,

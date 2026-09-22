@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_sc
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ReelVideoPopUpMenu extends StatelessWidget {
   final ShortFeedItem videoFeedItem;
@@ -28,7 +29,7 @@ class ReelVideoPopUpMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
+    return AppPopupMenuButton<String>(
       padding: EdgeInsets.zero,
       offset: const Offset(-6, 36),
       color: AppColors.white,

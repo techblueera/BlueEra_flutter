@@ -33,6 +33,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Twitter/X-style post detail screen with inline comments
 class TwitterPostDetailScreen extends StatefulWidget {
@@ -155,7 +156,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
               ),
             ),
           ),
-          PopupMenuButton<String>(
+          AppPopupMenuButton<String>(
             padding: EdgeInsets.zero,
             icon: Icon(Icons.more_vert,
                 color: AppColors.secondaryTextColor, size: 20),

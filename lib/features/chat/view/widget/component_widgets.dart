@@ -49,6 +49,7 @@ import 'chat_shortcut_service.dart';
 import '../../../../widgets/glass_surface.dart';
 import 'common_delete_message.dart';
 import '../media_view_page/conversation_media_page.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Returns true when [createdAt] (ISO-8601 from server) is older than 24 hours.
 /// Used to expire rider action buttons, the order chat input, and the appbar
@@ -2270,7 +2271,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           // Read .value synchronously so Obx tracks it and rebuilds the menu
           // icon/labels when the mute state changes.
           final isMuted = aiProfileCtrl!.isMuted.value;
-          return PopupMenuButton<String>(
+          return AppPopupMenuButton<String>(
             icon: LocalAssets(
               imagePath: AppIconAssets.chat_info_pop,
               height: 20,
@@ -2305,7 +2306,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
           );
         })
       else if(isGroupAppBar == null)
-        PopupMenuButton<String>(
+        AppPopupMenuButton<String>(
             icon: LocalAssets(
               imagePath: AppIconAssets.chat_info_pop,
               height: 20,
@@ -2358,7 +2359,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
             itemBuilder: (context) => PopupMenuBuilders.popPupMenuForPersonalChat(),
         ),
       if(isGroupAppBar != null)
-        PopupMenuButton<String>(
+        AppPopupMenuButton<String>(
             icon: SvgPicture.asset(AppIconAssets.chat_info_pop),
             padding: const EdgeInsets.symmetric(horizontal: 4),
             constraints: const BoxConstraints(),
@@ -2634,7 +2635,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
         ),
 
 
-        // PopupMenuButton<String>(
+        // AppPopupMenuButton<String>(
         //   icon: Icon(Icons.more_vert, color: AppColors.chat_input_icon_color),
         //   offset: const Offset(20, 60), // 👈 shift menu 40 pixels downward
         //   onSelected: (value) {

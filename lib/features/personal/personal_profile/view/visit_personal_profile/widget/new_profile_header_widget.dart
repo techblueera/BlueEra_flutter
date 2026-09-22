@@ -14,6 +14,7 @@ import 'package:BlueEra/core/services/share_service.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
 import '../../../../../../widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class NewProfileHeaderWidget extends StatelessWidget {
   final User? user;
@@ -162,7 +163,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                         );
                       }),
                     // const SizedBox(width: 6),
-                    PopupMenuButton<String>(
+                    AppPopupMenuButton<String>(
                       padding: EdgeInsets.zero,
                       color: AppColors.white,
                       elevation: 1,

@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class FacultyProfileListScreen extends StatelessWidget {
   final controller = Get.put(FacultyController());
@@ -78,7 +79,7 @@ class FacultyProfileListScreen extends StatelessWidget {
                       ],
                     ),
                     trailing:isEdit?
-                    PopupMenuButton<String>(
+                    AppPopupMenuButton<String>(
                       onSelected: (value) async {
                         if (value == 'edit') {
                           Get.to(() => FacultyFormScreen(isEdit: true,facultyData: user,));

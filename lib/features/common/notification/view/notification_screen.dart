@@ -39,6 +39,7 @@ import 'package:get/get.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -574,7 +575,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     SizedBox(
                                       height: SizeConfig.size2,
                                     ),
-                                    PopupMenuButton<String>(
+                                    AppPopupMenuButton<String>(
                                       padding: EdgeInsets.zero,
                                       onSelected: (value) {
                                         if (value == 'delete') {

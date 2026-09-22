@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/local_assets.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Shared course card — same visual used by the owner's Academics tab
 /// (`SchoolAcademicsTabV2`) and by the public-facing discover screen
@@ -313,7 +314,7 @@ class _CardMenu extends StatelessWidget {
     return SizedBox(
       width: 20,
       height: 20,
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         icon: Icon(Icons.more_vert, size: 18, color: AppColors.grey7E),
         padding: EdgeInsets.zero,
         onSelected: (v) {

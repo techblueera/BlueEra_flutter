@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Content-creator "Channel" tab. Lists the creator's linked social channels
 /// (`EarnArtist.channels`) and a top CTA to add a new one. Adding runs a small
@@ -135,7 +136,7 @@ class ContentCreatorChannelTab extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     color: AppColors.mainTextColor),
               ),
-              PopupMenuButton<String>(
+              AppPopupMenuButton<String>(
                 icon: Icon(Icons.more_vert_rounded,
                     color: AppColors.secondaryTextColor, size: 20),
                 onSelected: (v) async {

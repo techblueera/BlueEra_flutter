@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ImageViewScreen extends StatefulWidget {
   final String? subTitle;
@@ -149,7 +150,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                   top: SizeConfig.size25,
                   right: SizeConfig.size15,
                   child: SafeArea(
-                    child: PopupMenuButton<String>(
+                    child: AppPopupMenuButton<String>(
                       padding: EdgeInsets.zero,
                       // offset: const Offset(-6, 36),
                       color: AppColors.white,

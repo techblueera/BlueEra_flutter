@@ -32,6 +32,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ChannelScreen extends StatefulWidget {
   final String accountType;
@@ -695,7 +696,7 @@ class _ChannelScreenState extends State<ChannelScreen>
   Widget _buildVisitingChannelPopUpMenu({VoidCallback? onReport,
     VoidCallback? onMute,
     VoidCallback? onOwnership}) {
-    return PopupMenuButton<VisitingChannelMenuAction>(
+    return AppPopupMenuButton<VisitingChannelMenuAction>(
       padding: EdgeInsets.zero,
       color: AppColors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -752,7 +753,7 @@ class _ChannelScreenState extends State<ChannelScreen>
     VoidCallback? onAddProduct,
     VoidCallback? onAddService,
   }) {
-    return PopupMenuButton<OwnChannelMenuAction>(
+    return AppPopupMenuButton<OwnChannelMenuAction>(
       padding: EdgeInsets.zero,
       color: AppColors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

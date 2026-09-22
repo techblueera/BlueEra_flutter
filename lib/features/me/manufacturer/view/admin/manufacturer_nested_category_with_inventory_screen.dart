@@ -15,6 +15,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ManufacturerNestedCategoryWithInventoryScreen extends StatefulWidget {
   final List<ProductCategoryWithInventoryModel> argProductCategoryWithInventory;
@@ -76,7 +77,7 @@ class _ManufacturerNestedCategoryWithInventoryScreenState
     return Scaffold(
       appBar: CommonBackAppBar(
         isCustomTitleWidget: () =>
-            PopupMenuButton<ProductCategoryWithInventoryModel>(
+            AppPopupMenuButton<ProductCategoryWithInventoryModel>(
           offset: const Offset(0, 30),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

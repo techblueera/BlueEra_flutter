@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'add_management_form_screen.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ManagementScreen extends StatelessWidget {
   const ManagementScreen({super.key});
@@ -109,7 +110,7 @@ class ManagementScreen extends StatelessWidget {
                         SizedBox(
                           width: 24, // Control the exact width
                           height: 24, // Control the exact height
-                          child: PopupMenuButton<String>(
+                          child: AppPopupMenuButton<String>(
                             padding: EdgeInsets.zero,
                             // Removes internal button padding
                             iconSize: 20,

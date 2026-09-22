@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Discover card for one standalone doctor — laid out to `docs/drcard_new.png`:
 /// square photo with a rating pill, name + overflow menu, specialization pill,
@@ -332,7 +333,7 @@ class _DoctorDiscoverCardState extends State<DoctorDiscoverCard> {
     return SizedBox(
       width: 20,
       height: 20,
-      child: PopupMenuButton<String>(
+      child: AppPopupMenuButton<String>(
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
         iconSize: 20,

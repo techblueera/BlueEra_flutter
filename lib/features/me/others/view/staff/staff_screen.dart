@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class StaffScreen extends StatelessWidget {
   const StaffScreen({super.key});
@@ -145,7 +146,7 @@ class StaffScreen extends StatelessWidget {
                         SizedBox(
                           width: 24, 
                           height: 24, 
-                          child: PopupMenuButton<String>(
+                          child: AppPopupMenuButton<String>(
                             padding: EdgeInsets.zero,
                             iconSize: 20,
                             splashRadius: 20,

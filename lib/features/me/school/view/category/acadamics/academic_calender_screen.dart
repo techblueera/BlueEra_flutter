@@ -16,6 +16,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class AcademicCalenderScreen extends StatefulWidget {
   AcademicCalenderScreen({super.key, required this.isEdit});
@@ -209,7 +210,7 @@ class _AcademicCalenderScreenState extends State<AcademicCalenderScreen> {
     VoidCallback? onNoticeNewsEdit,
     VoidCallback? onNoticeNewsDelete,
   }) {
-    return PopupMenuButton<EditDeleteMenuAction>(
+    return AppPopupMenuButton<EditDeleteMenuAction>(
       color: AppColors.white,
       menuPadding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

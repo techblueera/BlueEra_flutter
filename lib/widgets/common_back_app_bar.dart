@@ -32,6 +32,7 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
 import '../features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonBackAppBar(
@@ -442,7 +443,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
               if (isResumeCardButton ?? false)
-                PopupMenuButton<String>(
+                AppPopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   offset: const Offset(-6, 36),
                   color: AppColors.white,
@@ -484,7 +485,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
               if (isInventoryPopUpMenu ?? false)
-                PopupMenuButton<String>(
+                AppPopupMenuButton<String>(
                   padding: EdgeInsets.zero,
                   offset: const Offset(-6, 36),
                   color: AppColors.white,
@@ -557,7 +558,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           else
-            PopupMenuButton<PostCreationMenu>(
+            AppPopupMenuButton<PostCreationMenu>(
               padding: EdgeInsets.zero,
               offset: const Offset(0, 36),
               color: AppColors.white,
@@ -596,7 +597,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             builder: (context) => buildCustomActionWidget!(),
           ),
         if (showTransactionFilter ?? false)
-          PopupMenuButton<int>(
+          AppPopupMenuButton<int>(
               offset: const Offset(-6, 36),
               color: AppColors.white,
               elevation: 8,
@@ -945,7 +946,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         if (isPDFExport ?? false)
-          PopupMenuButton<String>(
+          AppPopupMenuButton<String>(
             padding: EdgeInsets.zero,
             onSelected: (value) async {
               String? selectedExt;

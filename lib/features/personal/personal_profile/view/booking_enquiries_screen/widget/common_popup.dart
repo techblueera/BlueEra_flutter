@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../core/constants/size_config.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class CommonPopupButton extends StatelessWidget {
   final Function(String)? onSelected;
@@ -17,7 +18,7 @@ class CommonPopupButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
+    return AppPopupMenuButton<String>(
       onSelected: onSelected,
       itemBuilder: (context) => menuItems,
       child: Container(

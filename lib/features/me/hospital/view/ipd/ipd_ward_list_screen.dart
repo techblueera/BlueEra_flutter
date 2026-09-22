@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class IpdWardListScreen extends StatefulWidget {
   final String departmentId;
@@ -163,7 +164,7 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
   }
 
   Widget _buildPopupMenu(BuildContext context, IpdWard w) {
-    return PopupMenuButton<String>(
+    return AppPopupMenuButton<String>(
       child: const Icon(Icons.more_vert, size: 20),
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),

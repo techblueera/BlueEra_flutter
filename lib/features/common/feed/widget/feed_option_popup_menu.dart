@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/post/message_post/message_post_preview_s
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class FeedPopUpMenu extends StatelessWidget {
   final Post post;
@@ -21,7 +22,7 @@ class FeedPopUpMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
+    return AppPopupMenuButton<String>(
       padding: EdgeInsets.zero,
       offset: const Offset(-6, 36),
       color: AppColors.white,

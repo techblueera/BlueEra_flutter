@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// Owner-side testimonials manager. Lists the lab's own testimonials with
 /// edit / delete actions; a FAB opens the add-testimonial sheet.
@@ -206,7 +207,7 @@ class _LabTestimonialsScreenState extends State<LabTestimonialsScreen> {
                   ],
                 ),
               ),
-              PopupMenuButton<String>(
+              AppPopupMenuButton<String>(
                 icon: Icon(Icons.more_vert_rounded,
                     color: AppColors.secondaryTextColor),
                 onSelected: (v) {

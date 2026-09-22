@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class ApplicationCard extends StatefulWidget {
   final int index;
@@ -240,7 +241,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
                   child: 
-                  PopupMenuButton<String>(
+                  AppPopupMenuButton<String>(
                     onSelected: (value) async {
                       String applicationId = widget.data.id ?? "";
                       if (value == 'Shortlist Resume') {

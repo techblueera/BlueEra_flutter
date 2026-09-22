@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 /// The byline: avatar, then the display name and `@handle` sharing one line,
 /// with the designation chip on the line beneath.
@@ -235,7 +236,7 @@ class PostAuthorHeader extends StatelessWidget {
                   height: 20,
                   width: 20,
                   margin: EdgeInsets.only(right: SizeConfig.size15),
-                  child: PopupMenuButton<String>(
+                  child: AppPopupMenuButton<String>(
                     padding: EdgeInsets.zero,
                     // offset: const Offset(-6, 36),
                     color: AppColors.white,
@@ -263,7 +264,7 @@ class PostAuthorHeader extends StatelessWidget {
                   height: 20,
                   width: 20,
                   margin: EdgeInsets.only(right: SizeConfig.size12),
-                  child: PopupMenuButton<String>(
+                  child: AppPopupMenuButton<String>(
                     padding: EdgeInsets.zero,
                     // offset: const Offset(-6, 36),
                     color: AppColors.white,

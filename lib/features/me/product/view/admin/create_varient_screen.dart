@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class CreateVariantScreen extends StatefulWidget {
   final ProductController controller;
@@ -339,7 +340,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                              ),
                              Padding(
                                padding: EdgeInsets.only(top: 8.0),
-                               child: PopupMenuButton<String>(
+                               child: AppPopupMenuButton<String>(
                                  padding: EdgeInsets.zero,
                                  offset: const Offset(-6, 36),
                                  color: AppColors.white,
