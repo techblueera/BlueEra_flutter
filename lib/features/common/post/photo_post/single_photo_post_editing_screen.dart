@@ -86,6 +86,28 @@ class _SinglePhotoPostEditingScreenState extends State<SinglePhotoPostEditingScr
       child: ProImageEditor.file(
         widget.photo,
         configs: ProImageEditorConfigs(
+          // KEEP cupertino — it is load-bearing, not cosmetic.
+          //
+          // pro_image_editor's PlatformPopupBtn (shared/widgets/platform/
+          // platform_popup_menu.dart) branches on this: cupertino opens a
+          // `showCupertinoModalPopup`, material builds a raw
+          // `PopupMenuButton`. That widget re-measures its anchor on every
+          // layout of the open menu and never checks the anchor has been laid
+          // out, which throws
+          //
+          //   Bad state: RenderBox was not laid out: RenderFractionalTranslation
+          //
+          // when the menu survives into a frame where its page is offstage —
+          // the crash AppPopupMenuButton exists to make impossible. That
+          // replacement covers OUR call sites; it cannot reach inside a
+          // package. The paint and text editor app bars both render this
+          // button, so switching to material here, or adding a second
+          // ProImageEditor entry point without a designMode, puts an
+          // unprotected PopupMenuButton back into a pushed sub-route.
+          //
+          // AnchoredMenuDismissObserver still covers the navigation trigger,
+          // but it is a workaround; this line is what keeps the widget out of
+          // the tree altogether.
           designMode: ImageEditorDesignMode.cupertino,
           cropRotateEditor: CropRotateEditorConfigs(
             initAspectRatio: _cropRatio,          // lock ratio
