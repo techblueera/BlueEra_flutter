@@ -36,8 +36,12 @@ class _MyProductProductsScreenState extends State<MyManufacturerProductsScreen> 
   void initState() {
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.selectedProductCategoryData.value =
-          widget.arrCategories.first;
+      // The category list can arrive empty (a store with no categories
+      // yet); `.first` threw "Bad state: No element" here. Nothing to
+      // select or load then.
+      final firstCategory = widget.arrCategories.firstOrNull;
+      if (firstCategory == null) return;
+      controller.selectedProductCategoryData.value = firstCategory;
       controller.selectedProductHorizontalTabIndex.value = 0;
       getProducts();
     });
