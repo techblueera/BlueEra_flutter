@@ -204,13 +204,21 @@ class RiderLocationForegroundService : Service() {
             // question the platform's own rule asks.
             requireBackgroundGrant = !LocationFgsGuard.canUseWhileInUseLocationNow(this)
         )
-        if (reason != null) {
+        // Only refuse up front where the platform itself would refuse. Below
+        // Android 14 startForeground() does not check location permissions at
+        // all, and refusing there is what crashes: on Android 9-11 a service
+        // started with startForegroundService() that stops before calling
+        // startForeground() is killed with "Context.startForegroundService()
+        // did not then call Service.startForeground()" — the very exception
+        // stopSelf() was meant to avoid. So below 14, promote first and then
+        // give up (see the end of this function).
+        if (reason != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             recordBlocked(reason)
             Log.w(TAG, "not promoting to foreground: $reason")
             return false
         }
 
-        return try {
+        val promoted = try {
             ServiceCompat.startForeground(
                 this,
                 NOTIFICATION_ID,
@@ -243,6 +251,16 @@ class RiderLocationForegroundService : Service() {
             }
             false
         }
+
+        if (promoted && reason != null) {
+            // Below Android 14: in the foreground now, so the caller's
+            // stopSelf() is safe, but still without the grant to locate.
+            recordBlocked(reason)
+            Log.w(TAG, "promoted, then stopping: $reason")
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+            return false
+        }
+        return promoted
     }
 
     /**
