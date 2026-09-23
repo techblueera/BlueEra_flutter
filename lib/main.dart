@@ -1074,11 +1074,14 @@ Future<void> main() async {
     PlatformDispatcher.instance.onError = (error, stack) {
       if (error is NetworkImageLoadException) return true;
       final bool isTransport = _isNetworkTransportError(error);
+      final bool isHiveOpen = _isHiveOpenBoxError(error, stack);
       FirebaseCrashlytics.instance.recordError(
         error,
         stack,
-        reason: isTransport ? 'network-transport' : null,
-        fatal: !isTransport,
+        reason: isTransport
+            ? 'network-transport'
+            : (isHiveOpen ? 'hive-open-box' : null),
+        fatal: !isTransport && !isHiveOpen,
       );
       return true;
     };
@@ -1140,6 +1143,29 @@ bool _isNetworkTransportError(Object? error) {
         _isNetworkTransportError(error.error);
   }
   return false;
+}
+
+/// True for a file or format error thrown while Hive was opening a box.
+///
+/// Hive 2.2.3's `_openBox` rethrows the failure to the caller, and also
+/// completes an internal "opening" future with the same error, which it then
+/// drops without listening to it. That second copy always arrives here as an
+/// uncaught async error, even when the caller catches the first. So
+/// `LocalStorageHelper.getContacts` catching a `PathNotFoundException` on
+/// `Chat History/contactsstore.hive` (the folder is user-browsable and wiped
+/// on logout, so it can vanish mid-open), and `HiveServices.init` catching
+/// `HiveError: unknown typeId` on a box written by a deleted adapter, both
+/// still reached Crashlytics as Fatal Exceptions.
+///
+/// Recorded as a non-fatal, not suppressed: the app did not crash, and
+/// whether the caller handled the rethrown copy is its own concern. Matching
+/// on `_openBox` in the stack keeps other Hive errors (e.g. `Box not found`
+/// from an unguarded `Hive.box()`) fatal. That needs symbolic Dart stacks —
+/// building with `--split-debug-info` or `--obfuscate` would make this never
+/// match, which fails safe (fatal).
+bool _isHiveOpenBoxError(Object error, StackTrace stack) {
+  return (error is FileSystemException || error is HiveError) &&
+      stack.toString().contains('HiveImpl._openBox');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

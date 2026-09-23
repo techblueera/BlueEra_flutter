@@ -58,19 +58,38 @@ class HiveServices{
 
   /// Initialize Hive boxes
   static Future<void> init() async {
-    await Hive.openBox(_savedPosts);
-    await Hive.openBox(_savedVideos);
-    await Hive.openBox(_savedAllNearByStore);
-    await Hive.openBox(_savedAllNearByStoreProduct);
-    await Hive.openBox(_savedAllNearByStoreService);
-    await Hive.openBox(_savedAllNearByStoresFoodServices);
-    await Hive.openBox(_savedBusinessCategoryBox);
-    await Hive.openBox(_savedProfessionTypeBox);
-    await Hive.openBox(_savedAdminVideosBox);
-    await Hive.openBox(_savedGroceryNestedCategoryBox);
-    await Hive.openBox(_savedProductNestedCategoryBox);
-    await Hive.openBox(_savedVehicleCategoryBox);
-    await Hive.openBox(_savedStoreCountsBox);
+    for (final name in allBoxNames) {
+      await _openCacheBox(name);
+    }
+  }
+
+  /// Opens one cache box, discarding it if its file cannot be read.
+  ///
+  /// Builds before c3987b723 (Sep 2025) stored `savedPosts` / `savedVideos`
+  /// entries as PostHiveModel / VideoHiveModel objects through Hive adapters
+  /// that have since been deleted. A device updating from one of those still
+  /// has the old frames on disk, and opening the box throws
+  /// `HiveError: Cannot read, unknown typeId: 33` (Hive stores adapter N as
+  /// N + 32). No adapter can read them any more, so the data is already lost;
+  /// what matters is that one unreadable box does not throw out of [init],
+  /// which fails the startup `Future.wait` in `_initDeferred` and skips the
+  /// rest of deferred init. Every box here is a refetchable cache, so drop
+  /// the file and start it empty.
+  static Future<void> _openCacheBox(String name) async {
+    try {
+      await Hive.openBox(name);
+    } catch (e) {
+      log('Hive openBox($name) failed, recreating it empty: $e');
+      try {
+        await Hive.deleteBoxFromDisk(name);
+        await Hive.openBox(name);
+      } catch (e) {
+        // Only reachable when a freshly created empty box cannot be opened
+        // either (storage failure). The box stays closed, and the readers
+        // that call Hive.box() unguarded will throw — but init still returns.
+        log('Hive openBox($name) retry failed: $e');
+      }
+    }
   }
 
   static List<String> get allBoxNames => [
