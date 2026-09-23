@@ -307,8 +307,14 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                       onTap: () async {
                         // ShareService owns the link + body + share
                         // sheet for someone-else's-profile shares.
+                        //
+                        // `user` is dynamic, so a missing id (profile still
+                        // loading, or not returned) is only caught at runtime,
+                        // as a cast failure into shareProfile's String.
+                        final userId = user?.id;
+                        if (userId is! String || userId.isEmpty) return;
                         await ShareService.instance.shareProfile(
-                          userId: user?.id,
+                          userId: userId,
                           subject: user?.name,
                         );
                       },
