@@ -451,8 +451,24 @@ class PhotoPickerService {
   /// for the empty-history case that makes `pop` throw. Nothing to pop also
   /// means nothing to return to, so skipping is the correct outcome, not a
   /// silent failure.
+  ///
+  /// `canPop` is not enough on its own, though: `pop` closes whatever is on
+  /// TOP, not the cropper. If the cropper is already gone (backed out while
+  /// the crop was processing) or something was pushed over it, the result
+  /// lands on another route, and a typed one rejects it —
+  ///   type 'CropImageResult' is not a subtype of type 'String?' of 'result'
+  /// So pop only when the top route is the cropper, which croppy pushes as a
+  /// `Route<CropImageResult?>`.
   static void _popCropper(NavigatorState navigator, CropImageResult result) {
     if (!navigator.mounted || !navigator.canPop()) return;
+    // popUntil with a predicate that accepts the first route it sees reads
+    // the top route without popping anything; Navigator has no getter for it.
+    Route<dynamic>? top;
+    navigator.popUntil((route) {
+      top = route;
+      return true;
+    });
+    if (top is! Route<CropImageResult?>) return;
     navigator.pop(result);
   }
 
