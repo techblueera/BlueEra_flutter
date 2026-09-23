@@ -30,9 +30,21 @@ class TransparentActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Only the notification's PendingIntents (getIntent above) carry an
+        // action. A relaunch that did not come from one — e.g. the system
+        // re-creating this activity from its task after process death — has
+        // none, and `intent.action!!` crashed it in onCreate. There is no call
+        // action to forward then, so just close.
+        val action = intent.action
+        if (action == null) {
+            finish()
+            overridePendingTransition(0, 0)
+            return
+        }
+
         val data = intent.getBundleExtra("data")
 
-        val broadcastIntent = CallkitIncomingBroadcastReceiver.getIntent(this, intent.action!!, data)
+        val broadcastIntent = CallkitIncomingBroadcastReceiver.getIntent(this, action, data)
         broadcastIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
         sendBroadcast(broadcastIntent)
 
