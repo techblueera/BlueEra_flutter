@@ -4614,6 +4614,10 @@ class ChatViewController extends GetxController {
     // about your service"). The user can edit before sending.
     String? prefilledMessage,
   }) async {
+    // Captured before the awaits below: the contact-list screen the chat is
+    // meant to replace. See [_navigateToChatScreen].
+    final Route<dynamic>? contactListRoute =
+        isFromContactList == true ? _topRoute() : null;
     // Set the send lane up-front so any fire-and-forget send below
     // (e.g. sendProductMessages) already carries the right route.
     activeRoute = route;
@@ -4680,6 +4684,7 @@ class ChatViewController extends GetxController {
         contactName: contactName,
         contactNo: contactNo,
         isFromContactList: isFromContactList,
+        contactListRoute: contactListRoute,
         prefilledMessage: prefilledMessage,
       );
       return true;
@@ -4688,6 +4693,7 @@ class ChatViewController extends GetxController {
       final opened = await _tryOpenChatFromLocalCache(
         userId: userId,
         isFromContactList: isFromContactList,
+        contactListRoute: contactListRoute,
       );
       if (!opened) {
         commonSnackBar(
@@ -4702,6 +4708,7 @@ class ChatViewController extends GetxController {
   Future<bool> _tryOpenChatFromLocalCache({
     required String userId,
     bool? isFromContactList,
+    Route<dynamic>? contactListRoute,
   }) async {
     // First search in-memory chat lists (already loaded)
     ChatList? cachedChat = _findChatInMemory(userId);
@@ -4747,6 +4754,7 @@ class ChatViewController extends GetxController {
       contactName: contactName,
       contactNo: contactNo,
       isFromContactList: isFromContactList,
+      contactListRoute: contactListRoute,
     );
     return true;
   }
@@ -4767,6 +4775,26 @@ class ChatViewController extends GetxController {
     return null;
   }
 
+  /// The route currently on top of GetX's navigator, or null if there is none.
+  ///
+  /// Navigator has no getter for it; `popUntil` with a predicate that accepts
+  /// the first route it sees reads it without popping anything.
+  Route<dynamic>? _topRoute() {
+    final navigator = Get.key.currentState;
+    if (navigator == null || !navigator.mounted) return null;
+    Route<dynamic>? top;
+    try {
+      navigator.popUntil((route) {
+        top = route;
+        return true;
+      });
+    } catch (_) {
+      // No present route (history mid-rebuild): nothing to capture.
+      return null;
+    }
+    return top;
+  }
+
   /// Navigate to the appropriate chat screen (personal or business).
   void _navigateToChatScreen({
     required String type,
@@ -4783,14 +4811,29 @@ class ChatViewController extends GetxController {
     /// and the composer — the thread itself still opens, because the history
     /// belongs to the surviving participant.
     bool isDeleted = false,
+
+    /// The contact-list route, captured when the tap started. Only
+    /// meaningful with [isFromContactList].
+    Route<dynamic>? contactListRoute,
   }) {
+    // From the contact list the chat REPLACES that screen (Get.off). But the
+    // callers await the network first, and Get.off replaces whatever is on
+    // top by then: if the user backed out meanwhile it replaced the wrong
+    // screen, and with nothing on top it threw "Bad state: No element" from
+    // pushReplacement. So replace only while the contact list is still on
+    // top; if it is gone, the user has moved on — do not open the chat. If it
+    // could not be captured at all, push rather than replace.
+    final bool replaceContactList =
+        isFromContactList == true && contactListRoute != null;
+    if (replaceContactList && !contactListRoute.isCurrent) return;
+
     // `order` is merged into `business`; route legacy order conversations to
     // the business screen too (BusinessChatScreenUpdated tags sends as
     // `discover`), instead of falling through to the personal screen.
     final lane = type.toLowerCase();
     if (lane == AppConstants.business_Chat_Type ||
         lane == AppConstants.order_Chat_Type) {
-      if (isFromContactList != null && isFromContactList) {
+      if (replaceContactList) {
         Get.off(
           () => BusinessChatScreenUpdated(
             type: type,
@@ -4820,7 +4863,7 @@ class ChatViewController extends GetxController {
         );
       }
     } else {
-      if (isFromContactList != null && isFromContactList) {
+      if (replaceContactList) {
         Get.off(
           () => PersonalChatScreen(
             type: type,
