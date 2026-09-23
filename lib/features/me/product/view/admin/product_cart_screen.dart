@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/pending_pop.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
@@ -551,7 +552,7 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () => PendingPop.of(context).close(false),
                 child: const CustomText(AppStrings.cancel),
               ),
               ElevatedButton(
@@ -561,7 +562,7 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () => PendingPop.of(context).close(true),
                 child: const CustomText(
                   AppStrings.continueText,
                   color: AppColors.white,
