@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// On-device AdMob diagnostics.
@@ -33,7 +34,12 @@ class AdDebug {
   /// Launch the Ad Inspector overlay. Surfaces any launch error (e.g. "device
   /// not registered as a test device") as a snackbar. [openAdInspector] returns
   /// void (the result comes via the callback), so it's called, not awaited.
+  ///
+  /// Release builds do nothing: on a non-test device the Ads SDK can fire the
+  /// plugin's inspector listener twice with an error, and the plugin's second
+  /// `result.error` crashes the app natively ("Reply already submitted").
   static void openInspector() {
+    if (kReleaseMode) return;
     try {
       MobileAds.instance.openAdInspector((error) {
         if (error != null) {
