@@ -104,10 +104,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       }
     });
 
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController(), permanent: true);
-    }
-    _callController = Get.find<CallController>();
+    _callController = CallController.instance;
 
     // Enable PiP auto-entry from the moment this screen mounts so the
     // whole call flow (calling → rider accepted → live tracking) minimises

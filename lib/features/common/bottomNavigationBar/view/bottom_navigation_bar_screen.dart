@@ -1197,7 +1197,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     super.dispose();
   }
 
-  final callController = getOrPut(() => CallController());
+  final callController = CallController.instance;
 
   /// The active tab, built exactly ONCE and reused for the whole lifetime of
   /// this screen. Its own [Obx] rebuilds the inner tab subtree only when

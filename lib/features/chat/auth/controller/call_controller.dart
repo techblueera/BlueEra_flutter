@@ -111,6 +111,13 @@ extension AudioRouteUi on AudioRoute {
 }
 
 class CallController extends GetxController with WidgetsBindingObserver {
+  /// The app-wide instance. main() registers it before runApp; this covers
+  /// the paths that can run first (notification and lifecycle handlers).
+  /// Always permanent: a CallController tied to a route is deleted when that
+  /// route closes, and its onClose tears down the live call.
+  static CallController get instance =>
+      getOrPut(() => CallController(), permanent: true);
+
   final CallRepo _callRepo = CallRepo();
   late ChatSocketService _socket;
 

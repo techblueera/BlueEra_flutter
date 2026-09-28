@@ -2351,12 +2351,7 @@ class DiscoverController extends GetxController {
       print('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
 
       if (callId.isNotEmpty && roomId.isNotEmpty && riderId.isNotEmpty) {
-        if (!Get.isRegistered<CallController>()) {
-          print(
-              '[FARE_CALL_DEBUG] ride:queue:calling → CallController not registered, creating new');
-          Get.put(CallController(), permanent: true);
-        }
-        final callController = Get.find<CallController>();
+        final callController = CallController.instance;
         print(
             '[FARE_CALL_DEBUG] ride:queue:calling → CallController current status=${callController.callStatus.value}');
         callController.joinFareCallAsCustomer(

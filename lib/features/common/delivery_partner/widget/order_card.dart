@@ -2164,10 +2164,7 @@ class _OrderCardState extends State<OrderCard> {
             widget.order.orderFor == AppConstants.Parcel)) {
       final userId = widget.order.user?.id;
       if (userId != null && userId.isNotEmpty) {
-        if (!Get.isRegistered<CallController>()) {
-          Get.put(CallController());
-        }
-        final callController = Get.find<CallController>();
+        final callController = CallController.instance;
         final success = await callController.initiateCall(
           type: CallType.audio,
           otherUserId: userId,

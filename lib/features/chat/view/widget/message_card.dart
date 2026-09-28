@@ -2215,10 +2215,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
   }
 
   void _initiateContactCallInApp(String otherUserId, String userName, String userImage) async {
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController());
-    }
-    final callController = Get.find<CallController>();
+    final callController = CallController.instance;
     final success = await callController.initiateCall(
       type: CallType.audio,
       otherUserId: otherUserId,

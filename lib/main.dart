@@ -922,7 +922,7 @@ Future<void> main() async {
       pendingCallExtras = null;
 
       if (action == 'accept' && callId.isNotEmpty) {
-        final callController = getOrPut(() => CallController());
+        final callController = CallController.instance;
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();
@@ -932,7 +932,7 @@ Future<void> main() async {
           isVideoCall: isVideo,
         );
       } else if (action == 'decline' && callId.isNotEmpty) {
-        final callController = getOrPut(() => CallController());
+        final callController = CallController.instance;
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         callController.declineCall();
       }
@@ -982,7 +982,7 @@ Future<void> main() async {
       final callId = (acceptExtras['callId'] ?? '').toString();
       final roomId = (acceptExtras['roomId'] ?? '').toString();
       final isVideo = (acceptExtras['callType'] ?? '') == 'video_call';
-      final callController = getOrPut(() => CallController());
+      final callController = CallController.instance;
       callController.initStateFromCallKitExtra(acceptExtras);
       CallController.setKilledStateAcceptHandled();
       CallController.markColdStartCall();
@@ -1009,7 +1009,7 @@ Future<void> main() async {
       final operation = (extra['operation'] ?? '').toString();
       final accepted = first['accepted'] == true;
       if (operation == 'incoming_call' && accepted) {
-        final callController = getOrPut(() => CallController());
+        final callController = CallController.instance;
         callController.initStateFromCallKitExtra(extra);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();

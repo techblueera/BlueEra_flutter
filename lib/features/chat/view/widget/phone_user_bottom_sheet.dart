@@ -545,10 +545,7 @@ void _startBlueEraCall(UserByPhoneModel user, CallType type) {
 
 void _startBlueEraCallInApp(
     String otherUserId, String userName, String userImage, CallType type) async {
-  if (!Get.isRegistered<CallController>()) {
-    Get.put(CallController());
-  }
-  final callController = Get.find<CallController>();
+  final callController = CallController.instance;
   final success = await callController.initiateCall(
     type: type,
     otherUserId: otherUserId,
