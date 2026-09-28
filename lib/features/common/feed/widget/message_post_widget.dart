@@ -35,6 +35,7 @@ import 'package:BlueEra/features/common/feed/view/twitter_post_detail_screen.dar
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 import 'social_message_post_grid_widget.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
@@ -175,7 +176,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 userId: videoData?.video?.userId ?? '',
                                 contentId: videoData?.video?.id ?? '',
                                 userBlockVoidCallback: () async {
-                                  await Get.find<VideoController>()
+                                  await getOrPut(() => VideoController())
                                       .userBlocked(
                                     videoType: VideoType.videoFeed,
                                     otherUserId:
@@ -183,7 +184,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                   );
                                 },
                                 reportCallback: (params) {
-                                  Get.find<VideoController>()
+                                  getOrPut(() => VideoController())
                                       .videoPostReport(
                                           videoId:
                                               videoData?.video?.id ?? '',

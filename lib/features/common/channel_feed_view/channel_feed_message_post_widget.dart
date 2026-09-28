@@ -27,6 +27,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChannelFeedMessagePostWidget extends StatefulWidget {
@@ -118,13 +119,13 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                 userId: videoData?.video?.userId ?? '',
                                 contentId: videoData?.video?.id ?? '',
                                 userBlockVoidCallback: () async {
-                                  await Get.find<VideoController>().userBlocked(
+                                  await getOrPut(() => VideoController()).userBlocked(
                                     videoType: VideoType.videoFeed,
                                     otherUserId: videoData?.video?.userId ?? '',
                                   );
                                 },
                                 reportCallback: (params) {
-                                  Get.find<VideoController>().videoPostReport(
+                                  getOrPut(() => VideoController()).videoPostReport(
                                       videoId: videoData?.video?.id ?? '',
                                       videoType: VideoType.videoFeed,
                                       params: params);
