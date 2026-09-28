@@ -99,9 +99,7 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
       if (callId.isEmpty) return;
 
       final pending = await readAndClearPendingIncomingCallExtras();
-      final callController = Get.isRegistered<CallController>()
-          ? Get.find<CallController>()
-          : Get.put(CallController(), permanent: true);
+      final callController = CallController.instance;
 
       if (action == 'accept') {
         log('[RESUME_CALL] native notification accept → callId=$callId');

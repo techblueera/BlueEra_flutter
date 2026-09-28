@@ -55,7 +55,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   @override
   initState() {
     super.initState();
-    langController = getOrPut(() => LanguageListController());
+    langController = getOrPut(() => LanguageListController(), permanent: true);
     authController.selectedTypeOfBusiness = widget.businessType;
     authController.selectedCategoryName = widget.categoryName;
     authController.selectedCategorySlugId = widget.categorySlugId;

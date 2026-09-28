@@ -5,6 +5,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 import 'select_listing_type_controller.dart';
 
@@ -13,7 +14,7 @@ class SelectListingTypeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(SelectListingTypeController());
+    final controller = putLazy(() => SelectListingTypeController());
 
     return Scaffold(
       backgroundColor: AppColors.white,

@@ -11,10 +11,11 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class ProfessionalPdfPreviewWidget extends StatelessWidget {
-  final controller = Get.put(ProfessionalPdfPickerController());
+  final controller = putLazy(() => ProfessionalPdfPickerController());
 
   @override
   Widget build(BuildContext context) {

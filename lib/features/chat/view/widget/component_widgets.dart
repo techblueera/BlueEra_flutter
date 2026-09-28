@@ -1416,10 +1416,7 @@ void _initiateCallInApp({
   required String userName,
   required String userImage,
 }) async {
-  if (!Get.isRegistered<CallController>()) {
-    Get.put(CallController());
-  }
-  final callController = Get.find<CallController>();
+  final callController = CallController.instance;
 
   final success = await callController.initiateCall(
     type: callType,

@@ -15,6 +15,8 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
+import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step3.dart';
+import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step_4.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -50,6 +52,11 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
 
     // Initialize controller with proper disposal of existing instance
     deleteIfRegistered<CreateJobPostController>();
+    // Steps 3 and 4 register their own controllers, but they belong to this
+    // flow like the main one: a new post must not open with the previous
+    // post's walk-in, dates and preferences.
+    deleteIfRegistered<JobPostStep3Controller>();
+    deleteIfRegistered<JobPostStep4Controller>();
     createJobPostController = Get.put(CreateJobPostController());
 
     // Always reset controller state first to ensure clean state
@@ -182,6 +189,8 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
       // Clean up controller to prevent memory leaks
       deleteIfRegistered<CreateJobPostController>();
     }
+    deleteIfRegistered<JobPostStep3Controller>();
+    deleteIfRegistered<JobPostStep4Controller>();
 
     super.dispose();
   }

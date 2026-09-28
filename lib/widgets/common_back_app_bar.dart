@@ -29,6 +29,7 @@ import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
 import '../features/common/home/widgets/drawer.dart';
@@ -956,7 +957,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               if (value == AppConstants.exportExcel) {
                 selectedExt = "xlsx";
               }
-              await Get.find<AppliedJobController>().downloadCandidateList(
+              await getOrPut(() => AppliedJobController()).downloadCandidateList(
                   jobID: jobID, fileExtensions: selectedExt, status: jobStatus);
             },
             color: Colors.white,

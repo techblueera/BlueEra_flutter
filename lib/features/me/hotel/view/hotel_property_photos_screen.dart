@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:intl/intl.dart';
 
 /// Lists every property-photo album the hotel has. Each row opens
@@ -18,7 +19,7 @@ import 'package:intl/intl.dart';
 class PropertyPhotoScreen extends StatelessWidget {
   PropertyPhotoScreen({super.key});
 
-  final controller = Get.put(PropertyPhotoController());
+  final controller = putLazy(() => PropertyPhotoController());
 
   @override
   Widget build(BuildContext context) {

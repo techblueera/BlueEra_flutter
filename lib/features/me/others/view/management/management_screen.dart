@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 import 'add_management_form_screen.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
@@ -22,7 +23,7 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ManagementController());
+    final controller = putLazy(() => ManagementController());
 
     return Scaffold(
       appBar: CommonBackAppBar(

@@ -1198,7 +1198,7 @@ class _PropertyCardState extends State<PropertyCard> {
 
   void _openReviewsSheet() {
     if (_businessId.isEmpty) return;
-    getOrPut(() => ViewBusinessDetailsController());
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

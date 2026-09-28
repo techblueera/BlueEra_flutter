@@ -18,18 +18,28 @@ import 'package:get/get.dart';
 /// lists. An "Add Symbol" row sits on top; each user row below opens that
 /// user's symbols in the fullscreen viewer. Backed by the shared
 /// [SymbolFeedController.userGroups], so it stays in sync with the story row.
-class SymbolChatListScreen extends StatelessWidget {
+class SymbolChatListScreen extends StatefulWidget {
   const SymbolChatListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = Get.isRegistered<SymbolFeedController>()
-        ? Get.find<SymbolFeedController>()
-        : Get.put(SymbolFeedController());
+  State<SymbolChatListScreen> createState() => _SymbolChatListScreenState();
+}
+
+class _SymbolChatListScreenState extends State<SymbolChatListScreen> {
+  final controller = Get.isRegistered<SymbolFeedController>()
+      ? Get.find<SymbolFeedController>()
+      : Get.put(SymbolFeedController());
+
+  @override
+  void initState() {
+    super.initState();
     // Refresh so the list reflects any symbols posted/expired since the feed
     // was last fetched.
     controller.fetchSymbolFeed();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CommonBackAppBar(title: AppStrings.symbols.tr),

@@ -13,7 +13,7 @@ class RiderLiveOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller =
-        getOrPut(() => ViewPersonalDetailsController());
+        getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
     return Obx(() {
       if (!controller.shopStatusOpenClose.value) {

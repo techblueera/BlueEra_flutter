@@ -755,10 +755,7 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
 
   void _initiateContactCallInApp(
       String otherUserId, String userName, String userImage) async {
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController());
-    }
-    final callController = Get.find<CallController>();
+    final callController = CallController.instance;
     final success = await callController.initiateCall(
       type: CallType.audio,
       otherUserId: otherUserId,

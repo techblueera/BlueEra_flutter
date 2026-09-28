@@ -51,7 +51,11 @@ class CommentBottomSheet extends StatefulWidget {
 }
 
 class _CommentBottomSheetState extends State<CommentBottomSheet> {
-  static CommentController commentController = Get.put(CommentController());
+  // Resolved per sheet: a static field kept pointing at the old instance
+  // after GetX deleted it.
+  final CommentController commentController =
+      getOrPut(() => CommentController());
+  Worker? _commentCountWorker;
 
   @override
   void initState() {
@@ -70,16 +74,18 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       commentController.totalCommentCount.value = widget.totalComments;
     });
 
-    // Listen to comment count changes
-    ever(commentController.totalCommentCount, (count) {
+    // Listen to comment count changes. Disposed with the sheet, or a later
+    // sheet's counts would be reported to this post's callback too.
+    _commentCountWorker = ever(commentController.totalCommentCount, (count) {
       widget.onNewCommentCount(count);
     });
   }
 
   @override
   void dispose() {
-    super.dispose();
+    _commentCountWorker?.dispose();
     commentController.sendMessageController.clear();
+    super.dispose();
   }
 
   @override

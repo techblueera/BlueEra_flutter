@@ -33,7 +33,7 @@ class MobileNumberScreen extends StatefulWidget {
 class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
-  final _authController = Get.put(AuthController());
+  final _authController = getOrPut(() => AuthController());
   late LanguageListController langController;
   bool _acceptedTerms = false;
   bool _isMobileValid = false;
@@ -43,7 +43,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   @override
   void initState() {
     _getPhoneNumber();
-    langController = getOrPut(() => LanguageListController());
+    langController = getOrPut(() => LanguageListController(), permanent: true);
     _authController.mobileNumberEditController.addListener(_onMobileChanged);
     // AuthController is permanent, so a stale LOADING from a previous send
     // could otherwise mount this screen with the overlay already showing.

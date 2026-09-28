@@ -111,6 +111,13 @@ extension AudioRouteUi on AudioRoute {
 }
 
 class CallController extends GetxController with WidgetsBindingObserver {
+  /// The app-wide instance. main() registers it before runApp; this covers
+  /// the paths that can run first (notification and lifecycle handlers).
+  /// Always permanent: a CallController tied to a route is deleted when that
+  /// route closes, and its onClose tears down the live call.
+  static CallController get instance =>
+      getOrPut(() => CallController(), permanent: true);
+
   final CallRepo _callRepo = CallRepo();
   late ChatSocketService _socket;
 
@@ -204,6 +211,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
   // don't spam the platform channel. See [_setCallWindowActive].
   bool _callWindowActive = false;
   Worker? _callWindowWorker;
+  StreamSubscription<CallEvent?>? _callKitEventSub;
   // Retries opening the call room until the navigator exists and splash has
   // finished. See [_openCallRoom].
   Timer? _callRoomOpenTimer;
@@ -659,6 +667,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _disposed = true;
     WidgetsBinding.instance.removeObserver(this);
     _callWindowWorker?.dispose();
+    _callKitEventSub?.cancel();
     _cleanup();
     super.onClose();
   }
@@ -4447,7 +4456,9 @@ class CallController extends GetxController with WidgetsBindingObserver {
   }
 
   void _setupCallKitListeners() {
-    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+    _callKitEventSub?.cancel();
+    _callKitEventSub =
+        FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       if (event == null) return;
       // print('[CALL_DEBUG] CALLKIT EVENT → ${event.event}, body=${event.body}');
       final extra =

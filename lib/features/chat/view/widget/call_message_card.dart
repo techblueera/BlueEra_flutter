@@ -136,10 +136,7 @@ class CallMessageCard extends StatelessWidget {
 
   void _initiateCallInApp(CallType callType, String otherUserId,
       String conversationId, String userName, String userImage) async {
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController());
-    }
-    final callController = Get.find<CallController>();
+    final callController = CallController.instance;
     final success = await callController.initiateCall(
       type: callType,
       otherUserId: otherUserId,

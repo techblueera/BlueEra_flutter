@@ -9,10 +9,11 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:intl/intl.dart';
 
 class OtherServicePhotosPhotoScreen extends StatelessWidget {
-  final controller = Get.put(OtherServicePhotoPhotoController());
+  final controller = putLazy(() => OtherServicePhotoPhotoController());
 
   @override
   Widget build(BuildContext context) {

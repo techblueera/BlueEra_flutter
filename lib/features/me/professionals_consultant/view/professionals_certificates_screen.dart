@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
@@ -26,8 +27,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
   ProfessionalsCertificatesScreen({super.key});
 
   final aiController = Get.find<AiProfessionalsController>();
-  final certController = Get.put(ProfessionalsCertificatesController());
-  final controller = Get.put(ProfessionalsServicePhotoPhotoController());
+  final certController = putLazy(() => ProfessionalsCertificatesController());
+  final controller = putLazy(() => ProfessionalsServicePhotoPhotoController());
 
   @override
   Widget build(BuildContext context) {

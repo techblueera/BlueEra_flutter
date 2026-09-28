@@ -6,10 +6,11 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ItemsScreen extends StatelessWidget {
-  final ItemsController controller = Get.put(ItemsController());
+  final ItemsController controller = putLazy(() => ItemsController());
 
   @override
   Widget build(BuildContext context) {

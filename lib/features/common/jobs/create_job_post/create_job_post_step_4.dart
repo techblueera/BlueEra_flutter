@@ -33,6 +33,13 @@ class CreateJobPostStep4 extends StatefulWidget {
 class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
   final JobPostStep4Controller controller = Get.put(JobPostStep4Controller());
   final createJobPostController = Get.find<CreateJobPostController>();
+  Worker? _jobDetailsWorker;
+
+  @override
+  void dispose() {
+    _jobDetailsWorker?.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -42,7 +49,8 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
       _initializeDataFromAPI();
 
       // Listen for changes in job details (in case API data loads after widget is built)
-      ever(createJobPostController.jobDetails, (jobDetails) {
+      if (!mounted) return;
+      _jobDetailsWorker = ever(createJobPostController.jobDetails, (jobDetails) {
         if (jobDetails != null) {
           _initializeDataFromAPI();
         }

@@ -69,6 +69,7 @@ import 'features/chat/auth/controller/call_controller.dart';
 // `showIncomingCallLocalNotification` lives in app_notification.dart and is
 // already imported via the `app_notification.dart` import above.
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
+import 'features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'features/chat/view/widget/chat_video_pip_overlay.dart';
 import 'features/chat/view/widget/ongoing_call_strip.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -797,7 +798,7 @@ Future<void> main() async {
 
   /// AuthController must be registered before getUserLoginData() (it sets
   /// imgPath on it). Get.put is synchronous — safe to do up front.
-  Get.put(AuthController());
+  Get.put(AuthController(), permanent: true);
 
   await Future.wait<void>([
     /// Localization (needs Hive, so runs after Hive.initFlutter)
@@ -843,11 +844,15 @@ Future<void> main() async {
 
   final locale = Locale(savedLangCode);
 
-  /// Controllers needed at first frame
+  /// Controllers needed at first frame. App-wide, so `permanent`: nothing
+  /// else keeps them alive (they only escaped route disposal by being
+  /// registered before the first route existed).
   unFocus();
-  Get.put(NavigationHelperController());
-  Get.put(GlobalMessageService());
-  Get.put(AppMaintenanceController());
+  Get.put(NavigationHelperController(), permanent: true);
+  Get.put(GlobalMessageService(), permanent: true);
+  Get.put(AppMaintenanceController(), permanent: true);
+  // Backs the app-wide ride mini-map in the GetMaterialApp builder.
+  Get.put(RideNavigationOverlayController(), permanent: true);
 
   /// CallController -- must be before runApp for cold-start call handling
   if (!Get.isRegistered<CallController>()) {
@@ -919,7 +924,7 @@ Future<void> main() async {
       pendingCallExtras = null;
 
       if (action == 'accept' && callId.isNotEmpty) {
-        final callController = getOrPut(() => CallController());
+        final callController = CallController.instance;
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();
@@ -929,7 +934,7 @@ Future<void> main() async {
           isVideoCall: isVideo,
         );
       } else if (action == 'decline' && callId.isNotEmpty) {
-        final callController = getOrPut(() => CallController());
+        final callController = CallController.instance;
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         callController.declineCall();
       }
@@ -979,7 +984,7 @@ Future<void> main() async {
       final callId = (acceptExtras['callId'] ?? '').toString();
       final roomId = (acceptExtras['roomId'] ?? '').toString();
       final isVideo = (acceptExtras['callType'] ?? '') == 'video_call';
-      final callController = getOrPut(() => CallController());
+      final callController = CallController.instance;
       callController.initStateFromCallKitExtra(acceptExtras);
       CallController.setKilledStateAcceptHandled();
       CallController.markColdStartCall();
@@ -1006,7 +1011,7 @@ Future<void> main() async {
       final operation = (extra['operation'] ?? '').toString();
       final accepted = first['accepted'] == true;
       if (operation == 'incoming_call' && accepted) {
-        final callController = getOrPut(() => CallController());
+        final callController = CallController.instance;
         callController.initStateFromCallKitExtra(extra);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();

@@ -52,8 +52,10 @@ class _JobSeekerAddNgoFormScreenState
     }
   }
 
-  // final EntityController ngoController = Get.find<EntityController>(tag: "ngo");
-  final ngoController = getOrPut(() => EntityController(isPatent: false));
+  // The resume's NGO list, under the same "ngo" tag as its screens, so edits
+  // here reach it and resume reloads (profile_pic_controller) update this.
+  final ngoController =
+      getOrPut(() => EntityController(isPatent: false), tag: "ngo");
 
   @override
   void initState() {

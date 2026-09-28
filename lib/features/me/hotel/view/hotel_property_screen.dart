@@ -7,6 +7,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 /// Hotel policy editor: check-in / check-out window (or 24-hour mode),
 /// a stack of allow/disallow switches, and an optional food-restrictions
@@ -14,7 +15,7 @@ import 'package:get/get.dart';
 class HotelPoliciesScreen extends StatelessWidget {
   HotelPoliciesScreen({super.key});
 
-  final controller = Get.put(HotelPolicyController());
+  final controller = putLazy(() => HotelPolicyController());
 
   // Food-restriction payload values (also stored on the controller's
   // `userFoodTypeSelections`). Must match the backend's expected literals.

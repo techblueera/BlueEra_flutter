@@ -115,7 +115,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final authController = Get.find<AuthController>();
   final locationController = Get.put(LocationController());
   final LanguageListController langController =
-      getOrPut(() => LanguageListController());
+      getOrPut(() => LanguageListController(), permanent: true);
 
   String? _imagePath;
   IndividualProfileType? _selectedProfileType;

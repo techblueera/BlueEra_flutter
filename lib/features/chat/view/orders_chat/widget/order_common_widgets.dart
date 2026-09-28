@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/widget/select_address_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -206,7 +207,7 @@ class _ChoosePickupAndDeliveryOptionState
                                 businessId: widget.businessId,
                               ));
                         } else {
-                          final orderController = Get.put(OrderNowController());
+                          final orderController = putLazy(() => OrderNowController());
                           orderController.createSelfPickupOrder(
                             widget.message.id,
                             widget.message.seller?.id,

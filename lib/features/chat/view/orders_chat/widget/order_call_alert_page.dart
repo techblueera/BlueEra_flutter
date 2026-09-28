@@ -59,7 +59,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
   Timer? _autoEndTimer;
   final orderController = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
-      : Get.put(DeliverPartnerOrdersController());
+      : Get.put(DeliverPartnerOrdersController(), permanent: true);
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(

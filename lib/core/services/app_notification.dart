@@ -1264,7 +1264,7 @@ class AppNotificationHandler {
             // Wait for the home screen / navigator to settle before pushing
             // the call screen on top of it.
             await Future.delayed(const Duration(milliseconds: 600));
-            final ctrl = getOrPut(() => CallController());
+            final ctrl = CallController.instance;
             final activeStatus = ctrl.callStatus.value;
             if (activeStatus == CallStatus.idle ||
                 activeStatus == CallStatus.ringing) {
@@ -1341,7 +1341,7 @@ class AppNotificationHandler {
             // still idle/ringing, open the in-app IncomingCallScreen so the
             // user can accept or decline. Wait for the navigator to settle.
             await Future.delayed(const Duration(milliseconds: 600));
-            final ctrl = getOrPut(() => CallController());
+            final ctrl = CallController.instance;
             final activeStatus = ctrl.callStatus.value;
             if (activeStatus == CallStatus.idle ||
                 activeStatus == CallStatus.ringing) {
@@ -2572,10 +2572,7 @@ class AppNotificationHandler {
       final customerImage = data['senderProfileImage'] ?? '';
 
       // Ensure CallController exists and set fare-call state
-      if (!Get.isRegistered<CallController>()) {
-        Get.put(CallController(), permanent: true);
-      }
-      final callController = Get.find<CallController>();
+      final callController = CallController.instance;
 
       // Extract call connection details from notification data/payload
       final callId =
@@ -4663,7 +4660,7 @@ class AppNotificationHandler {
     final callId = (data['callId'] ?? '').toString();
     if (callId.isEmpty) return;
 
-    final ctrl = getOrPut(() => CallController());
+    final ctrl = CallController.instance;
     final activeStatus = ctrl.callStatus.value;
     final activeId = ctrl.callId.value;
 

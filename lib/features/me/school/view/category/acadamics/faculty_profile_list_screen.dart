@@ -9,10 +9,11 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class FacultyProfileListScreen extends StatelessWidget {
-  final controller = Get.put(FacultyController());
+  final controller = putLazy(() => FacultyController());
   final bool isEdit;
 
    FacultyProfileListScreen({super.key, required this.isEdit});

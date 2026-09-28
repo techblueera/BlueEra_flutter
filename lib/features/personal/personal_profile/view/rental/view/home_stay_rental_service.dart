@@ -43,7 +43,7 @@ class HomeStayRentalService extends StatefulWidget {
 
 class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
   final controller = getOrPut(() => HomeStayRentalServiceController());
-  final langController = getOrPut(() => LanguageListController());
+  final langController = getOrPut(() => LanguageListController(), permanent: true);
   final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
   final myDocumentController = getOrPut(() => MyDocumentsController());
   final stayImagesController = getOrPut(() => StayImagesController());

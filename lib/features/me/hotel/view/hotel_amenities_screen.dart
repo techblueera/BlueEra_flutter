@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 /// Toggle list of hotel-wide amenities (parking, restaurant, lift, …).
 /// Each toggle mutates [HotelAmenityController.hotelAmenityStatus] locally;
@@ -16,7 +17,7 @@ import 'package:get/get.dart';
 class HotelAmenitiesScreen extends StatelessWidget {
   HotelAmenitiesScreen({super.key});
 
-  final HotelAmenityController controller = Get.put(HotelAmenityController());
+  final HotelAmenityController controller = putLazy(() => HotelAmenityController());
 
   /// Display name + payload key + asset key for each amenity row.
   static const List<_AmenityItem> _amenities = [

@@ -35,6 +35,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import '../../../core/api/apiService/api_keys.dart';
 
 class BusinessProfileHeaderView extends StatelessWidget {
@@ -740,7 +741,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
         TextEditingController(text: details?.cityStatePincode ?? '');
     final pincodeController =
         TextEditingController(text: details?.pincode?.toString() ?? '');
-    final locationController = Get.put(LocationController());
+    final locationController = putLazy(() => LocationController());
 
     showModalBottomSheet(
       context: context,

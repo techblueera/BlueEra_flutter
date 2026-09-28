@@ -9,9 +9,10 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class SocialVisionMissionScreen extends StatelessWidget {
-  final controller = Get.put(SocialVisionMissionController());
+  final controller = putLazy(() => SocialVisionMissionController());
 
   SocialVisionMissionScreen({super.key});
 

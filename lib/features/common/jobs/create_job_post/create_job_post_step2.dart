@@ -25,6 +25,7 @@ class CreateJobPostStep2 extends StatefulWidget {
 
 class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
   final controller = Get.find<CreateJobPostController>();
+  Worker? _jobDetailsWorker;
   
   // Add text controller for skills
   TextEditingController skillsController = TextEditingController();
@@ -38,7 +39,8 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
       _initializeDataFromAPI();
       
       // Listen for changes in job details (in case API data loads after widget is built)
-      ever(controller.jobDetails, (jobDetails) {
+      if (!mounted) return;
+      _jobDetailsWorker = ever(controller.jobDetails, (jobDetails) {
         if (jobDetails != null) {
           _initializeDataFromAPI();
         }
@@ -115,6 +117,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
 
   @override
   void dispose() {
+    _jobDetailsWorker?.dispose();
     skillsController.dispose();
     super.dispose();
   }

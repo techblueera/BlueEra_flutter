@@ -276,7 +276,7 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
       commonSnackBar(message: 'Customer contact not available');
       return;
     }
-    final callController = getOrPut(() => CallController());
+    final callController = CallController.instance;
     final ok = await callController.initiateCall(
       type: CallType.audio,
       otherUserId: customerId,

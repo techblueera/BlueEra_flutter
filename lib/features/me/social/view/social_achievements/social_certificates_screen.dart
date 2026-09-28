@@ -17,13 +17,14 @@ import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SocialCertificatesScreen extends StatelessWidget {
   SocialCertificatesScreen({super.key});
 
-  final certController = Get.put(SocialCertificatesController());
+  final certController = putLazy(() => SocialCertificatesController());
 
   @override
   Widget build(BuildContext context) {

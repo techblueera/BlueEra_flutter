@@ -7,6 +7,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class AddCategoryFolderScreen extends StatelessWidget {
@@ -15,7 +16,7 @@ class AddCategoryFolderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Initialize the controller
-    final controller = Get.put(AddCategoryFolderScreenController());
+    final controller = putLazy(() => AddCategoryFolderScreenController());
     
     return Scaffold(
       backgroundColor: Colors.transparent,

@@ -31,7 +31,7 @@ class CallHistoryScreen extends StatefulWidget {
 }
 
 class _CallHistoryScreenState extends State<CallHistoryScreen> {
-  final CallController _callController = getOrPut(() => CallController());
+  final CallController _callController = CallController.instance;
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 

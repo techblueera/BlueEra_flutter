@@ -46,7 +46,7 @@ class AddFlatRoomRentalServiceScreen extends StatefulWidget {
 
 class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServiceScreen> {
   final controller = getOrPut(() => AddFlatRentalServiceController());
-  final langController = getOrPut(() => LanguageListController());
+  final langController = getOrPut(() => LanguageListController(), permanent: true);
   final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
   final stayImagesController = getOrPut(() => StayImagesController());
 

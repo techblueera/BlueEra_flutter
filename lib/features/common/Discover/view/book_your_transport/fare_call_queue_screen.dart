@@ -82,6 +82,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   Worker? _riderLatWorker;
   Worker? _riderLngWorker;
   Worker? _rideStartedWorker;
+  Worker? _pollCompletedWorker;
 
   /// Once the rider has verified the pickup OTP, both sides should mirror the
   /// same pickup → drop route and zoom so the customer can visually confirm
@@ -103,10 +104,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       }
     });
 
-    if (!Get.isRegistered<CallController>()) {
-      Get.put(CallController(), permanent: true);
-    }
-    _callController = Get.find<CallController>();
+    _callController = CallController.instance;
 
     // Enable PiP auto-entry from the moment this screen mounts so the
     // whole call flow (calling → rider accepted → live tracking) minimises
@@ -220,7 +218,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
         // Ride completion arrives as rideActive:false on the poll.
-        ever(_liveTrackController!.rideCompleted, (completed) {
+        _pollCompletedWorker?.dispose();
+        _pollCompletedWorker =
+            ever(_liveTrackController!.rideCompleted, (completed) {
           if (completed && mounted && !_rideCompleted.value) {
             _handleRideCompleted();
           }
@@ -262,7 +262,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
       // Ride completion arrives as rideActive:false on the poll (also covered
       // by the socket/FCM signal).
-      ever(_liveTrackController!.rideCompleted, (completed) {
+      _pollCompletedWorker?.dispose();
+      _pollCompletedWorker =
+          ever(_liveTrackController!.rideCompleted, (completed) {
         if (completed && mounted && !_rideCompleted.value) {
           _handleRideCompleted();
         }
@@ -515,6 +517,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
     _rideStartedWorker?.dispose();
+    _pollCompletedWorker?.dispose();
     _localTimer?.cancel();
     discoverController.stopRideStartedFallbackPoll();
 
@@ -575,7 +578,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     final riderLat = _liveTrackController?.liveLat.value ?? 0.0;
     final riderLng = _liveTrackController?.liveLng.value ?? 0.0;
 
-    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    final overlayCtrl = Get.find<RideNavigationOverlayController>();
     overlayCtrl.showOverlay(
       riderLatVal: riderLat,
       riderLngVal: riderLng,

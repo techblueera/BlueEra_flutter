@@ -22,7 +22,8 @@ class RideNavigationFloatingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(RideNavigationOverlayController());
+    // Registered once, permanently, in main().
+    final controller = Get.find<RideNavigationOverlayController>();
 
     return Obx(() {
       if (!controller.isOverlayVisible.value) return const SizedBox.shrink();

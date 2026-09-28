@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 /// Toggle list of per-room amenities (AC, Wi-Fi, TV, …). Toggles mutate
 /// [RoomAmenityController.roomAmenityStatus] locally and the user commits
@@ -21,7 +22,7 @@ class RoomAmenitiesScreen extends StatelessWidget {
   }
 
   final String? roomID;
-  final RoomAmenityController controller = Get.put(RoomAmenityController());
+  final RoomAmenityController controller = putLazy(() => RoomAmenityController());
 
   /// Display name + SVG asset key + JSON payload key for each amenity row.
   static const List<_AmenityItem> _amenities = [

@@ -219,7 +219,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   void _ensureProfileBannerLoaded() {
     if (!isLoggedIn() || isGuestUser()) return;
-    getOrPut(() => ViewPersonalDetailsController()).viewPersonalProfile();
+    getOrPut(() => ViewPersonalDetailsController(), permanent: true).viewPersonalProfile();
     if (isBusinessUser() && Get.isRegistered<ViewBusinessDetailsController>()) {
       Get.find<ViewBusinessDetailsController>().viewBusinessProfile();
     }

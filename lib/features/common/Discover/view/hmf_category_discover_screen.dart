@@ -385,7 +385,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   // ── Post FAB ──
   void _onPostTap() {
     if (isGuestUser() || isBusinessUser()) return;
-    final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+    final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
     if (viewProfileController.earnProfileType.contains('homeMadeFood')) {
       Get.to(() => const EarnServiceDashboardView(earnType: 'homeMadeFood'));
     } else {

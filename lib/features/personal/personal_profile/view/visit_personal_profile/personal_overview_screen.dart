@@ -249,7 +249,7 @@ class _PersonalOverviewScreenState extends State<PersonalOverviewScreen> {
                           contentId:
                               controller.videosList.first.video?.id ?? '',
                           userBlockVoidCallback: () async {
-                            await Get.find<VideoController>().userBlocked(
+                            await getOrPut(() => VideoController()).userBlocked(
                               videoType: VideoType.videoFeed,
                               otherUserId:
                                   controller.videosList.first.video?.userId ??
@@ -257,7 +257,7 @@ class _PersonalOverviewScreenState extends State<PersonalOverviewScreen> {
                             );
                           },
                           reportCallback: (params) {
-                            Get.find<VideoController>().videoPostReport(
+                            getOrPut(() => VideoController()).videoPostReport(
                                 videoId:
                                     controller.videosList.first.video?.id ?? '',
                                 videoType: VideoType.videoFeed,
