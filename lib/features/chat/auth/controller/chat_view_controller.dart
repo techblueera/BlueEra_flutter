@@ -377,6 +377,10 @@ class ChatViewController extends GetxController {
   /// Key = conversation_id, Value = typer's name.
   RxMap<String, String> typingByConversation = <String, String>{}.obs;
   final Map<String, Timer> _chatListTypingTimers = {};
+
+  // Live location share: the GPS stream and the timer that ends it.
+  StreamSubscription<Position>? _liveLocationSub;
+  Timer? _liveLocationTimer;
   RxInt selectedIndex = 0.obs;
 
   Rx<Messages> sendLoadingFile = Messages().obs;
@@ -3897,7 +3901,10 @@ class ChatViewController extends GetxController {
     await LiveTrackingSocketService()
         .connectToSocket(LatLng(pos.latitude, pos.longitude));
 
-    Geolocator.getPositionStream(
+    // End any earlier share first, so starting a new one doesn't leave the
+    // previous GPS stream running.
+    _stopLiveLocationUpdates();
+    _liveLocationSub = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 2, // 🔥 10 meters move = update
@@ -3911,14 +3918,20 @@ class ChatViewController extends GetxController {
         },
       );
     });
-    Timer(duration, () {
-      LiveTrackingSocketService().disconnectSocket();
-    });
+    _liveLocationTimer = Timer(duration, stopLiveLocationTracking);
   }
 
   //
   void stopLiveLocationTracking() {
+    _stopLiveLocationUpdates();
     LiveTrackingSocketService().disconnectSocket();
+  }
+
+  void _stopLiveLocationUpdates() {
+    _liveLocationTimer?.cancel();
+    _liveLocationTimer = null;
+    _liveLocationSub?.cancel();
+    _liveLocationSub = null;
   }
 
   Duration labelToDuration(String label) {
