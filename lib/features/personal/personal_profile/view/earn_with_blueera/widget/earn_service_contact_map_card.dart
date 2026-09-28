@@ -18,6 +18,7 @@ import 'package:BlueEra/widgets/fetch_location_button.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class EarnServiceContactMapCard extends StatelessWidget {
   final EarnProfileController controller;
@@ -203,7 +204,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
     final emailCtrl = TextEditingController(text: profile?.email ?? '');
     double? lat = profile?.latitude;
     double? lng = profile?.longitude;
-    final locationController = Get.put(LocationController());
+    final locationController = putLazy(() => LocationController());
 
     showModalBottomSheet(
       context: context,

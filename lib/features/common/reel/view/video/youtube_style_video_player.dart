@@ -12,7 +12,7 @@ class YoutubeStyleVideoPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(YoutubeStyleVideoPlayerController());
+    final controller = putLazy(() => YoutubeStyleVideoPlayerController());
     controller.initialize(videoUrl);
 
     return SafeArea(

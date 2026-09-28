@@ -1233,7 +1233,7 @@ class _AddOnsPageState extends State<AddOnsPage> {
 }
 
 class PriceOptionsWidget extends StatelessWidget {
-  final controller = Get.put(FoodUploadController());
+  final controller = putLazy(() => FoodUploadController());
 
   PriceOptionsWidget({super.key});
 

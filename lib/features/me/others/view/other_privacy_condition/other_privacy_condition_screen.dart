@@ -14,12 +14,13 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class OtherPrivacyConditionScreen extends StatelessWidget {
   OtherPrivacyConditionScreen({super.key});
 
-  final controller = Get.put(OtherPrivacyConditionController());
+  final controller = putLazy(() => OtherPrivacyConditionController());
 
   @override
   Widget build(BuildContext context) {

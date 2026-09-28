@@ -18,13 +18,14 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PortfolioScreen extends StatelessWidget {
   PortfolioScreen({super.key});
 
   final aiController = Get.find<AiProfessionalsController>();
-  final portfolioController = Get.put(PortfolioProfessionalsController());
+  final portfolioController = putLazy(() => PortfolioProfessionalsController());
 
   @override
   Widget build(BuildContext context) {

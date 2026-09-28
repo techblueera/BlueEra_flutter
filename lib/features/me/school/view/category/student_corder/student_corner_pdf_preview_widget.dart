@@ -8,10 +8,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class StudentCornerPdfPreviewWidget extends StatelessWidget {
-  final controller = Get.put(StudentPdfPickerController());
+  final controller = putLazy(() => StudentPdfPickerController());
 
   @override
   Widget build(BuildContext context) {

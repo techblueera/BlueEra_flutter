@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
@@ -8,7 +9,7 @@ import '../../../../../widgets/custom_text_cm.dart';
 import 'controller/booking_controller.dart';
 
 class MyEnquiriesPage extends StatelessWidget {
-  final BookingController controller = Get.put(BookingController());
+  final BookingController controller = putLazy(() => BookingController());
 
   Color _getStatusColor(String status) {
     switch (status) {

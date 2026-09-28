@@ -13,10 +13,11 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
 
 class SocialActivityListScreen extends StatelessWidget {
-  final controller = Get.put(SocialActivityController());
+  final controller = putLazy(() => SocialActivityController());
 
   SocialActivityListScreen({super.key});
 
