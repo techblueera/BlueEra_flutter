@@ -179,6 +179,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   Set<Polyline> _polylines = {};
   Circle? liveLocationCircle;
   final riderController = Get.find<RiderLocationPollController>();
+  List<Worker> _riderWorkers = [];
 
   StreamSubscription<Position>? positionStream;
   LatLng? currentPosition;
@@ -208,8 +209,10 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     super.initState();
     _startLocationTracking();
 
-    ever(riderController.liveLat, (_) => _updateRiderOnMap());
-    ever(riderController.liveLng, (_) => _updateRiderOnMap());
+    _riderWorkers = [
+      ever(riderController.liveLat, (_) => _updateRiderOnMap()),
+      ever(riderController.liveLng, (_) => _updateRiderOnMap()),
+    ];
 
   }
 
@@ -482,6 +485,9 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
   @override
   void dispose() {
+    for (final w in _riderWorkers) {
+      w.dispose();
+    }
     positionStream?.cancel();
     super.dispose();
   }

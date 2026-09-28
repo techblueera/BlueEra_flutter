@@ -82,6 +82,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   Worker? _riderLatWorker;
   Worker? _riderLngWorker;
   Worker? _rideStartedWorker;
+  Worker? _pollCompletedWorker;
 
   /// Once the rider has verified the pickup OTP, both sides should mirror the
   /// same pickup → drop route and zoom so the customer can visually confirm
@@ -220,7 +221,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
         // Ride completion arrives as rideActive:false on the poll.
-        ever(_liveTrackController!.rideCompleted, (completed) {
+        _pollCompletedWorker?.dispose();
+        _pollCompletedWorker =
+            ever(_liveTrackController!.rideCompleted, (completed) {
           if (completed && mounted && !_rideCompleted.value) {
             _handleRideCompleted();
           }
@@ -262,7 +265,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
       // Ride completion arrives as rideActive:false on the poll (also covered
       // by the socket/FCM signal).
-      ever(_liveTrackController!.rideCompleted, (completed) {
+      _pollCompletedWorker?.dispose();
+      _pollCompletedWorker =
+          ever(_liveTrackController!.rideCompleted, (completed) {
         if (completed && mounted && !_rideCompleted.value) {
           _handleRideCompleted();
         }
@@ -515,6 +520,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
     _rideStartedWorker?.dispose();
+    _pollCompletedWorker?.dispose();
     _localTimer?.cancel();
     discoverController.stopRideStartedFallbackPoll();
 

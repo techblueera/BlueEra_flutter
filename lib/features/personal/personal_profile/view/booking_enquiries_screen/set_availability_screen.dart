@@ -33,13 +33,16 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
   final GlobalKey _textFieldKey = GlobalKey();
   OverlayEntry? _overlayEntry;
   Timer? _debounce;
+  List<Worker> _overlayWorkers = [];
 
   @override
   void initState() {
     super.initState();
-    ever(controller.predictions, (_) => _updateOverlay());
-    ever(controller.isSearchPlaceLoading, (_) => _updateOverlay());
-    ever(controller.errorMessage, (_) => _updateOverlay());
+    _overlayWorkers = [
+      ever(controller.predictions, (_) => _updateOverlay()),
+      ever(controller.isSearchPlaceLoading, (_) => _updateOverlay()),
+      ever(controller.errorMessage, (_) => _updateOverlay()),
+    ];
     controller.checkAndGetAvailabilityBookingData(widget.id);
   }
 
@@ -212,6 +215,9 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
 
   @override
   void dispose() {
+    for (final w in _overlayWorkers) {
+      w.dispose();
+    }
     deleteIfRegistered<BookingController>();
     _debounce?.cancel();
     _scrollController.dispose();

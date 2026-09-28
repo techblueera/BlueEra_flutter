@@ -81,6 +81,7 @@ class _GoodsMultiCallTrackingScreenState
   Worker? _riderLatWorker;
   Worker? _riderLngWorker;
   Worker? _rideStartedWorker;
+  Worker? _pollCompletedWorker;
 
   /// Once the rider has verified the pickup OTP, both sides should mirror the
   /// same pickup → drop route and zoom so the customer can visually confirm
@@ -218,7 +219,9 @@ class _GoodsMultiCallTrackingScreenState
         _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
         // Ride completion arrives as rideActive:false on the poll.
-        ever(_liveTrackController!.rideCompleted, (completed) {
+        _pollCompletedWorker?.dispose();
+        _pollCompletedWorker =
+            ever(_liveTrackController!.rideCompleted, (completed) {
           if (completed && mounted && !_rideCompleted.value) {
             _handleRideCompleted();
           }
@@ -260,7 +263,9 @@ class _GoodsMultiCallTrackingScreenState
 
       // Ride completion arrives as rideActive:false on the poll (also covered
       // by the socket/FCM signal).
-      ever(_liveTrackController!.rideCompleted, (completed) {
+      _pollCompletedWorker?.dispose();
+      _pollCompletedWorker =
+          ever(_liveTrackController!.rideCompleted, (completed) {
         if (completed && mounted && !_rideCompleted.value) {
           _handleRideCompleted();
         }
@@ -513,6 +518,7 @@ class _GoodsMultiCallTrackingScreenState
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
     _rideStartedWorker?.dispose();
+    _pollCompletedWorker?.dispose();
     _localTimer?.cancel();
     discoverController.stopRideStartedFallbackPoll();
 
