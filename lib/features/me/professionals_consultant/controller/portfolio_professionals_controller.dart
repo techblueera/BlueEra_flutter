@@ -62,6 +62,7 @@ class PortfolioProfessionalsController extends GetxController {
   String initialNoticeImageUrl = "";
 
   List<Certificates> get certificates {
+    if (!Get.isRegistered<AiProfessionalsController>()) return [];
     final ai = Get.find<AiProfessionalsController>();
     return ai.getProfessionalServiceRes?.value.data?.certificates ?? [];
   }
@@ -131,8 +132,10 @@ class PortfolioProfessionalsController extends GetxController {
             );
           }
         }
-        await Get.find<AiProfessionalsController>()
-            .professionalsFullDetailsController();
+        if (Get.isRegistered<AiProfessionalsController>()) {
+          await Get.find<AiProfessionalsController>()
+              .professionalsFullDetailsController();
+        }
 
         commonSnackBar(message: "Saved Successfully");
       } else {
@@ -162,8 +165,10 @@ class PortfolioProfessionalsController extends GetxController {
           await _repo.deleteProfessionalsPortfolioRepo(id: certiId);
 
       if (response.isSuccess) {
-        await Get.find<AiProfessionalsController>()
-            .professionalsFullDetailsController();
+        if (Get.isRegistered<AiProfessionalsController>()) {
+          await Get.find<AiProfessionalsController>()
+              .professionalsFullDetailsController();
+        }
         commonSnackBar(
             message:
                 response.getExtraData('message') ?? AppStrings.successful);
