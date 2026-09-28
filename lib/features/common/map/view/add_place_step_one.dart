@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/common/map/controller/add_place_step_two_controller.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -32,6 +33,17 @@ class AddPlaceStepOneScreen extends StatefulWidget {
 class _AddPlaceStepOneScreenState extends State<AddPlaceStepOneScreen> {
   final AddPlaceStepOneController controller =
       Get.put(AddPlaceStepOneController());
+
+  @override
+  void initState() {
+    super.initState();
+    // Step two's controller is never deleted with its screen, so a new place
+    // would open step two with the previous one's contact details and hours.
+    // Dropped here, where no step two can be mounted, rather than in dispose:
+    // "Done" tears both steps down at once, and its onClose disposes the text
+    // controllers step two's fields are still attached to.
+    deleteIfRegistered<AddPlaceStepTwoController>();
+  }
 
   @override
   void dispose() {

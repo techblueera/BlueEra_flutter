@@ -18,12 +18,13 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_hour_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class AddPlaceStepTwoScreen extends StatelessWidget {
   AddPlaceStepTwoScreen({Key? key}) : super(key: key);
 
   final AddPlaceStepTwoController controller =
-      Get.put(AddPlaceStepTwoController());
+      putLazy(() => AddPlaceStepTwoController());
 
   @override
   Widget build(BuildContext context) {
