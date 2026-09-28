@@ -72,7 +72,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
     if (accountTypeGlobal == "BUSINESS") {
       await viewBusinessProfileController.viewBusinessProfile();
     } else {
-      await getOrPut(() => ViewPersonalDetailsController())
+      await getOrPut(() => ViewPersonalDetailsController(), permanent: true)
           .viewPersonalProfile(forceRefresh: true);
     }
     if (mounted) setState(() {});

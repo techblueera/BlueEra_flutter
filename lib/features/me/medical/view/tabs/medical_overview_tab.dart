@@ -113,7 +113,7 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
         _SectionCard(
           title: AppStrings.businessLivePhotos.tr,
           child: GetBuilder<ViewBusinessDetailsController>(
-            init: getOrPut(() => ViewBusinessDetailsController()),
+            init: getOrPut(() => ViewBusinessDetailsController(), permanent: true),
             id: 'livePhotos',
             builder: (_) {
               final photos = _businessController

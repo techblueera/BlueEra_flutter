@@ -87,7 +87,7 @@ class DiscoverProfileBanner extends StatefulWidget {
 ({String? posterUrl, String? referralCode}) resolveReferralCard() {
   // getOrPut, not find: this is the same instance the share sheet composes its
   // card from.
-  final personal = getOrPut(() => ViewPersonalDetailsController());
+  final personal = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   String? poster =
       personal.personalProfileDetails.value.user?.marketingCard?.readyUrl;
   String? referralCode =
@@ -285,7 +285,7 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner>
     // observable to read — a business account whose own controller isn't
     // registered on this entry path would otherwise touch no Rx at all and trip
     // GetX's "improper Obx use" check.
-    final personalCtrl = getOrPut(() => ViewPersonalDetailsController());
+    final personalCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
     return Obx(() {
       final _ = personalCtrl.personalProfileDetails.value;
@@ -490,7 +490,7 @@ class _DiscoverProfileBannerState extends State<DiscoverProfileBanner>
       return live ? null : AppImageAssets.goLiveBusinessAccount;
     }
 
-    final personal = getOrPut(() => ViewPersonalDetailsController());
+    final personal = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
     return personal.shopStatusOpenClose.value
         ? null
         : AppImageAssets.goLiveIndividualAccount;

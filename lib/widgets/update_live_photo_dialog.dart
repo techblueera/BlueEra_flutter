@@ -54,7 +54,7 @@ Future<void> showLivePhotoDialog({
                   final containerWidth = (constraints.maxWidth - (spacing * 2)) / 3;
 
                   return GetBuilder<ViewBusinessDetailsController>(
-                    init: getOrPut(() => ViewBusinessDetailsController()),
+                    init: getOrPut(() => ViewBusinessDetailsController(), permanent: true),
                     id: 'livePhotos',
                     builder: (controller) {
                       final apiPhotos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];

@@ -86,7 +86,7 @@ class _SharePromoSheetBody extends StatelessWidget {
         showPromoVideo: false,
       );
     }
-    final viewCtrl = getOrPut(() => ViewPersonalDetailsController());
+    final viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
     return Obx(() {
       final user = viewCtrl.personalProfileDetails.value.user;
       final name = (user?.name ?? '').trim();

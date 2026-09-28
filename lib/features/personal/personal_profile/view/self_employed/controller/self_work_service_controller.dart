@@ -395,7 +395,7 @@ class SelfWorkServiceController extends GetxController{
         //   (route) => route.settings.name == RouteHelper.getEarnServiceScreenRoute(),
         // );
 
-        final controller = getOrPut(() => ViewPersonalDetailsController());
+        final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
         await controller.viewPersonalProfile(forceRefresh: true);
 
         // Refresh profession data so any open SelfProfessionDetailsScreen

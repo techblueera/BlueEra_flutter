@@ -29,7 +29,7 @@ class RiderRequestMsgCard extends StatefulWidget {
 class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
   final controller = Get.isRegistered<DeliverPartnerOrdersController>()
       ? Get.find<DeliverPartnerOrdersController>()
-      : Get.put(DeliverPartnerOrdersController());
+      : Get.put(DeliverPartnerOrdersController(), permanent: true);
   final orderController = Get.put(OrderNowController());
   final chatViewController = Get.find<ChatViewController>();
   String? pickupLocation;

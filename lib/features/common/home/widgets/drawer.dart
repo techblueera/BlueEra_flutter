@@ -50,7 +50,7 @@ class ProfileMenuDrawer extends StatefulWidget {
 }
 
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
-  final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+  final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   final walletController = getOrPut(() => WalletController());
