@@ -33,7 +33,7 @@ class MobileNumberScreen extends StatefulWidget {
 class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
-  final _authController = Get.put(AuthController());
+  final _authController = getOrPut(() => AuthController());
   late LanguageListController langController;
   bool _acceptedTerms = false;
   bool _isMobileValid = false;

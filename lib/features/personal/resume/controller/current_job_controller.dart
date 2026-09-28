@@ -104,6 +104,7 @@ class CurrentJobController extends GetxController {
     designationController.dispose();
     locationController.dispose();
     descriptionController.dispose();
+    super.onClose();
   }
 
   void clearAllFields() {
