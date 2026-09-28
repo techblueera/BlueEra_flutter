@@ -575,7 +575,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     final riderLat = _liveTrackController?.liveLat.value ?? 0.0;
     final riderLng = _liveTrackController?.liveLng.value ?? 0.0;
 
-    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    final overlayCtrl = Get.find<RideNavigationOverlayController>();
     overlayCtrl.showOverlay(
       riderLatVal: riderLat,
       riderLngVal: riderLng,

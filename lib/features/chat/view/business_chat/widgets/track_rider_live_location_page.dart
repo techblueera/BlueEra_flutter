@@ -95,7 +95,7 @@ class _TrackRiderLiveLocationPageState
       if (Navigator.of(context).canPop()) Navigator.of(context).pop();
       return;
     }
-    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    final overlayCtrl = Get.find<RideNavigationOverlayController>();
     overlayCtrl.showOverlay(
       riderLatVal: orderController.liveLat.value,
       riderLngVal: orderController.liveLng.value,

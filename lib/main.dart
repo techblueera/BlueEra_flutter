@@ -69,6 +69,7 @@ import 'features/chat/auth/controller/call_controller.dart';
 // `showIncomingCallLocalNotification` lives in app_notification.dart and is
 // already imported via the `app_notification.dart` import above.
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
+import 'features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'features/chat/view/widget/chat_video_pip_overlay.dart';
 import 'features/chat/view/widget/ongoing_call_strip.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -848,6 +849,8 @@ Future<void> main() async {
   Get.put(NavigationHelperController());
   Get.put(GlobalMessageService());
   Get.put(AppMaintenanceController());
+  // Backs the app-wide ride mini-map in the GetMaterialApp builder.
+  Get.put(RideNavigationOverlayController(), permanent: true);
 
   /// CallController -- must be before runApp for cold-start call handling
   if (!Get.isRegistered<CallController>()) {
