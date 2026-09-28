@@ -11,16 +11,25 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
-class ReceivedBookingsScreen extends StatelessWidget {
+class ReceivedBookingsScreen extends StatefulWidget {
   final String? channelId;
-  ReceivedBookingsScreen({super.key, this.channelId});
+  const ReceivedBookingsScreen({super.key, this.channelId});
+
+  @override
+  State<ReceivedBookingsScreen> createState() => _ReceivedBookingsScreenState();
+}
+
+class _ReceivedBookingsScreenState extends State<ReceivedBookingsScreen> {
+  final controller = Get.put(BookingController());
+
+  @override
+  void initState() {
+    super.initState();
+    controller.getReceivedBookingList(channelId: widget.channelId);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BookingController());
-    controller.getReceivedBookingList(
-      channelId: channelId,
-    );
     return Scaffold(
       appBar: CommonBackAppBar(
         title: 'Received Bookings',

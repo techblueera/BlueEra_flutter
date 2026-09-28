@@ -11,21 +11,32 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
-class ReceivedEnquiriesScreen extends StatelessWidget {
-final  String channelId;
-   ReceivedEnquiriesScreen({super.key, required this.channelId});
+class ReceivedEnquiriesScreen extends StatefulWidget {
+  final String channelId;
+  const ReceivedEnquiriesScreen({super.key, required this.channelId});
+
+  @override
+  State<ReceivedEnquiriesScreen> createState() =>
+      _ReceivedEnquiriesScreenState();
+}
+
+class _ReceivedEnquiriesScreenState extends State<ReceivedEnquiriesScreen> {
+  final controller = Get.put(BookingController());
+
+  @override
+  void initState() {
+    super.initState();
+    controller.getReceivedEnquiryList(channelId: widget.channelId);
+  }
 
   @override
   Widget build(BuildContext context) {
-     final controller = Get.put(BookingController());
-    controller.getReceivedEnquiryList(channelId:channelId,);
-
     return Scaffold(
       appBar: CommonBackAppBar(
         title: 'Received Enquires',
         isLeading: true,
       ),
-      body: ListView.builder(
+      body: Obx(() => ListView.builder(
           padding: EdgeInsets.all(SizeConfig.size8),
           itemCount: controller.receivedenquiryList.length,
           itemBuilder: (context, index) {
@@ -133,7 +144,7 @@ final  String channelId;
                 ),
               ),
             );
-          }),
+          })),
     );
   }
 
