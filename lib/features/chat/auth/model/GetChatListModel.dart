@@ -528,6 +528,16 @@ class Sender {
   /// with a tombstone. Render the row, keep the history, disable every action
   /// that routes on [id]. See `lib/core/constants/deleted_user.dart`.
   bool isDeleted = false;
+
+  /// [isDeleted], plus the case the flag can't cover: past the 365-day
+  /// retention window the account stops being returned at all, so the sender
+  /// arrives carrying nothing but an id — a row with no name, no number and
+  /// no username is someone who is gone, not someone still here.
+  bool get isDeletedOrGone => isDeletedOrMissingUser(
+        isDeleted: isDeleted,
+        name: name,
+        fallbacks: [contactNo, username],
+      );
   num? v;
   // Future<void> processProfileImage() async {
   //   if (profileImage != null && id != null) {

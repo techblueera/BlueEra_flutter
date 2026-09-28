@@ -62,18 +62,62 @@ bool parseIsDeleted(dynamic raw) {
 /// English regardless of the app's language, so the app supplies its own.
 String get deletedUserName => AppStrings.deletedUser.tr;
 
+/// True when a user field carries no usable text.
+///
+/// `""` is how proto3 spells an absent string, and `"null"` is what this
+/// codebase has long stringified a missing name to, so both count as blank.
+bool isBlankUserField(String? value) {
+  final s = (value ?? '').trim();
+  return s.isEmpty || s.toLowerCase() == 'null';
+}
+
+/// True when a **resolved** user payload should get the deleted treatment.
+///
+/// A tombstone announces itself with `is_deleted`, but an account past the
+/// 365-day retention window leaves nothing to read that flag off: gRPC answers
+/// `NOT_FOUND` and a batch lookup simply omits the user, so the row arrives
+/// with every string blank and no flag at all. Both cases end in the same
+/// place for the UI — an id that belongs to nobody — so a row carrying no
+/// identity whatsoever is treated as gone rather than painted nameless and
+/// left tappable. See §3 of `lib/docs/FRONTEND_DELETED_ACCOUNT_REMAINING.md`.
+///
+/// Only feed this payloads that have actually arrived. A screen still loading
+/// its user has blank fields too, and that is not a tombstone.
+///
+/// [fallbacks] are the other identities the row could have shown instead of a
+/// name — a phone number, a username, a business name. As long as one of them
+/// survives, somebody is still behind the id.
+bool isDeletedOrMissingUser({
+  bool? isDeleted,
+  String? name,
+  Iterable<String?> fallbacks = const [],
+}) {
+  if (isDeleted == true) return true;
+  return isBlankUserField(name) && fallbacks.every(isBlankUserField);
+}
+
 /// The name to paint for a user who may be a tombstone.
 ///
 /// [name] is whatever the payload gave; [fallback] is what the caller would
 /// normally show in its place (a phone number, a username). A deleted user
 /// gets [deletedUserName] and neither — a tombstone's `contact_no` is `""`
 /// anyway, so falling back would leave the row blank.
-String displayUserName(String? name,
-    {required bool isDeleted, String? fallback}) {
+///
+/// [blankMeansDeleted] extends that to the retention-window case: when the
+/// payload has arrived and neither the name nor the fallback carries anything,
+/// the row is a user who no longer exists, so it reads [deletedUserName]
+/// rather than rendering as an empty line. Leave it `false` wherever blank can
+/// still mean "not loaded yet" — a profile screen mid-fetch, say.
+String displayUserName(
+  String? name, {
+  required bool isDeleted,
+  String? fallback,
+  bool blankMeansDeleted = false,
+}) {
   if (isDeleted) return deletedUserName;
-  final n = (name ?? '').trim();
-  if (n.isEmpty || n == 'null') return fallback ?? '';
-  return n;
+  if (!isBlankUserField(name)) return name!.trim();
+  if (!isBlankUserField(fallback)) return fallback!.trim();
+  return blankMeansDeleted ? deletedUserName : (fallback ?? '');
 }
 
 /// Guard for any action that routes on a deleted user's id — opening their

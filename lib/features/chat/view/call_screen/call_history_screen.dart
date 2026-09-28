@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
@@ -166,10 +167,24 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     return chat?.sender?.id;
   }
 
+  /// True when the other party on this call no longer has an account — either
+  /// the server answered with a tombstone (`is_deleted`), or the account aged
+  /// past the 365-day retention window and came back carrying nothing at all.
+  ///
+  /// A call to such an id cannot connect, so the row names it and the call
+  /// button says why instead of ringing out. A conversation the chat list
+  /// hasn't loaded is NOT this: no sender means nothing was looked up, and the
+  /// row keeps its existing "Unknown" label.
+  /// See lib/core/constants/deleted_user.dart.
+  bool _isPeerDeleted(ChatList? chat) {
+    return chat?.sender?.isDeletedOrGone ?? false;
+  }
+
   /// Mirrors `_initiateCallFromChat` in component_widgets.dart: place the call
   /// and navigate to /CallRoomScreen.
   Future<void> _placeCall(
       CallModel call, ChatList? chat, CallType type) async {
+    if (blockDeletedUserAction(_isPeerDeleted(chat))) return;
     final otherUserId = _otherUserIdFor(call, chat);
     if (otherUserId == null || otherUserId.isEmpty) return;
     final userName = chat?.sender?.name ?? AppStrings.userFallback.tr;
@@ -427,8 +442,12 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     final missed = _isMissed(call);
     final outgoing = _isOutgoing(call);
     final isVideo = call.callType == 'video_call';
-    final name = chat?.sender?.name ?? AppStrings.unknown.tr;
-    final image = chat?.sender?.profileImage ?? '';
+    final peerDeleted = _isPeerDeleted(chat);
+    final name =
+        peerDeleted ? deletedUserName : (chat?.sender?.name ?? AppStrings.unknown.tr);
+    // A tombstone's profile_image is "" anyway; blanking it keeps a stale
+    // cached avatar from outliving the account it belonged to.
+    final image = peerDeleted ? '' : (chat?.sender?.profileImage ?? '');
     final accent = missed ? AppColors.red : AppColors.green0B;
 
     return Container(
@@ -532,26 +551,37 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
           const SizedBox(width: 8),
           _callIconButton(
             icon: isVideo ? Icons.videocam : Icons.call,
-            onTap: () => _showCallPicker(call, chat),
+            dimmed: peerDeleted,
+            onTap: () {
+              if (blockDeletedUserAction(peerDeleted)) return;
+              _showCallPicker(call, chat);
+            },
           ),
         ],
       ),
     );
   }
 
+  /// [dimmed] greys the button for a peer who no longer exists. It stays
+  /// tappable on purpose — the tap is what explains why nothing will happen.
   Widget _callIconButton(
-      {required IconData icon, required VoidCallback onTap}) {
+      {required IconData icon,
+      required VoidCallback onTap,
+      bool dimmed = false}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.12),
-          shape: BoxShape.circle,
+      child: Opacity(
+        opacity: dimmed ? 0.35 : 1.0,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: AppColors.primaryColor, size: 20),
         ),
-        child: Icon(icon, color: AppColors.primaryColor, size: 20),
       ),
     );
   }

@@ -157,6 +157,17 @@ class GroupMembersListModel {
   /// See `lib/core/constants/deleted_user.dart`.
   final bool isDeleted;
 
+  /// True when this member should read as a tombstone: flagged `is_deleted`,
+  /// or — once the account has aged past the 365-day retention window and the
+  /// backend stops returning it — handed back with no identity left on it at
+  /// all, which is the same thing with no flag to read.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool get isDeletedOrGone => isDeletedOrMissingUser(
+        isDeleted: isDeleted,
+        name: name,
+        fallbacks: [contact],
+      );
+
   const GroupMembersListModel({
     this.id,
     this.accountType,

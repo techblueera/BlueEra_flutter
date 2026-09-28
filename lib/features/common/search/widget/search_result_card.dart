@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -117,7 +118,11 @@ class SearchResultCard extends StatelessWidget {
   }
 
   Widget _body() {
-    final title = item.title.trim();
+    // A stale index row for an account that is gone reads as the tombstone
+    // rather than as "Untitled" — and never as a live person.
+    // See lib/core/constants/deleted_user.dart.
+    final title =
+        item.isDeletedAccount ? deletedUserName : item.title.trim();
     final meta = _metaRow();
     final location = _locationRow();
     return Column(
@@ -160,7 +165,9 @@ class SearchResultCard extends StatelessWidget {
   /// whenever the row carries no image or the image fails to load.
   Widget _avatar() {
     final size = SizeConfig.size54;
-    final url = item.imageUrl?.trim() ?? '';
+    // A deleted account keeps no photo; dropping the URL stops a cached one
+    // outliving the account it belonged to.
+    final url = item.isDeletedAccount ? '' : (item.imageUrl?.trim() ?? '');
     final placeholder = Container(
       width: size,
       height: size,
