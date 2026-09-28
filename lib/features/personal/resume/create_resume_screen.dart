@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
@@ -45,7 +44,7 @@ class _CreateResumeScreenState extends State<CreateResumeScreen> {
         showRightTextButton: true,
         rightTextButtonText: AppStrings.template.tr,
         onRightTextButtonTap: (){
-          navigatePushTo(context, ResumeTemplateScreen());
+          Get.to(() => ResumeTemplateScreen());
         },
       ),
       body: SafeArea(

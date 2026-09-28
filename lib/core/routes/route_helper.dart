@@ -202,6 +202,7 @@ import 'package:BlueEra/features/personal/resume/sections/resume_templates_scree
 import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/contacts/view/blue_era_contacts_screen.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
@@ -217,6 +218,18 @@ import '../../features/personal/personal_profile/view/booking_enquiries_screen/v
 class RouteHelper {
   static final RouteObserver<PageRoute> routeObserver =
       RouteObserver<PageRoute>();
+
+  /// A named route GetX manages like one opened with `Get.to`: controllers
+  /// first registered while it is on top are deleted when it is removed.
+  /// A plain MaterialPageRoute links them to the route but never reports its
+  /// disposal, so they were never freed.
+  ///
+  /// Only for screens whose non-permanent controllers nothing outside the
+  /// screen (and the routes it pushes) still uses once it closes.
+  static GetPageRoute<dynamic> _getRoute(Widget Function() page,
+          {RouteSettings? settings}) =>
+      GetPageRoute<dynamic>(
+          page: page, settings: settings, routeName: settings?.name);
 
   static String getMobileNumberLoginRoute() =>
       RouteConstant.MobileNumberScreen;
@@ -1345,8 +1358,8 @@ class RouteHelper {
         final String channelId = args[ApiKeys.channelId] as String;
         final ProductData? productData =
             args[ApiKeys.argProductData] as ProductData?;
-        return MaterialPageRoute(
-          builder: (_) => AddUpdateProductScreen(
+        return _getRoute(
+          () => AddUpdateProductScreen(
               channelId: channelId, productData: productData),
           settings:
               RouteSettings(name: RouteHelper.getAddUpdateProductScreenRoute()),
@@ -2519,8 +2532,8 @@ class RouteHelper {
             args[ApiKeys.argCreateMissingProductIndex] as int?;
         final String? foodCategoryType =
             args[ApiKeys.argFoodCategoryType] as String?;
-        return MaterialPageRoute(
-            builder: (_) => FoodEntryAiScreen(
+        return _getRoute(
+            () => FoodEntryAiScreen(
                 createMissingProductIndex: createMissingProductIndex,
                 categoryType: foodCategoryType),
             settings: RouteSettings(name: getFoodEntryAiScreenRoute()));
