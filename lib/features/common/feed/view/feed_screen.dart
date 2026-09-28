@@ -60,6 +60,7 @@ class _FeedScreenState extends State<FeedScreen> {
       Get.isRegistered<FeedController>() ? Get.find<FeedController>() : Get.put(FeedController());
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
+  Worker? _refreshWorker;
 
   // 🔹 State to track if "Scroll to Top" button should be visible
   bool _showBackToTop = false;
@@ -74,7 +75,10 @@ class _FeedScreenState extends State<FeedScreen> {
         _scrollController.addListener(_scrollListener);
       }
 
-      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar, (shouldRefresh) {
+      if (!mounted) return;
+      _refreshWorker = ever(
+          Get.find<NavigationHelperController>().shouldRefreshBottomBar,
+          (shouldRefresh) {
         if (shouldRefresh == true) {
           fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
           Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
@@ -134,6 +138,7 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   void dispose() {
     _searchDebounce?.cancel();
+    _refreshWorker?.dispose();
     if (!widget.isInParentScroll) {
       _scrollController.removeListener(_scrollListener);
       _scrollController.dispose();

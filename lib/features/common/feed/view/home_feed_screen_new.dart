@@ -108,6 +108,8 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
     fetchPostData(refreshFlag: refreshFlag);
   }
 
+  Worker? _refreshWorker;
+
   @override
   void initState() {
     super.initState();
@@ -134,7 +136,9 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
       _scrollController.addListener(_scrollListener);
 
       /// forcefully we are calling api due to page is already loaded but we want to call api due to some new post is added by us
-      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
+      if (!mounted) return;
+      _refreshWorker = ever(
+          Get.find<NavigationHelperController>().shouldRefreshBottomBar,
           (shouldRefresh) {
         if (shouldRefresh == true) {
           // A post (message / poll / photo / video) was just uploaded, so the
@@ -171,6 +175,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
 
   @override
   void dispose() {
+    _refreshWorker?.dispose();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     super.dispose();
