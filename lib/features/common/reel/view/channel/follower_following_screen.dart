@@ -181,7 +181,7 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
     // The account is gone. The row stays — the follow relationship is real and
     // the counts have to add up — but it opens nothing.
     // See lib/core/constants/deleted_user.dart.
-    final bool isUserDeleted = user?.isDeleted ?? false;
+    final bool isUserDeleted = user?.isDeletedOrGone ?? false;
     final bool isBusiness =
         user?.accountType?.toUpperCase() == AppConstants.business;
     final String avatarUrl = isUserDeleted

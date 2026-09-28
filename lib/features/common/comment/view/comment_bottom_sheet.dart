@@ -260,8 +260,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     // A hard-deleted author keeps their comment in the thread — pulling it
     // would break the replies hanging off it — but is rendered as a tombstone.
     // See lib/core/constants/deleted_user.dart.
-    final bool isCommenterDeleted = comment.createdBy?.isDeleted ?? false;
-    final bool isReplierDeleted = reply?.createdBy?.isDeleted ?? false;
+    final bool isCommenterDeleted =
+        comment.createdBy?.isDeletedOrGone ?? false;
+    final bool isReplierDeleted = reply?.createdBy?.isDeletedOrGone ?? false;
 
     String commentName = isCommenterDeleted
         ? deletedUserName

@@ -77,7 +77,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
     // An @mention of a since-deleted member still renders in the message — the
     // text is history — but resolves to nobody.
     // See lib/core/constants/deleted_user.dart.
-    if (blockDeletedUserAction(member.isDeleted)) return;
+    if (blockDeletedUserAction(member.isDeletedOrGone)) return;
     final number = member.contact?.trim() ?? '';
     if (number.isNotEmpty) {
       // Open the SAME contact-link sheet a tapped phone number opens: resolves
@@ -229,7 +229,8 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                               color: chatThemeController.getDarkColorForSender(
                                   widget.messages.senderId ?? "unknown", 0.1)),
                           child: Center(
-                              child: (widget.messages.sender?.isDeleted ?? false)
+                              child: (widget.messages.sender?.isDeletedOrGone ??
+                                      false)
                                   // Person glyph, not an initial: "D" for
                                   // "Deleted User" would read as a real one.
                                   ? Icon(Icons.person,
@@ -289,7 +290,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                         displayUserName(
                                           widget.messages.sender?.name,
                                           isDeleted: widget.messages.sender
-                                                  ?.isDeleted ??
+                                                  ?.isDeletedOrGone ??
                                               false,
                                         ),
                                         fontWeight: FontWeight.w400,

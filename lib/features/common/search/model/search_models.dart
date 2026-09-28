@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:get/get_utils/get_utils.dart';
 
 /// Models for the global hybrid search service
@@ -86,6 +87,14 @@ class SearchResultItem {
   /// instead of reserving a fixed slot for it.
   final int? productCount;
 
+  /// Tombstone flag on a person/shop row.
+  ///
+  /// A deleted account is dropped from the search index, so in practice this
+  /// should never arrive true — but the index lags behind a deletion and a
+  /// backfill can reintroduce a stale row, so it is parsed rather than
+  /// assumed away. See `lib/core/constants/deleted_user.dart`.
+  final bool isDeleted;
+
   SearchResultItem({
     required this.id,
     required this.entityType,
@@ -120,6 +129,7 @@ class SearchResultItem {
     this.deliveryBy,
     this.warranty,
     this.productCount,
+    this.isDeleted = false,
   });
 
   factory SearchResultItem.fromJson(Map<String, dynamic> j) => SearchResultItem(
@@ -164,7 +174,18 @@ class SearchResultItem {
             j['totalProductCount'] ??
             j['productsCount'] ??
             j['itemCount']),
+        isDeleted: parseIsDeleted(j['is_deleted'] ?? j['isDeleted']),
       );
+
+  /// True when this row stands for an account that no longer exists — flagged
+  /// by the index, or left nameless, which is how a row whose account aged out
+  /// of the 365-day retention window comes back.
+  ///
+  /// Person rows only: an untitled product is a catalogue defect, not a
+  /// deleted account, and must keep its existing "Untitled" treatment.
+  bool get isDeletedAccount =>
+      (entityType == 'user' || entityType == 'business') &&
+      isDeletedOrMissingUser(isDeleted: isDeleted, name: title);
 
   static num? _toNum(dynamic v) =>
       v is num ? v : (v is String ? num.tryParse(v) : null);

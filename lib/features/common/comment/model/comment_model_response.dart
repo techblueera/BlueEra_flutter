@@ -129,6 +129,16 @@ class CreatedBy {
   /// See `lib/core/constants/deleted_user.dart`.
   bool isDeleted = false;
 
+  /// [isDeleted], plus the author whose account aged past the 365-day
+  /// retention window: the backend stops returning it, so the embedded author
+  /// comes back with nothing on it and no flag to read.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool get isDeletedOrGone => isDeletedOrMissingUser(
+        isDeleted: isDeleted,
+        name: name,
+        fallbacks: [businessName, username],
+      );
+
   CreatedBy({
     this.sId,
     this.accountType,

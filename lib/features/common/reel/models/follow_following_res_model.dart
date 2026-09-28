@@ -162,6 +162,15 @@ class FollowingFollower {
   /// See `lib/core/constants/deleted_user.dart`.
   bool isDeleted = false;
 
+  /// [isDeleted], plus the account that aged past the 365-day retention
+  /// window: it is no longer returned at all, so the row arrives with an id
+  /// and nothing else and there is no flag left to read.
+  bool get isDeletedOrGone => isDeletedOrMissingUser(
+        isDeleted: isDeleted,
+        name: name,
+        fallbacks: [business_name, username],
+      );
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = id;

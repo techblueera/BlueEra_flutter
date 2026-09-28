@@ -161,7 +161,7 @@ class PostAuthorHeader extends StatelessWidget {
     // the content isn't the account — but the byline becomes a tombstone and
     // the tap stops routing on an id nobody owns.
     // See lib/core/constants/deleted_user.dart.
-    final bool isAuthorDeleted = post?.user?.isDeleted ?? false;
+    final bool isAuthorDeleted = post?.user?.isDeletedOrGone ?? false;
 
     String name = isAuthorDeleted
         ? deletedUserName

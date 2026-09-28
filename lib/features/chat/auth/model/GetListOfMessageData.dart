@@ -1414,6 +1414,15 @@ class Sender {
   /// [id] are disabled. See `lib/core/constants/deleted_user.dart`.
   bool isDeleted = false;
 
+  /// [isDeleted], plus the case the flag can't cover: an author whose account
+  /// aged past the 365-day retention window is no longer returned at all, so
+  /// the embedded sender arrives with nothing on it but an id.
+  bool get isDeletedOrGone => isDeletedOrMissingUser(
+        isDeleted: isDeleted,
+        name: name,
+        fallbacks: [contactNo, username],
+      );
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['profile_image'] = profileImage;

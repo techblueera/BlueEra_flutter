@@ -4,6 +4,7 @@ import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
 import 'package:BlueEra/features/common/account_deletion/model/deletion_blocked_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart' as feed;
+import 'package:BlueEra/features/common/search/model/search_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Covers the three fixes in docs/backend/FRONTEND_ACCOUNT_DELETION_BUGS.md.
@@ -196,6 +197,125 @@ void main() {
       expect(blockDeletedUserAction(true), isTrue);
       expect(blockDeletedUserAction(false), isFalse);
       expect(blockDeletedUserAction(null), isFalse);
+    });
+  });
+
+  // §3 of lib/docs/FRONTEND_DELETED_ACCOUNT_REMAINING.md: past the 365-day
+  // retention window the backend stops returning the account at all, so there
+  // is no `is_deleted: true` left to read — only an id and a row of blanks.
+  group('a user MISSING from the response degrades like a deleted one', () {
+    test('isBlankUserField knows the three spellings of "no value"', () {
+      expect(isBlankUserField(null), isTrue);
+      expect(isBlankUserField(''), isTrue);
+      expect(isBlankUserField('   '), isTrue);
+      expect(isBlankUserField('null'), isTrue); // stringified null
+      expect(isBlankUserField('NULL'), isTrue);
+      expect(isBlankUserField('Asha'), isFalse);
+      expect(isBlankUserField('0'), isFalse); // a real, if odd, name
+    });
+
+    test('no name and no fallback identity reads as gone', () {
+      expect(isDeletedOrMissingUser(isDeleted: true, name: 'Asha'), isTrue);
+      expect(isDeletedOrMissingUser(name: ''), isTrue);
+      expect(isDeletedOrMissingUser(name: null), isTrue);
+      // One surviving identity is enough to say somebody is still there.
+      expect(
+        isDeletedOrMissingUser(name: '', fallbacks: ['9363029058']),
+        isFalse,
+      );
+      expect(
+        isDeletedOrMissingUser(name: '', fallbacks: ['', 'usermd4gkk']),
+        isFalse,
+      );
+      expect(
+        isDeletedOrMissingUser(name: '', fallbacks: ['', '']),
+        isTrue,
+      );
+      expect(isDeletedOrMissingUser(name: 'Asha'), isFalse);
+    });
+
+    test('a chat-list sender with nothing left on it is gone', () {
+      // What a 366-day-old conversation's participant comes back as.
+      final gone = Sender.fromJson({
+        '_id': '6a8e73a5f1331440ed37bdd9',
+        'name': '',
+        'contact_no': '',
+        'username': '',
+      });
+      expect(gone.isDeleted, isFalse, reason: 'no flag survives to be read');
+      expect(gone.isDeletedOrGone, isTrue);
+
+      // A live sender the payload simply never named — the number identifies
+      // them, so the row is not a tombstone.
+      final unnamed = Sender.fromJson({
+        '_id': '687baa0ca598e3558edda1d7',
+        'contact_no': '9363029058',
+      });
+      expect(unnamed.isDeletedOrGone, isFalse);
+    });
+
+    test('displayUserName names the blank row only when asked to', () {
+      // Default: unchanged, so a screen still fetching its user keeps its
+      // blank line rather than accusing a live account of being deleted.
+      expect(displayUserName('', isDeleted: false), isEmpty);
+      expect(
+        displayUserName('', isDeleted: false, blankMeansDeleted: true),
+        deletedUserName,
+      );
+      // A usable fallback always wins over the tombstone.
+      expect(
+        displayUserName('',
+            isDeleted: false,
+            fallback: '9363029058',
+            blankMeansDeleted: true),
+        '9363029058',
+      );
+      expect(
+        displayUserName('null',
+            isDeleted: false, fallback: '', blankMeansDeleted: true),
+        deletedUserName,
+      );
+    });
+
+    test('a nameless person row in search is treated as a deleted account',
+        () {
+      // The index drops deleted accounts, so this is defence against a lagging
+      // or back-filled row rather than the common case.
+      expect(
+        SearchResultItem.fromJson({
+          '_id': 'a',
+          'entityType': 'user',
+          'title': '',
+        }).isDeletedAccount,
+        isTrue,
+      );
+      expect(
+        SearchResultItem.fromJson({
+          '_id': 'a',
+          'entityType': 'user',
+          'title': 'Asha',
+          'is_deleted': true,
+        }).isDeletedAccount,
+        isTrue,
+      );
+      expect(
+        SearchResultItem.fromJson({
+          '_id': 'a',
+          'entityType': 'user',
+          'title': 'Asha',
+        }).isDeletedAccount,
+        isFalse,
+      );
+      // An untitled product is a catalogue defect, not a deleted account, and
+      // keeps its existing "Untitled" treatment.
+      expect(
+        SearchResultItem.fromJson({
+          '_id': 'a',
+          'entityType': 'product',
+          'title': '',
+        }).isDeletedAccount,
+        isFalse,
+      );
     });
   });
 }

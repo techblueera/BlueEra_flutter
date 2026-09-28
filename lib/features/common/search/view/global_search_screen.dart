@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/deleted_user.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -1168,6 +1169,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   /// people and shops open their profile screen. Anything else still has no
   /// detail screen wired, so it surfaces as a snackbar.
   void _openResult(SearchResultItem item) {
+    // A profile behind a deleted account resolves to nothing, so the tap says
+    // so instead of opening an empty screen.
+    // See lib/core/constants/deleted_user.dart.
+    if (blockDeletedUserAction(item.isDeletedAccount)) return;
     if (isSearchProductType(item.entityType)) {
       controller.openProductOrder(item);
       return;

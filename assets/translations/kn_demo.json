@@ -1,4 +1,9 @@
 {
+  "accountDeletionBlockedIntro": "Your account can't be deleted yet. Please resolve the items below and try again.",
+  "accountDeletionBlockedTitle": "Can't delete yet",
+  "deletedUser": "Deleted Account",
+  "deletedUserCannotMessage": "You can't send messages to a deleted account.",
+  "deletedUserUnavailable": "This account has been deleted.",
   "languageCode": "kn",
   " pDFUploaded": "PDF ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ",
   " uploadRequiredDocs": "ಅಗತ್ಯವಾದ ದಾಖಲೆಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",

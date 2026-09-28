@@ -988,6 +988,16 @@ class User {
     this.isDeleted = false,
   });
 
+  /// [isDeleted], plus the author whose account aged past the 365-day
+  /// retention window: nothing is returned for it any more, so the embedded
+  /// user arrives with every field blank and no flag to read.
+  /// See `lib/core/constants/deleted_user.dart`.
+  bool get isDeletedOrGone => isDeletedOrMissingUser(
+        isDeleted: isDeleted,
+        name: name,
+        fallbacks: [businessName, username],
+      );
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['_id']??json['id'] ?? '',

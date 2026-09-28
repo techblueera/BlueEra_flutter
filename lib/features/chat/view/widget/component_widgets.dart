@@ -356,14 +356,21 @@ Widget  ChatListTile({
   // so prefer the group fields when the row is a group.
   final isGroupChat =
       (chat?.type == AppConstants.group_Chat_Type) || (chat?.isGroup == true);
-  // The other participant's account has been hard-deleted and the server is
-  // answering with a tombstone. The row is NOT hidden — dropping it would make
-  // the conversation vanish for the surviving person — but the name, the
-  // avatar and every action that routes on the id are replaced below. Group
-  // rows are identified by the group, not the sender, so they're exempt.
+  // Rows identified by something other than the person on the other side:
+  // groups by the group, order threads by the order. Neither reads the
+  // embedded sender, so neither gets the tombstone treatment below.
+  final usesGroupIdentity =
+      isGroupChat || chat?.lastMessage == "Order Message";
+  // The other participant's account is gone — either the server answered with
+  // a tombstone (`is_deleted`), or the account aged past the 365-day retention
+  // window and came back carrying nothing at all, which is the same thing with
+  // no flag left to read. The row is NOT hidden — dropping it would make the
+  // conversation vanish for the surviving person — but the name, the avatar
+  // and every action that routes on the id are replaced below.
   // See lib/core/constants/deleted_user.dart.
-  final isSenderDeleted = !isGroupChat && (sender?.isDeleted ?? false);
-  final senderName = (isGroupChat || chat?.lastMessage == "Order Message")
+  final isSenderDeleted =
+      !usesGroupIdentity && (sender?.isDeletedOrGone ?? false);
+  final senderName = usesGroupIdentity
       ? chat?.groupName
       : isSenderDeleted
           ? deletedUserName
@@ -372,14 +379,13 @@ Widget  ChatListTile({
   // A tombstone's contact_no is "" — blank it so the name/number fallbacks
   // downstream can't resurrect a number for a row that has no person behind it.
   final senderContactNo = isSenderDeleted ? null : sender?.contactNo;
-  final senderProfileImage =
-      (isGroupChat || chat?.lastMessage == "Order Message")
-          ? chat?.groupProfileImage
-          // Empty (not null): null is the group branch, which paints the group
-          // name's initial. "" falls through to the person placeholder below.
-          : isSenderDeleted
-              ? ''
-              : sender?.profileImage;
+  final senderProfileImage = usesGroupIdentity
+      ? chat?.groupProfileImage
+      // Empty (not null): null is the group branch, which paints the group
+      // name's initial. "" falls through to the person placeholder below.
+      : isSenderDeleted
+          ? ''
+          : sender?.profileImage;
   final senderDesignation = sender?.designation;
   // final senderBusinessId = sender?.businessId;
 
@@ -2106,8 +2112,14 @@ AppBar getChatTitleAppBar(BuildContext context, {
                         // "Deleted User" and its contact_no is "", so neither
                         // the server text nor the number fallback is usable —
                         // [displayUserName] substitutes the localised string.
+                        // `blankMeansDeleted` extends that to a peer who aged
+                        // out of the retention window: no name, no number,
+                        // nothing to paint, so the header says so rather than
+                        // rendering an empty line.
                         displayUserName(name,
-                            isDeleted: isDeleted, fallback: contactNo),
+                            isDeleted: isDeleted,
+                            fallback: contactNo,
+                            blankMeansDeleted: true),
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                         fontSize: SizeConfig.size16,
