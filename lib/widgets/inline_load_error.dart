@@ -31,7 +31,7 @@ class InlineLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final langController = getOrPut(() => LanguageListController());
+    final langController = getOrPut(() => LanguageListController(), permanent: true);
 
     return Container(
       padding: EdgeInsets.symmetric(

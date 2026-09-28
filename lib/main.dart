@@ -798,7 +798,7 @@ Future<void> main() async {
 
   /// AuthController must be registered before getUserLoginData() (it sets
   /// imgPath on it). Get.put is synchronous — safe to do up front.
-  Get.put(AuthController());
+  Get.put(AuthController(), permanent: true);
 
   await Future.wait<void>([
     /// Localization (needs Hive, so runs after Hive.initFlutter)
@@ -844,11 +844,13 @@ Future<void> main() async {
 
   final locale = Locale(savedLangCode);
 
-  /// Controllers needed at first frame
+  /// Controllers needed at first frame. App-wide, so `permanent`: nothing
+  /// else keeps them alive (they only escaped route disposal by being
+  /// registered before the first route existed).
   unFocus();
-  Get.put(NavigationHelperController());
-  Get.put(GlobalMessageService());
-  Get.put(AppMaintenanceController());
+  Get.put(NavigationHelperController(), permanent: true);
+  Get.put(GlobalMessageService(), permanent: true);
+  Get.put(AppMaintenanceController(), permanent: true);
   // Backs the app-wide ride mini-map in the GetMaterialApp builder.
   Get.put(RideNavigationOverlayController(), permanent: true);
 

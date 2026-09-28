@@ -68,7 +68,7 @@ class GigWorkAadhaarScreen extends StatefulWidget {
 
 class _GigWorkAadhaarScreenState extends State<GigWorkAadhaarScreen> {
   final LanguageListController langController =
-      getOrPut(() => LanguageListController());
+      getOrPut(() => LanguageListController(), permanent: true);
 
   final _formKey = GlobalKey<FormState>();
 

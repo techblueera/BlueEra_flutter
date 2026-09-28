@@ -53,7 +53,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   @override
   void initState() {
     super.initState();
-    langController = getOrPut(() => LanguageListController());
+    langController = getOrPut(() => LanguageListController(), permanent: true);
     // verifyOTP deliberately leaves `otpVerificationResponse` in LOADING on
     // the success/navigation path so the dim veil stays up until the screen
     // is torn down. The AuthController is permanent, so that stale LOADING

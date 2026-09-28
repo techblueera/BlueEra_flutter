@@ -43,7 +43,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   @override
   void initState() {
     _getPhoneNumber();
-    langController = getOrPut(() => LanguageListController());
+    langController = getOrPut(() => LanguageListController(), permanent: true);
     _authController.mobileNumberEditController.addListener(_onMobileChanged);
     // AuthController is permanent, so a stale LOADING from a previous send
     // could otherwise mount this screen with the overlay already showing.

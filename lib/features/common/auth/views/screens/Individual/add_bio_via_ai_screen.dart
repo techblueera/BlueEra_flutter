@@ -65,7 +65,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
 
   @override
   void initState() {
-    langController = getOrPut(() => LanguageListController());
+    langController = getOrPut(() => LanguageListController(), permanent: true);
 
     // Apply a deeplink-captured referral code if one is waiting in
     // prefs (silent path — no dialog), otherwise fall through to the

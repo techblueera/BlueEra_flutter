@@ -314,7 +314,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   final ChatLockController chatLockController =
       getOrPut(() => ChatLockController());
   final LanguageListController langController =
-      getOrPut(() => LanguageListController());
+      getOrPut(() => LanguageListController(), permanent: true);
 
   /// Owns the additive `contact-service` sync (see [_syncContactsIfNeeded]).
   /// Separate from [chatViewController]'s `chat-service/connections/sync`.
