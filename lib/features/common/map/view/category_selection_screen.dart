@@ -9,13 +9,14 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class CategorySelectionScreen extends StatelessWidget {
   const CategorySelectionScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(CategoryController());
+    final controller = putLazy(() => CategoryController());
     final addPlaceController = Get.find<AddPlaceStepOneController>();
 
     return Scaffold(

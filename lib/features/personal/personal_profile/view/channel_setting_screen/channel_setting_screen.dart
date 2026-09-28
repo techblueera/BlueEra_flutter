@@ -4,6 +4,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 import 'channel_setting_controller.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
@@ -13,7 +14,7 @@ class ChannelSettingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ChannelSettingController());
+    final controller = putLazy(() => ChannelSettingController());
 
     return Scaffold(
       backgroundColor: Colors.grey[50],

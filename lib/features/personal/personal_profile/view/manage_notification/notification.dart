@@ -9,13 +9,14 @@ import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class NotificationSettingScreen extends StatelessWidget {
   const NotificationSettingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(NotificationSettingsController());
+    final controller = putLazy(() => NotificationSettingsController());
 
     return Scaffold(
       appBar: CommonBackAppBar(title: AppStrings.notificationSetting.tr),

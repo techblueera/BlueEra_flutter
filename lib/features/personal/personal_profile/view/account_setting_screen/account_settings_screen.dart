@@ -218,7 +218,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                   // page in an in-app browser (OTP + Terms happen there). Don't
                   // wrap it in another dialog here — that double-confirms.
                   // See docs/backend/FLUTTER_ACCOUNT_DELETION_INTEGRATION.md.
-                  Get.put(AccountDeletionController())
+                  putLazy(() => AccountDeletionController())
                       .startAccountDeletion(context);
                 },
               ),

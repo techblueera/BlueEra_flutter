@@ -4,6 +4,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/add_more_details
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -17,7 +18,7 @@ class AutomotiveAddMoreDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AddMoreDetailsController());
+    final controller = putLazy(() => AddMoreDetailsController());
 
     return Dialog(
       insetPadding: const EdgeInsets.all(25),

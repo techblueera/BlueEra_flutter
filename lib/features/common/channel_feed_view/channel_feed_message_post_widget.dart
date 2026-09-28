@@ -302,8 +302,8 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                                                     height: SizeConfig.size20),
                                                 InkWell(
                                                   onTap: () async {
-                                                    Get.put(
-                                                        MessagePostController());
+                                                    putLazy(
+                                                        () => MessagePostController());
 
                                                     ///REPOST MESSAGE AND POLL POST...
                                                     safeBack();

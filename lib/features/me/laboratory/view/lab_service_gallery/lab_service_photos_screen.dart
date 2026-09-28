@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:intl/intl.dart';
 
 class LabServicePhotosPhotoScreen extends StatelessWidget {
@@ -16,7 +17,7 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LabServicePhotoPhotoController());
+    final controller = putLazy(() => LabServicePhotoPhotoController());
 
     return Scaffold(
       appBar: CommonBackAppBar(title: AppStrings.labServicePhotos.tr),

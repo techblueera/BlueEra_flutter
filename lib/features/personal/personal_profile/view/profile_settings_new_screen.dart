@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 
 
 class ProfileSettingsNewScreen extends StatelessWidget {
@@ -79,7 +80,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                 SizedBox(height: 20),
                 CustomBtn(
                     onTap: () {
-                      Get.put(AccountDeletionController())
+                      putLazy(() => AccountDeletionController())
                           .startAccountDeletion(context);
                     },
                     title: AppStrings.deleteAccount,
