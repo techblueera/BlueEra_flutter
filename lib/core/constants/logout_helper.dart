@@ -29,6 +29,18 @@ import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
+import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/bookmark_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_profile_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
+import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
+import 'package:BlueEra/features/me/professionals_consultant/controller/portfolio_professionals_controller.dart';
+import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -269,6 +281,31 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<ManufacturerProductController>());
     _drop(() => deleteIfRegistered<VehicleV3Controller>());
     _resetOtherServiceControllers();
+    _resetPermanentFeatureControllers();
+  }
+
+  /// Drops feature controllers that their screens register `permanent: true`.
+  ///
+  /// Permanent means GetX never reclaims them, and nothing else deleted them,
+  /// so the previous account's lab catalogue, health camps, portfolio,
+  /// onboarding answers, medical cart, bookmarks, payment QR and ride booking
+  /// were still on screen for the next account signing in without an app
+  /// restart. Each screen re-creates its controller with `getOrPut`.
+  static void _resetPermanentFeatureControllers() {
+    _drop(() => deleteIfRegistered<LabTestController>());
+    _drop(() => deleteIfRegistered<HealthCampController>());
+    _drop(() => deleteIfRegistered<LabFullDetailsController>());
+    _drop(() => deleteIfRegistered<FacilityController>());
+    _drop(() => deleteIfRegistered<LabProfileController>());
+    _drop(() => deleteIfRegistered<LabPackageController>());
+    _drop(() => deleteIfRegistered<BusinessOnboardingController>());
+    _drop(() => deleteIfRegistered<PortfolioProfessionalsController>());
+    _drop(() => deleteIfRegistered<MedicalCartController>());
+    _drop(() => deleteIfRegistered<BookmarkController>());
+    _drop(() => deleteIfRegistered<PaymentQrController>());
+    // Its onClose stops the ride-status polls, which would otherwise keep
+    // running for the previous account's ride.
+    _drop(() => deleteIfRegistered<RideBookingController>());
   }
 
   /// Drops the "other service" business-profile controllers.
