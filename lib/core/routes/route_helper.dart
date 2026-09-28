@@ -2,7 +2,6 @@
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/customer/my_self_pickup_orders_screen.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
@@ -24,7 +23,6 @@ import 'package:BlueEra/features/me/food/view/customer/food_customer_listing_scr
 import 'package:BlueEra/features/me/food/view/admin/food_entry_ai_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_product_selection_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/missing_food_itmes_screen.dart';
-import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
@@ -39,20 +37,16 @@ import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_picku
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/doctor/view/doctor_my_appointments_screen.dart';
-import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/view/medical_category_screen.dart';
-import 'package:BlueEra/features/me/medical/view/medical_screen.dart';
 import 'package:BlueEra/features/me/medical/view/add_medical_snap_search_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/add_product_variant_screen.dart';
-import 'package:BlueEra/features/me/product/view/admin/product_cart_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/my_product_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/my_manufacturer_products_screen.dart';
-import 'package:BlueEra/features/me/manufacturer/view/customer/manufacturer_products_store_details_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_add_product_via_ai_step1.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_add_product_via_ai_step2.dart';
@@ -61,10 +55,6 @@ import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
-import 'package:BlueEra/features/common/address/model/address_ui_model.dart';
-import 'package:BlueEra/features/common/address/model/user_address_model.dart';
-import 'package:BlueEra/features/common/address/view/add_edit_address_screen.dart';
-import 'package:BlueEra/features/common/address/view/saved_address_list_screen.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -81,21 +71,13 @@ import 'package:BlueEra/features/common/auth/views/screens/create_account_type_s
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_store/rider_store_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
-import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step2.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step3.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step_4.dart';
-import 'package:BlueEra/features/common/jobs/view/applied_screen/applied_jobs_screen.dart';
-import 'package:BlueEra/features/common/jobs/view/job_details_overview_screen.dart';
-import 'package:BlueEra/features/common/jobs/view/job_qna_screen.dart';
 import 'package:BlueEra/features/common/map/view/add_place_step_one.dart';
 import 'package:BlueEra/features/common/map/view/add_place_step_two.dart';
 import 'package:BlueEra/features/common/map/view/category_selection_screen.dart';
@@ -103,7 +85,6 @@ import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/map/view/searchLocationScreen.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
 import 'package:BlueEra/features/common/notification/view/notification_screen.dart';
-import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_preview_screen.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_review_screen.dart';
@@ -123,12 +104,9 @@ import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/search/view/global_search_screen.dart';
-import 'package:BlueEra/features/me/vehicle/v3/view/customer/vehicle_listing_detail_screen_v3.dart';
-import 'package:BlueEra/features/me/vehicle/v3/view/customer/vehicle_discover_screen_v3.dart';
 
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
-import 'package:BlueEra/features/me/vehicle/v3/view/vehicle_screen_v3.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_screen.dart';
@@ -139,22 +117,16 @@ import 'package:BlueEra/features/me/product/view/admin/product_super_category_sc
 import 'package:BlueEra/features/me/product/view/admin/product_nested_category_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_selection_screen.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_products_response.dart';
 import 'package:BlueEra/features/me/medical/view/add_medical_variant_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_listing/medical_cart_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_listing/medical_confirm_screen.dart';
-import 'package:BlueEra/features/me/medical/view/medical_listing/medical_listing_screen.dart';
-import 'package:BlueEra/features/me/medical/view/medical_product_selection_screen.dart';
 import 'package:BlueEra/features/me/medical/view/my_medical_listing/my_medical_products_screen.dart';
 import 'package:BlueEra/features/me/medical/view/my_medical_listing/my_medical_variant_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_me_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
@@ -165,7 +137,6 @@ import 'package:BlueEra/features/me/product/view/admin/create_varient_screen.dar
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/products_store_details_screen.dart';
-import 'package:BlueEra/features/me/product/view/admin/inventory_business_cards_screen.dart';
 // ───────── AUTOMOTIVE module (parallel copy of product) ─────────
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_add_product_text_or_snap_screen.dart';
@@ -188,32 +159,23 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/vie
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment_setting_screen/add_account_upi/add_accountupi_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/product_listing_screen/product_listing_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/add_flat_room_rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/home_stay_rental_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_full_details_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/view/vehicle_rental_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/see_all_transactions.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_screen.dart';
 import 'package:BlueEra/features/personal/resume/create_resume_screen.dart';
-import 'package:BlueEra/features/personal/resume/sections/resume_templates_screen.dart';
-import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
-import '../../features/contacts/view/blue_era_contacts_screen.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
-import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/my_booking_screen.dart';
-import '../../features/personal/personal_profile/view/booking_enquiries_screen/received_booking_screen.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/set_availability_screen.dart';
-import '../../features/personal/personal_profile/view/booking_enquiries_screen/videography_tutorial_screen.dart';
-import '../../features/personal/personal_profile/view/booking_enquiries_screen/videography_tutorial_screen2.dart';
 
 class RouteHelper {
   static final RouteObserver<PageRoute> routeObserver =
@@ -249,12 +211,6 @@ class RouteHelper {
   static String getHomeScreenRoute() =>
       RouteConstant.HomeScreen;
 
-  static String getSplashScreenRoute() =>
-      RouteConstant.SplashScreen;
-
-  static String getPermissionScreenRoute() =>
-      RouteConstant.PermissionScreen;
-
   static String getAudioCallScreenRoute() =>
       RouteConstant.AudioCallScreen;
 
@@ -269,9 +225,6 @@ class RouteHelper {
 
   static String getPersonalProfileCreateScreenRoute() =>
       RouteConstant.PersonalProfileCreateScreen;
-
-  static String getFeedScreenRoute() =>
-      RouteConstant.FeedScreen;
 
   static String getBusinessVerificationScreenRoute() =>
       RouteConstant.BusinessVerificationScreen;
@@ -309,15 +262,6 @@ class RouteHelper {
   static String getCategorySelectionScreenRoute() =>
       RouteConstant.categorySelectionScreen;
 
-  static String getJobQnaScreenRoute() =>
-      RouteConstant.JobQnaScreen;
-
-  static String getJobDetailsOverviewScreenRoute() =>
-      RouteConstant.JobDetailsOverviewScreen;
-
-  static String getAppliedJobsScreenRoute() =>
-      RouteConstant.AppliedJobsScreen;
-
   static String getAddUpdateProductScreenRoute() =>
       RouteConstant.addUpdateProductScreen;
 
@@ -339,9 +283,6 @@ class RouteHelper {
   static String getCreateJobPostStep4Route() =>
       RouteConstant.CreateJobPostStep4;
 
-  static String getCreateJobPostStep5Route() =>
-      RouteConstant.CreateJobPostStep5;
-
   static String getTagPeopleScreenRoute() =>
       RouteConstant.tagPeopleScreen;
 
@@ -350,9 +291,6 @@ class RouteHelper {
 
   static String getFullVideoPreviewRoute() =>
       RouteConstant.fullVideoPreview;
-
-  static String getVideoTrimScreenRoute() =>
-      RouteConstant.videoTrimScreen;
 
   static String getAllSongsScreenRoute() =>
       RouteConstant.allSongsScreen;
@@ -392,35 +330,14 @@ class RouteHelper {
   static String getCreateResumeScreenRoute() =>
       RouteConstant.CreateResumeScreen;
 
-  static String getResumeTemplateScreenRoute() =>
-      RouteConstant.ResumeTemplateScreen;
-
-  static String getProductListingScreenRoute() =>
-      RouteConstant.ProductListingScreen;
-
   static String getMyBookingScreenRoute() =>
       RouteConstant.MyBookingScreen;
-
-  static String getReceivedBookingScreenRoute() =>
-      RouteConstant.ReceivedBookingScreen;
-
-  static String getVideographyTutorialScreenRoute() =>
-      RouteConstant.VideographyTutorialScreen;
-
-  static String getReceivedEnquiriesScreenRoute() =>
-      RouteConstant.ReceivedEnquiriesScreen;
-
-  static String getVideographyTutorialScreen2Route() =>
-      RouteConstant.VideographyTutorialScreen2;
 
   static String getMyEnquiresRoute() =>
       RouteConstant.MyEnquiresScreen;
 
   static String sentEnquiresRoute() =>
       RouteConstant.EnquiryForm;
-
-  static String getBookingAndEnquiresRoute() =>
-      RouteConstant.BookingAndEnquiresScreen;
 
   static String getAvailabilityScreenRoute() =>
       RouteConstant.setAvailabilityScreen;
@@ -442,9 +359,6 @@ class RouteHelper {
 
   static String getAddDocumentScreenRoute() =>
       RouteConstant.addDocumentScreen;
-
-  static String getPostDetailPageRoute() =>
-      RouteConstant.postDetailPage;
 
   static String getMoreCardsScreenRoute() =>
       RouteConstant.moreCardsScreen;
@@ -485,9 +399,6 @@ class RouteHelper {
   static String getStoreProductSelectionScreenRoute() =>
       RouteConstant.storeProductSelectionScreen;
 
-  static String getProductCartScreenRoute() =>
-      RouteConstant.productCartScreen;
-
   static String getAddProductVariantScreenRoute() =>
       RouteConstant.addProductVariantScreen;
 
@@ -522,15 +433,9 @@ class RouteHelper {
   static String getSelfEmployeeScreenRoute() =>
       RouteConstant.selfEmployeeScreen;
 
-  static String getInventoryBusinessCardsScreenRoute() =>
-      RouteConstant.inventoryBusinessCardsScreen;
-
   // Manufacturer-fork route getters.
   static String getManufacturerScreenRoute() =>
       RouteConstant.manufacturerScreen;
-
-  static String getManufacturerStoreDetailsScreenRoute() =>
-      RouteConstant.manufacturerStoreDetailsScreen;
 
   // static String getManufacturerInventoryBusinessCardsScreenRoute() =>
   //     RouteConstant.manufacturerInventoryBusinessCardsScreen;
@@ -553,9 +458,6 @@ class RouteHelper {
   static String getManufacturerNestedCategoryWithInventoryScreenRoute() =>
       RouteConstant.manufacturerNestedCategoryWithInventoryScreen;
 
-  static String getFoodUploadScreenRoute() =>
-      RouteConstant.foodUploadScreen;
-
   static String getAddFlatRoomRentalServiceScreenRoute() =>
       RouteConstant.addFlatRoomRentalServiceScreen;
 
@@ -574,31 +476,16 @@ class RouteHelper {
   // static String getVehicleImagesRidingScreenRoute() =>
   //     RouteConstant.vehicleImagesRidingScreen;
 
-  static String getVehicleInformationRidingScreenRoute() =>
-      RouteConstant.vehicleInformationRidingScreen;
-
   static String getHomeStayRentalServiceRoute() =>
       RouteConstant.homeStayRentalService;
 
   static String getVehicleRentalServiceRoute() =>
       RouteConstant.vehicleRentalService;
 
-  static String getRentalServiceScreenRoute() =>
-      RouteConstant.rentalServiceScreen;
-
   static String getRentalServiceFullDetailsScreenRoute() =>
       RouteConstant.rentalServiceFullDetailsScreen;
 
   // â”€â”€ be_vehicle_service routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  static String getVehicleHomeScreenRoute() =>
-      RouteConstant.vehicleHomeScreen;
-
-  static String getVehicleListingScreenRoute() =>
-      RouteConstant.vehicleListingScreen;
-
-  static String getVehicleDetailScreenRoute() =>
-      RouteConstant.vehicleDetailScreen;
-
   // static String getCreateNewAccountScreenRoute() =>
   //     RouteConstant.createNewAccountScreen;
 
@@ -622,9 +509,6 @@ class RouteHelper {
 
   static String getAddBioViaAiScreenRoute() =>
       RouteConstant.addBioViaAiScreen;
-
-  static String getGroceryScreenRoute() =>
-      RouteConstant.groceryScreen;
 
   static String getGroceryNestedCategoryScreenRoute() =>
       RouteConstant.groceryNestedCategoryScreen;
@@ -653,9 +537,6 @@ class RouteHelper {
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
 
-  static String getRiderMeScreenRoute() =>
-      RouteConstant.riderMeScreen;
-
   static String getGroceryCartScreenRoute() =>
       RouteConstant.groceryCartScreen;
 
@@ -683,14 +564,8 @@ class RouteHelper {
   static String getHospitalWardViewCategory() =>
       RouteConstant.hospitalWardViewCategory;
 
-  static String getRiderStoreScreenRoute() =>
-      RouteConstant.riderStoreScreen;
-
   static String getGroceryConfirmScreenRoute() =>
       RouteConstant.groceryConfirmScreen;
-
-  static String getAddSelfServiceRoute() =>
-      RouteConstant.addSelfServiceScreen;
 
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
@@ -698,14 +573,8 @@ class RouteHelper {
   static String getGigWorkerOptionsScreenRoute() =>
       RouteConstant.gigWorkerOptionsScreen;
 
-  static String getMedicalScreenRoute() =>
-      RouteConstant.medicalScreen;
-
   static String getMedicalCategoryScreenRoute() =>
       RouteConstant.medicalCategoryScreen;
-
-  static String getMedicalSubCategoryScreenRoute() =>
-      RouteConstant.medicalSubCategoryScreen;
 
   // Retired with the grocery-style flow: the selection screen's floating cart
   // now goes straight to the variant screen, so the AddMedicalScreen review
@@ -721,9 +590,6 @@ class RouteHelper {
 
   static String getMyMedicalVariantScreenRoute() =>
       RouteConstant.myMedicalVariantScreen;
-
-  static String getMedicalListingScreenRoute() =>
-      RouteConstant.medicalListingScreen;
 
   static String getMedicalCartScreenRoute() =>
       RouteConstant.medicalCartScreen;
@@ -757,9 +623,6 @@ class RouteHelper {
 
   static String getVisitGroceryStoreScreenRoute() =>
       RouteConstant.visitGroceryStoreScreen;
-
-  static String getOtherFoodStoreDetailsScreenRoute() =>
-      RouteConstant.visitFoodStoreDetailsScreen;
 
   static String getAddFoodSnapSearchScreenRoute() =>
       RouteConstant.addFoodSnapSearchScreen;
@@ -830,30 +693,11 @@ class RouteHelper {
   static String getEarnServiceDashboardViewRoute() =>
       RouteConstant.earnServiceDashboardView;
 
-  static String getSavedAddressListScreenRoute() =>
-      RouteConstant.savedAddressListScreen;
-
-  static String getAddEditAddressScreenRoute() =>
-      RouteConstant.addEditAddressScreen;
-
   static String getOrderStepsScreenRoute() => RouteConstant.orderStepsScreen;
-
-  static String getMySelfPickupOrdersScreenRoute() =>
-      RouteConstant.mySelfPickupOrdersScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case RouteConstant.PermissionScreen:
-        return MaterialPageRoute(
-          builder: (_) => PermissionGate(),
-          settings: RouteSettings(name: RouteHelper.getPermissionScreenRoute()),
-        );
-      case RouteConstant.SplashScreen:
-        return MaterialPageRoute(
-          builder: (_) => SplashScreen(),
-          settings: RouteSettings(name: RouteHelper.getSplashScreenRoute()),
-        );
       case RouteConstant.MobileNumberScreen:
         return MaterialPageRoute(
           builder: (_) => MobileNumberScreen(),
@@ -955,17 +799,6 @@ class RouteHelper {
           ),
         );
 
-      case RouteConstant.FeedScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final onHeaderVisibilityChanged =
-            args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
-        final postFilterType = args[ApiKeys.postFilterType] as PostType;
-        final id = args[ApiKeys.id] as String;
-        return MaterialPageRoute(
-            builder: (_) => FeedScreen(
-                onHeaderVisibilityChanged: onHeaderVisibilityChanged,
-                postFilterType: postFilterType,
-                id: id));
       case RouteConstant.BusinessVerificationScreen:
         return MaterialPageRoute(builder: (_) => BusinessVerificationScreen());
       case RouteConstant.OwnershipVerificationScreen:
@@ -1041,25 +874,9 @@ class RouteHelper {
           settings: RouteSettings(
               name: RouteHelper.getCategorySelectionScreenRoute()),
         );
-      case RouteConstant.JobQnaScreen:
-        return MaterialPageRoute(builder: (_) => JobQNAScreen());
-      case RouteConstant.JobDetailsOverviewScreen:
-        return MaterialPageRoute(builder: (_) => JobDetailsOverviewScreen());
-      case RouteConstant.AppliedJobsScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final headerHeight = args?[ApiKeys.headerHeight] as double;
-        return MaterialPageRoute(
-            builder: (_) => AppliedJobsScreen(
-                  onHeaderVisibilityChanged: (bool isVisible) {},
-                  headerHeight: headerHeight,
-                ));
       case RouteConstant.ChatContactsScreen:
         return MaterialPageRoute(
           builder: (_) => ContactsPage(),
-        );
-      case RouteConstant.BlueEraContactsScreen:
-        return MaterialPageRoute(
-          builder: (_) => const BlueEraContactsScreen(),
         );
       case RouteConstant.CreateJobPostScreen:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -1271,15 +1088,6 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => CreateResumeScreen(),
         );
-      case RouteConstant.ResumeTemplateScreen:
-        return MaterialPageRoute(
-          builder: (_) => ResumeTemplateScreen(),
-        );
-      case RouteConstant.ProductListingScreen:
-        return MaterialPageRoute(
-          builder: (_) => const ProductListingScreen(),
-          settings: settings, // Pass the settings to preserve arguments
-        );
       case RouteConstant.MyBookingScreen:
         return MaterialPageRoute(
           builder: (_) => const MyBookingsScreen(),
@@ -1288,30 +1096,6 @@ class RouteHelper {
       case RouteConstant.DoctorMyAppointmentsScreen:
         return MaterialPageRoute(
           builder: (_) => const DoctorMyAppointmentsScreen(),
-          settings: settings, // Pass the settings to preserve arguments
-        );
-      case RouteConstant.ReceivedBookingScreen:
-        return MaterialPageRoute(
-          builder: (_) => ReceivedBookingsScreen(),
-          settings: settings, // Pass the settings to preserve arguments
-        );
-      case RouteConstant.VideographyTutorialScreen:
-        return MaterialPageRoute(
-          builder: (_) => VideographyTutorialScreen(),
-          settings: settings, // Pass the settings to preserve arguments
-        );
-      case RouteConstant.ReceivedEnquiriesScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final channelId = args[ApiKeys.channelId] as String;
-        return MaterialPageRoute(
-          builder: (_) => ReceivedEnquiriesScreen(
-            channelId: channelId,
-          ),
-          settings: settings, // Pass the settings to preserve arguments
-        );
-      case RouteConstant.VideographyTutorialScreen2:
-        return MaterialPageRoute(
-          builder: (_) => const VideographyTutorialScreen2(),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.MyEnquiresScreen:
@@ -1346,11 +1130,6 @@ class RouteHelper {
             channelId: channelId,
             videoId: videoId,
           ),
-          settings: settings, // Pass the settings to preserve arguments
-        );
-      case RouteConstant.BookingAndEnquiresScreen:
-        return MaterialPageRoute(
-          builder: (_) => BookingsScreen(),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.addUpdateProductScreen:
@@ -1407,10 +1186,6 @@ class RouteHelper {
                 documentVia: argDocumentVia),
             settings:
                 RouteSettings(name: RouteHelper.getAddDocumentScreenRoute()));
-      case RouteConstant.postDetailPage:
-        return MaterialPageRoute(
-            builder: (_) => PostDeatilPage(),
-            settings: RouteSettings(name: getPostDetailPageRoute()));
       case RouteConstant.moreCardsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool isFromHomeScreen = args[ApiKeys.isFromHomeScreen] as bool;
@@ -1588,20 +1363,6 @@ class RouteHelper {
                 providerType: providerType),
             settings:
                 RouteSettings(name: getProductsStoreDetailsScreenRoute()));
-      case RouteConstant.manufacturerStoreDetailsScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final ProductStore? productStore =
-            args[ApiKeys.argProductData] as ProductStore?;
-        final String id = args[ApiKeys.id] as String;
-        final ProviderType providerType =
-            args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerProductsStoreDetailsScreen(
-                productStore: productStore,
-                id: id,
-                providerType: providerType),
-            settings: RouteSettings(
-                name: getManufacturerStoreDetailsScreenRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =
@@ -1622,29 +1383,11 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => SelfEmployeeScreen(),
             settings: RouteSettings(name: getSelfEmployeeScreenRoute()));
-      case RouteConstant.inventoryBusinessCardsScreen:
-        return MaterialPageRoute(
-            builder: (_) => InventoryBusinessCardsScreen(),
-            settings:
-                RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
       // case RouteConstant.manufacturerInventoryBusinessCardsScreen:
       //   return MaterialPageRoute(
       //       builder: (_) => ManufacturerInventoryBusinessCardsScreen(),
       //       settings: RouteSettings(
       //           name: getManufacturerInventoryBusinessCardsScreenRoute()));
-      case RouteConstant.foodUploadScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final ProviderType providerType =
-            args[ApiKeys.providerType] as ProviderType;
-        final String? serviceSubType = args[ApiKeys.serviceSubType] as String?;
-        final String? category = args[ApiKeys.category] as String?;
-
-        return MaterialPageRoute(
-            builder: (_) => FoodUploadScreen(
-                providerType: providerType,
-                serviceSubType: serviceSubType,
-                category: category),
-            settings: RouteSettings(name: getFoodUploadScreenRoute()));
       case RouteConstant.addFlatRoomRentalServiceScreen:
         return MaterialPageRoute(
             builder: (_) => AddFlatRoomRentalServiceScreen(),
@@ -1678,13 +1421,6 @@ class RouteHelper {
       //   return MaterialPageRoute(
       //       builder: (_) => VehicleImagesRidingScreen(),
       //       settings: RouteSettings(name: getVehicleImagesRidingScreenRoute()));
-      case RouteConstant.vehicleInformationRidingScreen:
-        return MaterialPageRoute(
-            builder: (_) => VehicleInformationRidingScreen(
-                  screeName: '',
-                ),
-            settings:
-                RouteSettings(name: getVehicleInformationRidingScreenRoute()));
       case RouteConstant.homeStayRentalService:
         return MaterialPageRoute(
             builder: (_) => HomeStayRentalService(),
@@ -1693,10 +1429,6 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => VehicleRentalService(),
             settings: RouteSettings(name: getVehicleRentalServiceRoute()));
-      case RouteConstant.rentalServiceScreen:
-        return MaterialPageRoute(
-            builder: (_) => RentalServiceScreen(),
-            settings: RouteSettings(name: getRentalServiceScreenRoute()));
       case RouteConstant.rentalServiceFullDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final RentalServiceData rentalServiceData =
@@ -1814,14 +1546,6 @@ class RouteHelper {
                 selectedYear: selectedYear),
             settings: RouteSettings(name: getAddBioViaAiScreenRoute()));
 
-      case RouteConstant.groceryScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final bool? argFromBottomNavBar =
-            args[ApiKeys.argFromBottomNavBar] as bool?;
-        return MaterialPageRoute(
-            builder: (_) =>
-                GroceryScreen(fromBottomNavBar: argFromBottomNavBar),
-            settings: RouteSettings(name: getGroceryScreenRoute()));
 
       case RouteConstant.groceryNestedCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1948,10 +1672,6 @@ class RouteHelper {
                 // selectedGroceryData: argSelectedGroceryData
                 ),
             settings: RouteSettings(name: getRiderServiceScreenRoute()));
-      case RouteConstant.riderMeScreen:
-        return MaterialPageRoute(
-            builder: (_) => const RiderMeScreen(),
-            settings: RouteSettings(name: getRiderMeScreenRoute()));
       case RouteConstant.groceryCartScreen:
         return MaterialPageRoute(
             builder: (_) => GroceryCartScreen(),
@@ -2025,10 +1745,6 @@ class RouteHelper {
             settings:
                 RouteSettings(name: getStoreProductSelectionScreenRoute()));
 
-      case RouteConstant.productCartScreen:
-        return MaterialPageRoute(
-            builder: (_) => ProductCartScreen(),
-            settings: RouteSettings(name: getProductCartScreenRoute()));
 
       case RouteConstant.addProductVariantScreen:
         return MaterialPageRoute(
@@ -2048,10 +1764,6 @@ class RouteHelper {
       //   return MaterialPageRoute(
       //       builder: (_) => OTCItemsPage(categoryId: categoryId, title: title),
       //       settings: RouteSettings(name: getMedicalOtcItemsScreen()));
-      case RouteConstant.riderStoreScreen:
-        return MaterialPageRoute(
-            builder: (_) => RiderStoreScreen(),
-            settings: RouteSettings(name: getRiderStoreScreenRoute()));
       case RouteConstant.groceryConfirmScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argOrderId = args[ApiKeys.argOrderId] as String;
@@ -2059,18 +1771,6 @@ class RouteHelper {
             builder: (_) => GroceryConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getGroceryConfirmScreenRoute()));
 
-      case RouteConstant.addSelfServiceScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final bool argFromBottomNavBar =
-            args[ApiKeys.argFromBottomNavBar] as bool;
-        final String serviceSubType = args[ApiKeys.serviceSubType] as String;
-        final String professionCategory = args[ApiKeys.profession] as String;
-        return MaterialPageRoute(
-            builder: (_) => AddSelfServiceScreen(
-                fromBottomNavBar: argFromBottomNavBar,
-                professionCategory: professionCategory,
-                serviceSubType: serviceSubType),
-            settings: RouteSettings(name: getAddSelfServiceRoute()));
       case RouteConstant.createAccountTypeScreen:
         return MaterialPageRoute(
             builder: (_) => const CreateAccountTypeScreen(),
@@ -2080,31 +1780,12 @@ class RouteHelper {
             builder: (_) => GigWorkOptionsScreen(),
             settings: RouteSettings(name: getGigWorkerOptionsScreenRoute()));
 
-      case RouteConstant.medicalScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final bool? argFromBottomNavBar =
-            args[ApiKeys.argFromBottomNavBar] as bool?;
-        return MaterialPageRoute(
-            builder: (_) =>
-                MedicalScreen(fromBottomNavBar: argFromBottomNavBar),
-            settings: RouteSettings(name: getMedicalScreenRoute()));
 
       case RouteConstant.medicalCategoryScreen:
         return MaterialPageRoute(
             builder: (_) => MedicalCategoryScreen(),
             settings: RouteSettings(name: getMedicalCategoryScreenRoute()));
 
-      case RouteConstant.medicalSubCategoryScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final List<MedicalNestedCategoryModel> argGroceries =
-            args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
-        // final GroceryNestedCategoryModel argSelectedGroceryData =
-        //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
-        return MaterialPageRoute(
-            builder: (_) => MedicalProductSelectionScreen(
-                  arrLevel3Category: argGroceries,
-                ),
-            settings: RouteSettings(name: getMedicalSubCategoryScreenRoute()));
 
       // case RouteConstant.addMedicalScreen:
       //   return MaterialPageRoute(
@@ -2146,15 +1827,6 @@ class RouteHelper {
                 ),
             settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
 
-      case RouteConstant.medicalListingScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final List<MedicalNestedCategoryModel> argGroceries =
-            args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => MedicalListingScreen(
-                  arrLevel3Category: argGroceries,
-                ),
-            settings: RouteSettings(name: getMedicalListingScreenRoute()));
 
       case RouteConstant.medicalCartScreen:
         return MaterialPageRoute(
@@ -2237,15 +1909,6 @@ class RouteHelper {
                 ),
             settings: RouteSettings(name: getVisitGroceryStoreScreenRoute()));
 
-      case RouteConstant.visitFoodStoreDetailsScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final String businessId = args[ApiKeys.businessId] as String;
-        return MaterialPageRoute(
-            builder: (_) => VisitFoodStoreDetailsScreen(
-                  visitBusinessId: businessId,
-                ),
-            settings:
-                RouteSettings(name: getOtherFoodStoreDetailsScreenRoute()));
 
       case RouteConstant.addFoodSnapSearchScreen:
         return MaterialPageRoute(
@@ -2636,33 +2299,7 @@ class RouteHelper {
         );
 
       // â”€â”€ be_vehicle_service screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      case RouteConstant.vehicleHomeScreen:
-        return MaterialPageRoute(
-          builder: (_) => const VehicleScreenV3(),
-          settings: RouteSettings(name: getVehicleHomeScreenRoute()),
-        );
-      case RouteConstant.vehicleListingScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          // The old listing screen took catalog category/sub-category strings;
-          // the rebuilt buyer flow filters by condition and picks its
-          // categories from the with-inventory tree, so only `condition`
-          // carries over.
-          builder: (_) => VehicleDiscoverScreenV3(
-            initialCondition: args?['condition'] as String?,
-          ),
-          settings: RouteSettings(name: getVehicleListingScreenRoute()),
-        );
 
-      case RouteConstant.vehicleDetailScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        return MaterialPageRoute(
-          // `vehicleId` is now an inventory id — see the v3 integration guide.
-          builder: (_) => VehicleListingDetailScreenV3(
-            listingId: args['vehicleId'] as String,
-          ),
-          settings: RouteSettings(name: getVehicleDetailScreenRoute()),
-        );
 
       case RouteConstant.chooseEarnServiceScreen:
         return MaterialPageRoute(
@@ -2680,27 +2317,7 @@ class RouteHelper {
       // cases exist for named-route callers (deep links, drawer items).
       // `onAddressSelected` may be passed through the arguments map when the
       // caller wants the callback as well as the popped result.
-      case RouteConstant.savedAddressListScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => SavedAddressListScreen(
-            onAddressSelected:
-                args?['onAddressSelected'] as AddressSelectedCallback?,
-            isSelectionMode: args?['isSelectionMode'] as bool? ?? true,
-          ),
-          settings: RouteSettings(
-              name: RouteHelper.getSavedAddressListScreenRoute()),
-        );
 
-      case RouteConstant.addEditAddressScreen:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => AddEditAddressScreen(
-            address: args?['address'] as UserAddress?,
-          ),
-          settings:
-              RouteSettings(name: RouteHelper.getAddEditAddressScreenRoute()),
-        );
 
       // The order steps screen. Reached from a chat order card, from the
       // locally-persisted order list, and from an order push notification —
@@ -2722,12 +2339,6 @@ class RouteHelper {
               RouteSettings(name: RouteHelper.getOrderStepsScreenRoute()),
         );
 
-      case RouteConstant.mySelfPickupOrdersScreen:
-        return MaterialPageRoute(
-          builder: (_) => const MySelfPickupOrdersScreen(),
-          settings: RouteSettings(
-              name: RouteHelper.getMySelfPickupOrdersScreenRoute()),
-        );
 
       default:
         return MaterialPageRoute(
