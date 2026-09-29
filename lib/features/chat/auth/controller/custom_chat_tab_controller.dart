@@ -9,6 +9,13 @@ import '../model/custom_chat_tab_model.dart';
 /// [ChatPinArchiveController]/[StarredMessageController]. Nothing is sent to
 /// the server — these tabs live only on this device.
 class CustomChatTabController extends GetxController {
+  /// The account's custom chat tabs, registered on first use. Permanent: the
+  /// chat tab bar and its editor share it; logout deletes it so the next
+  /// account reloads its own.
+  static CustomChatTabController get to => Get.isRegistered<CustomChatTabController>()
+      ? Get.find<CustomChatTabController>()
+      : Get.put(CustomChatTabController(), permanent: true);
+
   static const String _boxName = 'customChatTabsBox';
   static const String _tabsKey = 'customChatTabs';
 

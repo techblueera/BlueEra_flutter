@@ -8,6 +8,13 @@ import '../../../../core/constants/shared_preference_utils.dart';
 /// Locked IDs are stored in Hive (per personal/business tab) and the PIN
 /// lives in `flutter_secure_storage` via [SharedPreferenceUtils].
 class ChatLockController extends GetxController {
+  /// The account's locked chats, registered on first use. Permanent: the chat
+  /// lists and lock screens share it; logout deletes it so the next account
+  /// reloads its own.
+  static ChatLockController get to => Get.isRegistered<ChatLockController>()
+      ? Get.find<ChatLockController>()
+      : Get.put(ChatLockController(), permanent: true);
+
   static const String _boxName = 'chatLockBox';
   static const String _personalLockedKey = 'personalLockedConversations';
   static const String _businessLockedKey = 'businessLockedConversations';

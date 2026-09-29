@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
@@ -58,9 +57,9 @@ class PersonalChatsList extends StatefulWidget {
 
 class _PersonalChatsListState extends State<PersonalChatsList> {
   final chatViewController = ChatViewController.to;
-  final pinArchiveController = getOrPut(() => ChatPinArchiveController());
-  final lockController = getOrPut(() => ChatLockController());
-  final customTabController = getOrPut(() => CustomChatTabController());
+  final pinArchiveController = ChatPinArchiveController.to;
+  final lockController = ChatLockController.to;
+  final customTabController = CustomChatTabController.to;
 
   @override
   Widget build(BuildContext context) {

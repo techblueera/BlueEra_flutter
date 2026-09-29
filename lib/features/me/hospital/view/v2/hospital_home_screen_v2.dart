@@ -72,7 +72,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   // Mirrors `connect_main_page.dart`'s top-level `chatFlagController`.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   @override
   void initState() {

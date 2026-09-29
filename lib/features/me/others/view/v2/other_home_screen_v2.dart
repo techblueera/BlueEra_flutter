@@ -77,7 +77,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   /// Index of the Overview tab in [_tabs] — the tab that owns the live photos,
   /// and therefore the only place the live-photo sheet is asked for.

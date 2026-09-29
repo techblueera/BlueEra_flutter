@@ -65,7 +65,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   // crash when this is the first screen the user touches. Mirrors the
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController = ChatFlagController.to;
 
   @override
   void initState() {

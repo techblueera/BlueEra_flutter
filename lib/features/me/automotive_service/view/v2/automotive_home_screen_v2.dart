@@ -67,7 +67,7 @@ class _AutomotiveHomeScreenV2State extends State<AutomotiveHomeScreenV2>
   // crash when this is the first screen the user touches.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   @override
   void initState() {

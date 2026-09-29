@@ -8,6 +8,12 @@ import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
 import 'package:get/get.dart';
 
 class SymbolFeedController extends GetxController {
+  /// The session's symbol (story) feed, registered on first use. Permanent: the
+  /// Social tab strip, Connect page and symbol screens share it; logout deletes it.
+  static SymbolFeedController get to => Get.isRegistered<SymbolFeedController>()
+      ? Get.find<SymbolFeedController>()
+      : Get.put(SymbolFeedController(), permanent: true);
+
   final RxList<SymbolUserGroup> userGroups = <SymbolUserGroup>[].obs;
   final RxBool isLoading = false.obs;
 

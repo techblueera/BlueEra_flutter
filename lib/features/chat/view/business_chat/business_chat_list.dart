@@ -8,7 +8,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -277,13 +276,13 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   void initState() {
     super.initState();
 
-    pinArchiveController =getOrPut(() => ChatPinArchiveController());
-    lockController = getOrPut(() => ChatLockController());
+    pinArchiveController =ChatPinArchiveController.to;
+    lockController = ChatLockController.to;
     // The full chrome's sub-tabs Get.find these controllers (Flagged →
     // ChatFlagController, Reminder → ChatThemeController). Register them here
     // so BusinessChatsList is self-sufficient on the provider/seller screens,
     // which previously relied on ConnectMainPage having pre-registered them.
-    getOrPut(() => ChatFlagController());
+    ChatFlagController.to;
     ChatThemeController.to;
     // Ride threads a rider has already worked are remembered on disk (see
     // [RideChatRegistry]) — read them back before the first rows are bucketed

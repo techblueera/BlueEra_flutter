@@ -67,7 +67,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   @override
   void initState() {

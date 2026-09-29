@@ -85,6 +85,11 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/co
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_lock_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_pin_archive_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/custom_chat_tab_controller.dart';
+import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -202,6 +207,12 @@ class LogoutHelper {
   static void _resetSessionControllers() {
     _drop(() => deleteIfRegistered<ChatViewController>());
     _drop(() => deleteIfRegistered<FeedController>());
+    // Chat settings loaded from this account's Hive data, and the story feed.
+    _drop(() => deleteIfRegistered<ChatLockController>());
+    _drop(() => deleteIfRegistered<ChatFlagController>());
+    _drop(() => deleteIfRegistered<ChatPinArchiveController>());
+    _drop(() => deleteIfRegistered<CustomChatTabController>());
+    _drop(() => deleteIfRegistered<SymbolFeedController>());
     _drop(() => deleteIfRegistered<ViewPersonalDetailsController>());
     _drop(() => deleteIfRegistered<ViewBusinessDetailsController>());
     // Rider pair: both are registered `permanent: true`, because their

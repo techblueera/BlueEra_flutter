@@ -26,9 +26,7 @@ class SymbolChatListScreen extends StatefulWidget {
 }
 
 class _SymbolChatListScreenState extends State<SymbolChatListScreen> {
-  final controller = Get.isRegistered<SymbolFeedController>()
-      ? Get.find<SymbolFeedController>()
-      : Get.put(SymbolFeedController());
+  final controller = SymbolFeedController.to;
 
   @override
   void initState() {

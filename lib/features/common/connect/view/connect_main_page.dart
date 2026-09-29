@@ -303,16 +303,16 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   int selectedIndex = 0;
   int selectedSubIndex = 0;
   final TextEditingController searchController = TextEditingController();
-  final symbolFeedController = Get.put(SymbolFeedController());
+  final symbolFeedController = SymbolFeedController.to;
   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final ChatViewController chatViewController =
       ChatViewController.to;
   final ChatPinArchiveController chatPinArchiveController =
-      getOrPut(() => ChatPinArchiveController());
+      ChatPinArchiveController.to;
   final ChatFlagController chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
   final ChatLockController chatLockController =
-      getOrPut(() => ChatLockController());
+      ChatLockController.to;
   final LanguageListController langController =
       getOrPut(() => LanguageListController(), permanent: true);
 

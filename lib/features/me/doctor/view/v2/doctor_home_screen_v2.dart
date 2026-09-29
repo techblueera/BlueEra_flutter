@@ -63,7 +63,7 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
       ChatViewController.to;
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   static const int _bookingTabIndex = 0;
 

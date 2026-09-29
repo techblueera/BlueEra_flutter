@@ -84,7 +84,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   // Post tab removed for business accounts — the merchant's own feed is no
   // longer surfaced here. Restore the label, the `MedicalPostTab` view and the

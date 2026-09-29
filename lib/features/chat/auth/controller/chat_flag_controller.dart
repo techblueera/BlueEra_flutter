@@ -4,6 +4,13 @@ import 'package:hive/hive.dart';
 import '../model/chat_flag_model.dart';
 
 class ChatFlagController extends GetxController {
+  /// The account's chat flags, registered on first use. Permanent: the chat lists
+  /// and chat screens share it; logout deletes it so the next account reloads
+  /// its own.
+  static ChatFlagController get to => Get.isRegistered<ChatFlagController>()
+      ? Get.find<ChatFlagController>()
+      : Get.put(ChatFlagController(), permanent: true);
+
   static const String _flagsBoxName = 'chatFlagsBox';
   static const String _customFlagsKey = 'customFlags';
   static const String _conversationFlagsKey = 'conversationFlags';

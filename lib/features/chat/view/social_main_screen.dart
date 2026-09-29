@@ -104,8 +104,8 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   void initState() {
     super.initState();
 
-    getOrPut(() => ChatFlagController());
-    getOrPut(() => ChatPinArchiveController());
+    ChatFlagController.to;
+    ChatPinArchiveController.to;
     CallController.instance;
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();

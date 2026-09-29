@@ -3,6 +3,13 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
 class ChatPinArchiveController extends GetxController {
+  /// The account's pinned and archived chats, registered on first use. Permanent:
+  /// the chat lists share it; logout deletes it so the next account reloads its
+  /// own.
+  static ChatPinArchiveController get to => Get.isRegistered<ChatPinArchiveController>()
+      ? Get.find<ChatPinArchiveController>()
+      : Get.put(ChatPinArchiveController(), permanent: true);
+
   static const String _boxName = 'chatPinArchiveBox';
 
   // Personal
