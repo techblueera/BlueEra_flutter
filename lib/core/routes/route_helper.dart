@@ -84,6 +84,7 @@ import 'package:BlueEra/features/common/map/view/category_selection_screen.dart'
 import 'package:BlueEra/features/common/map/view/customize_map_screen.dart';
 import 'package:BlueEra/features/common/map/view/searchLocationScreen.dart';
 import 'package:BlueEra/features/common/more/view/more_cards_screen.dart';
+import 'package:BlueEra/features/common/notification/binding/notification_binding.dart';
 import 'package:BlueEra/features/common/notification/view/notification_screen.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_preview_screen.dart';
@@ -824,7 +825,8 @@ class RouteHelper {
       case RouteConstant.OwnershipVerificationScreen:
         return _getRoute(() => OwnershipVerificationScreen());
       case RouteConstant.NotificationScreen:
-        return _getRoute(() => NotificationScreen());
+        return _getRoute(() => NotificationScreen(),
+            binding: NotificationBinding());
       case RouteConstant.ChannelScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
