@@ -11,6 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class JobSeekerPortfolioProfessionalsController extends GetxController {
+  /// One instance for the session, whichever screen asks first; logout drops it.
+  static JobSeekerPortfolioProfessionalsController get to => Get.isRegistered<JobSeekerPortfolioProfessionalsController>()
+      ? Get.find<JobSeekerPortfolioProfessionalsController>()
+      : Get.put(JobSeekerPortfolioProfessionalsController(), permanent: true);
+
   final ResumeRepo _repo = ResumeRepo();
 
   final titleController = TextEditingController();

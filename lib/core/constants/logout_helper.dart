@@ -39,6 +39,7 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller
 import 'package:BlueEra/features/me/laboratory/controller/lab_profile_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
+import 'package:BlueEra/features/me/job_seekar/controller/job_seeker_portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
@@ -323,6 +324,7 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<LabPackageController>());
     _drop(() => deleteIfRegistered<BusinessOnboardingController>());
     _drop(() => deleteIfRegistered<PortfolioProfessionalsController>());
+    _drop(() => deleteIfRegistered<JobSeekerPortfolioProfessionalsController>());
     _drop(() => deleteIfRegistered<MedicalCartController>());
     _drop(() => deleteIfRegistered<BookmarkController>());
     _drop(() => deleteIfRegistered<PaymentQrController>());
