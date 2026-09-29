@@ -11,7 +11,6 @@ import 'package:BlueEra/features/me/product/model/order_checkout_payload.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart'
     show userNameGlobal, userMobileGlobal;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// What the customer chose at checkout.
 class CheckoutChoice {
@@ -227,9 +226,7 @@ class _CheckoutStepperState extends State<_CheckoutStepper> {
     _receiverPhone.text = userMobileGlobal;
     // Warm the saved-address list so step ② can decide between "pick one" and
     // "open the picker immediately" without a flash of the wrong state.
-    if (!Get.isRegistered<SavedAddressController>()) {
-      Get.put(SavedAddressController());
-    }
+    SavedAddressController.to;
   }
 
   @override

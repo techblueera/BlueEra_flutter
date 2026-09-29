@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -34,7 +32,8 @@ class _RideDropLocationSheet extends StatefulWidget {
 }
 
 class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
-  final addressController = getOrPut(() => SavedAddressController());
+  final addressController = SavedAddressController.to;
+  final _places = PlaceLookupService();
 
   final _labelController = TextEditingController();
   final _addressController = TextEditingController();
@@ -92,16 +91,7 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
     }
     _isSearching.value = true;
     try {
-      final response = await PlaceRepo().autoCompleteSearch(query: query);
-      if (response.statusCode == 200) {
-        final list = response.response?.data?['predictions'] as List? ?? [];
-        final parsed = await compute(PlacePrediction.fromList, list);
-        _predictions.assignAll(parsed);
-      } else {
-        _predictions.clear();
-      }
-    } catch (_) {
-      _predictions.clear();
+      _predictions.assignAll(await _places.search(query));
     } finally {
       _isSearching.value = false;
     }
@@ -120,13 +110,10 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
     if (placeId.isEmpty) return;
     _isSearching.value = true;
     try {
-      final res = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-      final loc =
-          res.response?.data?['result']?['geometry']?['location'];
-      _pickedLat = (loc?['lat'] as num?)?.toDouble();
-      _pickedLng = (loc?['lng'] as num?)?.toDouble();
-    } catch (_) {
       // Coordinates are best-effort; the typed address still gets saved.
+      final resolved = await _places.resolve(placeId);
+      _pickedLat = resolved?.lat;
+      _pickedLng = resolved?.lng;
     } finally {
       _isSearching.value = false;
     }

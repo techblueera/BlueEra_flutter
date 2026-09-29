@@ -38,6 +38,7 @@ import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigatio
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/bookmark_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/saved_address_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
@@ -220,6 +221,8 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<ChatPinArchiveController>());
     _drop(() => deleteIfRegistered<CustomChatTabController>());
     _drop(() => deleteIfRegistered<SymbolFeedController>());
+    // The saved drop/delivery addresses, read from this account's Hive box.
+    _drop(() => deleteIfRegistered<SavedAddressController>());
     _drop(() => deleteIfRegistered<ViewPersonalDetailsController>());
     _drop(() => deleteIfRegistered<ViewBusinessDetailsController>());
     // Rider pair: both are registered `permanent: true`, because their
