@@ -61,6 +61,34 @@ class _FakeTestRepo extends LabTestRepo {
   }
 }
 
+/// The owner's full test list, or a failure when [fail] is set.
+class _FakeAllTestsRepo extends LabTestRepo {
+  _FakeAllTestsRepo({this.fail = false});
+  final bool fail;
+  String? askedFor;
+
+  @override
+  Future<ResponseModel> getPathologyTests(String collection) async {
+    askedFor = collection;
+    if (fail) {
+      return ResponseModel(
+        statusCode: 500,
+        response: Response(
+            requestOptions: RequestOptions(),
+            statusCode: 500,
+            data: {'message': 'Server down'}),
+      );
+    }
+    return _ok({
+      'data': [
+        {'_id': 't1', 'testName': 'CBC'},
+        'not a map',
+        {'_id': 't2', 'testName': 'Thyroid'},
+      ]
+    });
+  }
+}
+
 class _FakePackageRepo extends LabPackageRepo {
   @override
   Future<ResponseModel> getPackagesByLab(String labId) async =>
@@ -111,5 +139,20 @@ void main() {
     expect(c.isLoading.value, isFalse);
     // The owner's shared list is untouched.
     expect(Get.isRegistered<LabTestController>(), isFalse);
+  });
+
+  test("the owner's full test list comes from one place", () async {
+    final repo = _FakeAllTestsRepo();
+    final tests = await LabTestController(repo: repo).fetchAllTests();
+
+    expect(repo.askedFor, isEmpty); // every category
+    expect(tests?.map((t) => t.id), ['t1', 't2']);
+  });
+
+  test('a failed full-list fetch reports why', () async {
+    final c = LabTestController(repo: _FakeAllTestsRepo(fail: true));
+
+    expect(await c.fetchAllTests(), isNull);
+    expect(c.allTestsError, isNotNull);
   });
 }

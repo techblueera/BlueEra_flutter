@@ -17,7 +17,9 @@ class LabTestController extends GetxController {
       ? Get.find<LabTestController>()
       : Get.put(LabTestController(), permanent: true);
 
-  final LabTestRepo _repo = LabTestRepo();
+  LabTestController({LabTestRepo? repo}) : _repo = repo ?? LabTestRepo();
+
+  final LabTestRepo _repo;
 
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
@@ -188,6 +190,31 @@ class LabTestController extends GetxController {
       logs("LabTestController.fetchPopularTests ERROR $e");
     } finally {
       isLoadingPopular.value = false;
+    }
+  }
+
+  /// Why the last [fetchAllTests] failed, or null.
+  String? allTestsError;
+
+  /// Every test this lab offers, across all categories (for the category
+  /// filter and the package test picker). Returns null when the fetch fails,
+  /// with the reason in [allTestsError].
+  Future<List<PathologyTest>?> fetchAllTests() async {
+    allTestsError = null;
+    try {
+      final ResponseModel res = await _repo.getPathologyTests('');
+      if (!res.isSuccess) {
+        allTestsError = res.message ?? 'Failed to load tests';
+        return null;
+      }
+      final List data = res.getExtraData('data') ?? [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(PathologyTest.fromJson)
+          .toList();
+    } catch (e) {
+      allTestsError = '$e';
+      return null;
     }
   }
 
