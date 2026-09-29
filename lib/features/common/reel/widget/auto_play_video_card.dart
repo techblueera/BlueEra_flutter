@@ -18,7 +18,6 @@ import 'package:get/get.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PostFeedAutoPlayVideoCard extends StatefulWidget {
@@ -42,9 +41,7 @@ class PostFeedAutoPlayVideoCard extends StatefulWidget {
 
 class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
     with WidgetsBindingObserver {
-  final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-      ? Get.find<SimplePriorityVideoManager>()
-      : Get.put(SimplePriorityVideoManager());
+  final videoManager = SimplePriorityVideoManager.to;
 
   @override
   void initState() {
@@ -80,7 +77,7 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
     final mainContent = VisibilityDetector(
       key: ValueKey(widget.videoItem.videoId),
       onVisibilityChanged: _handleVisibilityChange,
-      child: GetBuilder<SimplePriorityVideoManager>(init: getOrPut(() => SimplePriorityVideoManager()), builder: (videoManager) {
+      child: GetBuilder<SimplePriorityVideoManager>(init: SimplePriorityVideoManager.to, builder: (videoManager) {
         final isCurrent = videoManager.currentIndex.value ==
             widget.videoItem.videoId.hashCode;
         final controller = videoManager.controller;

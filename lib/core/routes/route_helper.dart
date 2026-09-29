@@ -830,8 +830,8 @@ class RouteHelper {
         final accountType = args[ApiKeys.argAccountType] as String;
         final channelId = args[ApiKeys.channelId] as String;
         final authorId = args[ApiKeys.authorId] as String;
-        return MaterialPageRoute(
-          builder: (_) => ChannelScreen(
+        return _getRoute(
+          () => ChannelScreen(
               accountType: accountType,
               channelId: channelId,
               authorId: authorId),

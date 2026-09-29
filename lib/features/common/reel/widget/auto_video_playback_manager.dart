@@ -5,6 +5,14 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
 class SimplePriorityVideoManager extends GetxController {
+  /// The session's single playback manager, registered on first use. Permanent:
+  /// feed, post and broadcast cards on any screen share it (and its mute
+  /// choice); deleting it with whichever screen created it first would dispose
+  /// [isMuted] under the cards still holding it.
+  static SimplePriorityVideoManager get to => Get.isRegistered<SimplePriorityVideoManager>()
+      ? Get.find<SimplePriorityVideoManager>()
+      : Get.put(SimplePriorityVideoManager(), permanent: true);
+
   VideoPlayerController? _controller;
   final currentIndex = (-1).obs;
 
