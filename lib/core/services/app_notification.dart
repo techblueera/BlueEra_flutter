@@ -416,7 +416,7 @@ Future<void> _handleBackgroundNotificationResponse(
       actionId.startsWith('view_conversation_')) {
     final senderId = data['senderId'] ?? '';
     if (senderId.isNotEmpty) {
-      final chatViewController = getOrPut(() => ChatViewController());
+      final chatViewController = ChatViewController.to;
 
       chatViewController.connectSocket();
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -4417,7 +4417,7 @@ class AppNotificationHandler {
   /// Helper to open chat with a user by their ID
   static void _openChatWithUser(String userId) {
     if (userId.isEmpty) return;
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.connectSocket();
     Future.delayed(const Duration(milliseconds: 200), () {
       chatViewController.checkChatConnectionAndOpenChat(userId: userId);
@@ -4444,7 +4444,7 @@ class AppNotificationHandler {
     // warm / list cached). Open it straight away.
     if (_openBlueEraChatFromList()) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
 
     // Killed-state tap. The personal chat list only arrives over the socket
     // AFTER the handshake, so the in-memory row above is always missing here.
@@ -4513,7 +4513,7 @@ class AppNotificationHandler {
   /// yet (e.g. the list hasn't finished loading on a cold start).
   static bool _openBlueEraChatFromList() {
     try {
-      final chatViewController = getOrPut(() => ChatViewController());
+      final chatViewController = ChatViewController.to;
       final ref = _blueEraRefFromChatList(
           chatViewController.getPersonalChatListModel?.value.chatList ??
               <ChatList?>[]);

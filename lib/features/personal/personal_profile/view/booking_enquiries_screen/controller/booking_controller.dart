@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/received_booking.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/received_enquiry_model.dart';
@@ -26,7 +25,6 @@ import '../../../../../../core/api/apiService/api_keys.dart';
 import '../enquiry_model.dart';
 import '../model/mybooking_model.dart';
 import '../model/availability_model.dart';
-import '../model/calendar_model.dart';
 import '../repo/booking_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
@@ -74,14 +72,7 @@ class BookingController extends GetxController {
   var receivedbookings = <ReceivedBooking>[].obs;
   var receivedenquiry = <ReceivedEnquiry>[].obs;
   var enquiry = <Enquiry>[].obs;
-  ApiResponse addAppointment = ApiResponse.initial('Initial');
 
-  // Calendar data
-  var calendarData = Rxn<CalendarResponse>();
-  var availableDates = <DateTime>[].obs;
-  var availableTimeSlots = <String>[].obs;
-  var charges = ''.obs;
-  var isLoadingCalendar = false.obs;
   var availabilityDetails = Rxn<AvailabilityData>();
   bool _userChangedBookingType = false;
 
@@ -94,54 +85,6 @@ class BookingController extends GetxController {
   final errorMessage = ''.obs;
   final predictions = <PlacePrediction>[].obs;
 
-
-  Future<void> addBooingAppointment(
-      {required Map<String, dynamic> params}) async {
-    try {
-      final response = await BookingRepo().postAppointment(bodyRequest: params);
-      if (response.isSuccess) {
-        addAppointment = ApiResponse.complete(response);
-        commonSnackBar(message: response.message ?? AppStrings.success);
-
-        Get.offAllNamed(
-          RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 1},
-        );
-      } else {
-        addAppointment = ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      addAppointment = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> addEnquiry({required Map<String, dynamic> params}) async {
-    try {
-      final response = await BookingRepo().postEnquiry(bodyRequest: params);
-      if (response.isSuccess) {
-        addAppointment = ApiResponse.complete(response);
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        Get.offAllNamed(
-          RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 1},
-        );
-      } else {
-        addAppointment = ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      addAppointment = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isLoading.value = false;
-    }
-  }
 
   void setBookingType(BookingType type) {
     _userChangedBookingType = true;
@@ -746,101 +689,6 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<void> getAvailabilityData({required String channelId}) async {
-    try {
-      isLoadingCalendar.value = true;
-
-      final response = await BookingRepo().getavailableCalender(
-        channelId: channelId,
-        params: {},
-      );
-
-      print("Calendar API Response Status: ${response.statusCode}");
-      print("Calendar API Response Success: ${response.isSuccess}");
-      print("Calendar API Response Data: ${response.response?.data}");
-
-      if (response.isSuccess && response.response?.data != null) {
-        try {
-          print(
-              "Calendar API Response Type: ${response.response!.data.runtimeType}");
-          print("Calendar API Response: ${response.response!.data}");
-
-          final calendarResponse =
-              CalendarResponse.fromJson(response.response!.data);
-          calendarData.value = calendarResponse;
-
-          // Extract charges/fees
-          if (calendarResponse.fee != null) {
-            charges.value = calendarResponse.fee!;
-          }
-
-          // Generate available dates from calendar
-          _generateAvailableDatesFromCalendar(calendarResponse.data);
-        } catch (e) {
-          print("Error parsing calendar response: $e");
-          print("Response data type: ${response.response!.data.runtimeType}");
-          print("Response data: ${response.response!.data}");
-        }
-      } else {
-        print("Failed to fetch calendar: ${response.message}");
-        print("Response status: ${response.statusCode}");
-      }
-
-      // Fetch availability details to ensure fee/charges and schedule are populated
-      try {
-        final availabilityRes = await BookingRepo().getUserAvailability(
-            id: channelId, queryParams: {ApiKeys.type: 'channel'});
-        if (availabilityRes.isSuccess &&
-            availabilityRes.response?.data != null) {
-          try {
-            final availability =
-                AvailabilityResponse.fromJson(availabilityRes.response!.data);
-            final fee = availability.data?.fee?.toString() ?? '';
-            if (fee.isNotEmpty) {
-              charges.value = fee;
-            }
-            availabilityDetails.value = availability.data;
-          } catch (e) {
-            print("Error parsing availability response: $e");
-          }
-        } else {
-          print(
-              "Availability fetch failed or empty: ${availabilityRes.message}");
-        }
-      } catch (e) {
-        print("Error fetching availability details: $e");
-      }
-    } catch (e) {
-      print("Error fetching calendar: $e");
-    } finally {
-      isLoadingCalendar.value = false;
-    }
-  }
-
-  Future<void> getavailablitydata({required String channelId}) async {
-    try {
-      final availabilityRes = await BookingRepo().getUserAvailability(
-          id: channelId, queryParams: {ApiKeys.type: 'channel'});
-      if (availabilityRes.isSuccess && availabilityRes.response?.data != null) {
-        try {
-          final availability =
-              AvailabilityResponse.fromJson(availabilityRes.response!.data);
-          final fee = availability.data?.fee?.toString() ?? '';
-          if (fee.isNotEmpty) {
-            charges.value = fee;
-          }
-          availabilityDetails.value = availability.data;
-        } catch (e) {
-          print("Error parsing availability response: $e");
-        }
-      } else {
-        print("Availability fetch failed or empty: ${availabilityRes.message}");
-      }
-    } catch (e) {
-      print("Error fetching availability details: $e");
-    }
-  }
-
   String? mapApiDayToUiDay(String apiDayLower) {
     switch (apiDayLower) {
       case 'monday':
@@ -892,137 +740,6 @@ class BookingController extends GetxController {
     } catch (_) {
       return null;
     }
-  }
-
-  // Generate available dates from calendar data
-  void _generateAvailableDatesFromCalendar(List<String>? calendarData) {
-    print("Generating dates from calendar data: $calendarData");
-    if (calendarData == null) {
-      print("Calendar data is null");
-      return;
-    }
-
-    availableDates.clear();
-
-    // Process calendar data to get available dates
-    for (var dateString in calendarData) {
-      try {
-        print("Parsing date string: $dateString");
-        final date = DateTime.parse(dateString);
-        availableDates.add(date);
-        print("Successfully parsed date: $date");
-      } catch (e) {
-        print("Error parsing date: $dateString - $e");
-      }
-    }
-
-    print("Total available dates: ${availableDates.length}");
-  }
-
-  // Get available time slots for a specific date from API availability (schedule + duration)
-  List<String> getAvailableTimeSlotsForDate(DateTime date) {
-    final details = availabilityDetails.value;
-    if (details == null ||
-        details.schedule == null ||
-        details.schedule!.isEmpty) {
-      return [];
-    }
-
-    // Map weekday to string used in schedule
-    String dayName;
-    switch (date.weekday) {
-      case DateTime.monday:
-        dayName = 'monday';
-        break;
-      case DateTime.tuesday:
-        dayName = 'tuesday';
-        break;
-      case DateTime.wednesday:
-        dayName = 'wednesday';
-        break;
-      case DateTime.thursday:
-        dayName = 'thursday';
-        break;
-      case DateTime.friday:
-        dayName = 'friday';
-        break;
-      case DateTime.saturday:
-        dayName = 'saturday';
-        break;
-      case DateTime.sunday:
-        dayName = 'sunday';
-        break;
-      default:
-        dayName = 'monday';
-    }
-
-    final scheduleForDay = details.schedule!
-        .where((s) =>
-            (s.day?.toLowerCase() ?? '') == dayName && (s.isOpen ?? false))
-        .toList();
-    if (scheduleForDay.isEmpty) {
-      return [];
-    }
-
-    final int slotMinutes = details.durationInMinutes ?? 60;
-    final List<String> slots = [];
-
-    for (final sch in scheduleForDay) {
-      final slotsForDay = sch.timeSlots ?? [];
-      for (final ts in slotsForDay) {
-        final start = _tryParseHHmm(ts.startTime);
-        final end = _tryParseHHmm(ts.endTime);
-        if (start == null || end == null) continue;
-
-        var cursor = start;
-        while (cursor.isBefore(end)) {
-          final next = cursor.add(Duration(minutes: slotMinutes));
-          if (next.isAfter(end)) {
-            break;
-          }
-          slots.add('${_formatHHmm(cursor)} - ${_formatHHmm(next)}');
-          cursor = next;
-        }
-      }
-    }
-
-    return slots;
-  }
-
-  DateTime? _tryParseHHmm(String? hhmm) {
-    if (hhmm == null) return null;
-    final raw = hhmm.trim();
-    if (raw.isEmpty) return null;
-    try {
-      String upper = raw.toUpperCase();
-      bool hasMeridian = upper.contains('AM') || upper.contains('PM');
-      final regex = RegExp(r'^(\d{1,2}):(\d{2})');
-      final match = regex.firstMatch(upper);
-      if (match == null) return null;
-      int hour = int.parse(match.group(1)!);
-      int minute = int.parse(match.group(2)!);
-      if (hasMeridian) {
-        if (upper.contains('PM') && hour != 12) hour += 12;
-        if (upper.contains('AM') && hour == 12) hour = 0;
-      }
-      final now = DateTime.now();
-      return DateTime(now.year, now.month, now.day, hour, minute);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String _formatHHmm(DateTime dt) {
-    final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
-  // Check if availability is set for the channel
-  bool get isAvailabilitySet {
-    return calendarData.value != null &&
-        calendarData.value!.data != null &&
-        calendarData.value!.data!.isNotEmpty;
   }
 
   // Fetch predictions from your API

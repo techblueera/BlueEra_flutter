@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -18,13 +17,12 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visiting_hour_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 
 class AddPlaceStepTwoScreen extends StatelessWidget {
   AddPlaceStepTwoScreen({Key? key}) : super(key: key);
 
-  final AddPlaceStepTwoController controller =
-      putLazy(() => AddPlaceStepTwoController());
+  // Registered by AddPlaceBinding on step one's route.
+  final controller = Get.find<AddPlaceStepTwoController>();
 
   @override
   Widget build(BuildContext context) {
@@ -142,9 +140,7 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
                   Obx(() => CustomBtn(
                         onTap: (controller.validate.value)
                             ? () async {
-                                await controller.addPlaceController();
-                                if (controller.addPlaceResponse.value.status ==
-                                        Status.COMPLETE &&
+                                if (await controller.submitPlace() &&
                                     context.mounted) {
                                   showUnderReviewDialog(context);
                                 }

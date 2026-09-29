@@ -64,7 +64,7 @@ class _VehicleHomeScreenV3State extends State<VehicleHomeScreenV3>
   /// Drives the order/enquiry chat list, the same way the grocery home
   /// hydrates it — shared with Connect, and socket-updated while open.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Post tab removed for business accounts — the merchant's own feed is no
   // longer surfaced here. Restore the label, the `VehiclePostTabV3` view and

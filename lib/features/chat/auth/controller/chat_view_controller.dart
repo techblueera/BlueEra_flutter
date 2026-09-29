@@ -74,6 +74,12 @@ import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatViewController extends GetxController {
+  /// The session's chat controller, registered on first use. Permanent: it
+  /// owns the chat socket for the whole session; logout deletes it.
+  static ChatViewController get to => Get.isRegistered<ChatViewController>()
+      ? Get.find<ChatViewController>()
+      : Get.put(ChatViewController(), permanent: true);
+
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> personalChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessChatListResponse = ApiResponse.initial('Initial').obs;

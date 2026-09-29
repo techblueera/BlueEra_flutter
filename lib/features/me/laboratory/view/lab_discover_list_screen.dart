@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/laboratory/binding/visited_lab_binding.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -130,7 +131,8 @@ class _LabDiscoverListScreenState extends State<LabDiscoverListScreen> {
   }
 
   void _open(PharmacyItem item) =>
-      Get.to(() => LabDetailScreen(businessId: item.id));
+      Get.to(() => LabDetailScreen(businessId: item.id),
+        binding: VisitedLabBinding(businessId: item.id));
 
   /// One shimmer controller for the whole grid — per-tile shimmers saturate
   /// Android's BLASTBufferQueue on mid-range devices.

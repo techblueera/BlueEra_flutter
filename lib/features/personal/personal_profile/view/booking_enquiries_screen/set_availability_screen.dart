@@ -218,7 +218,9 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
     for (final w in _overlayWorkers) {
       w.dispose();
     }
-    deleteIfRegistered<BookingController>();
+    // No delete of BookingController here: when this screen created it, its
+    // route owns it and GetX deletes it; when the profile screen underneath
+    // created it, that screen still uses it after this one closes.
     _debounce?.cancel();
     _scrollController.dispose();
     _removeOverlay();

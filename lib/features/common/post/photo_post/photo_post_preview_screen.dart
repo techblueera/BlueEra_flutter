@@ -1,8 +1,6 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -20,9 +18,7 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PhotoPostPreviewScreen extends StatelessWidget {
-  final PostVia? postVia;
-
-  PhotoPostPreviewScreen({Key? key, this.postVia}) : super(key: key);
+  PhotoPostPreviewScreen({Key? key}) : super(key: key);
 
   final controller = Get.find<PhotoPostController>();
   final tagUserController = Get.find<TagUserController>();
@@ -323,8 +319,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
       child: PositiveCustomBtn(
           onTap: () {
-            Get.toNamed(RouteHelper.getPhotoPostReviewScreenRoute(),
-                arguments: {ApiKeys.argPostVia: postVia});
+            Get.toNamed(RouteHelper.getPhotoPostReviewScreenRoute());
           },
           title: AppStrings.continueTxt),
     );

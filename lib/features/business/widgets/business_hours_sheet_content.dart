@@ -31,6 +31,11 @@ class BusinessHoursSheetContent extends StatefulWidget {
 class _BusinessHoursSheetContentState
     extends State<BusinessHoursSheetContent> {
   bool _isLoading = true;
+  // A sheet is not a route GetX tracks, so it drops only what it created:
+  // the screen that opened it may already hold these controllers.
+  final bool _ownsBooking = !Get.isRegistered<BookingController>();
+  final bool _ownsVisitingHours =
+      !Get.isRegistered<VisitingHoursSelectorController>();
   final _bookingCtrl = getOrPut(() => BookingController());
 
   @override
@@ -48,8 +53,8 @@ class _BusinessHoursSheetContentState
 
   @override
   void dispose() {
-    deleteIfRegistered<VisitingHoursSelectorController>();
-    deleteIfRegistered<BookingController>();
+    if (_ownsVisitingHours) deleteIfRegistered<VisitingHoursSelectorController>();
+    if (_ownsBooking) deleteIfRegistered<BookingController>();
     super.dispose();
   }
 

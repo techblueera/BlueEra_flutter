@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_theme_controller.dart';
@@ -21,9 +20,9 @@ class PinMessageDurationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
 
-    final chatThemeController = getOrPut(() => ChatThemeController());
+    final chatThemeController = ChatThemeController.to;
 
     /// Selected duration in days
 
@@ -149,4 +148,4 @@ class PinMessageDurationDialog extends StatelessWidget {
       ),
     );
   }
-}
+}

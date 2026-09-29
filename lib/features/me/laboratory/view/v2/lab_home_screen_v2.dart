@@ -58,7 +58,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors the wiring used by `HospitalHomeScreenV2`, `SchoolHomeScreenV2`,
   // `MedicalHomeScreenV2` and the Order tab in `professionals_main.dart`.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = ChatViewController.to;
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
@@ -72,11 +72,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     registerMeTabBackHandler(_tabController);
-    if (!Get.isRegistered<LabFullDetailsController>()) {
-      _labController = Get.put(LabFullDetailsController(), permanent: true);
-    } else {
-      _labController = Get.find<LabFullDetailsController>();
-    }
+    _labController = LabFullDetailsController.to;
     if (_labController.details.value == null) {
       _labController.fetchFullDetails();
     }

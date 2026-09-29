@@ -114,7 +114,7 @@ class PropertyEnquirySheet {
     );
     if (!ok) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.checkChatConnectionAndOpenChat(
       userId: ownerId,
       route: AppConstants.route_discover,

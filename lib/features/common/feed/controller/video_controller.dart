@@ -12,30 +12,29 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
-import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/reel/service/video_actions.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
-import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/routes/safe_back.dart';
 
-class VideoController extends GetxController{
+/// The deep-linked video player: its lists of videos and the actions on them.
+/// Owned by the player's route. Feed cards call [VideoActions] instead.
+class VideoController extends GetxController {
+  VideoController({VideoActions? actions})
+      : _actions = actions ?? VideoActions();
+
   Rx<ApiResponse> videoPostsResponse = ApiResponse.initial('Initial').obs;
   ApiResponse videoLikeResponse = ApiResponse.initial('Initial');
   ApiResponse videoUnlikeResponse = ApiResponse.initial('Initial');
   ApiResponse followUnFollowChannelResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> channelVideosResponse = ApiResponse.initial('Initial').obs;
-  ApiResponse deleteVideosResponse = ApiResponse.initial('Initial');
-  ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   ApiResponse updateVideoThumbnailResponse = ApiResponse.initial('Initial');
   ApiResponse videoViewResponse = ApiResponse.initial('Initial');
-  ApiResponse reportVideoPostResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> followUnFollowResponse = ApiResponse.initial('Initial').obs;
 
   RxList<ShortFeedItem> videoFeedPosts = <ShortFeedItem>[].obs;
@@ -752,108 +751,48 @@ class VideoController extends GetxController{
   }
 
   /// Delete Video
-  Future<void> videoDelete({required VideoType video, required String videoId}) async {
+  final VideoActions _actions;
+
+  /// Deletes a video and drops it from this screen's list. Returns true when
+  /// it was deleted.
+  Future<bool> videoDelete(
+      {required VideoType video, required String videoId}) async {
     final list = getListByType(videoType: video);
-    final index = list.indexWhere((v) => v.video?.id == videoId);
-
+    if (video == VideoType.saved) {
       try {
-        if (video == VideoType.saved) {
-          await HiveServices().deleteVideoById(videoId);
-        } else {
-          final response = await ChannelRepo().deleteVideo(videoId: videoId);
-          if (response.isSuccess) {
-            if (index != -1) list.removeAt(index);
-            // `navigator` is GetX's live root-navigator lookup, so this needs
-            // no BuildContext at all — popping it directly is the same action.
-            navigator!.pop();
-            commonSnackBar(message: response.message);
-            deleteVideosResponse = ApiResponse.complete(response);
-          }else {
-            deleteVideosResponse = ApiResponse.error('error');
-          }
-        }
+        await HiveServices().deleteVideoById(videoId);
       } catch (_) {
-        deleteVideosResponse = ApiResponse.error('error');
+        return false;
       }
+    } else if (!await _actions.deleteVideo(videoId)) {
+      return false;
     }
-
-  ///USER BLOCK...
-  Future<void> userBlocked({required VideoType videoType,required String otherUserId}) async {
-    final list = getListByType(videoType: videoType);
-
-    try {
-      Map<String, dynamic> params = {
-        ApiKeys.blockedTo:  otherUserId,
-        ApiKeys.type: BlockedType.full.label,
-        ApiKeys.duration:  0
-      };
-
-      final response = await AuthRepo().blockUser(params: params);
-
-      if (response.isSuccess) {
-        blockUserResponse = ApiResponse.complete(response);
-        BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
-        list.removeWhere((v) {
-          print('contain userId --> ${v.video?.userId}');
-          print('userId --> $otherUserId');
-          return v.video?.userId == otherUserId;
-        });
-        safeBack();
-        commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
-      } else {
-        blockUserResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      blockUserResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
+    list.removeWhere((v) => v.video?.id == videoId);
+    return true;
   }
 
-  ///VIDEO POST REPOST...
-  Future<void> videoPostReport({
+  /// Blocks the author and drops their videos from this screen's list.
+  /// Returns true when they were blocked.
+  Future<bool> userBlocked(
+      {required VideoType videoType, required String otherUserId}) async {
+    if (!await _actions.blockUser(otherUserId)) return false;
+    getListByType(videoType: videoType)
+        .removeWhere((v) => v.video?.userId == otherUserId);
+    return true;
+  }
+
+  /// Reports a video and drops it from this screen's list. Returns true when
+  /// it was reported.
+  Future<bool> videoPostReport({
     required VideoType videoType,
     required String videoId,
-    required Map<String, dynamic> params
+    required Map<String, dynamic> params,
   }) async {
-    final list = getListByType(videoType: videoType);
-    final index = list.indexWhere((v) => v.video?.id == videoId);
-
-    try {
-
-      final response = await AuthRepo().report(params: params);
-
-      if (response.isSuccess) {
-        reportVideoPostResponse = ApiResponse.complete(response);
-        if (index != -1) list.removeAt(index);
-        showDialog(
-            context: Get.context!,
-            builder: (context) => Dialog(
-              child: Material(
-                color: Colors.transparent,
-                child: CustomSuccessSheet(
-                  buttonText: 'Got it',
-                  title: 'You have reported this post',
-                  subTitle: 'Thank you for your feedback. We will review and take necessary actions.',
-                  onPress: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-            ));
-
-      } else {
-        reportVideoPostResponse =  ApiResponse.error('error');
-        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      reportVideoPostResponse =  ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-    }
+    if (!await _actions.reportPost(params)) return false;
+    getListByType(videoType: videoType)
+        .removeWhere((v) => v.video?.id == videoId);
+    return true;
   }
-
 
   ///UPDATE VIDEO Thumbnail...
   Future<void> updateVideoThumbnail({

@@ -69,7 +69,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   // `MedicalHomeScreenV2`, `LabHomeScreenV2` and the Order tab in
   // `professionals_main.dart`.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't

@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -22,7 +21,7 @@ class AskInventoryProductMsgCard extends StatelessWidget {
 
   AskInventoryProductMsgCard({Key? key, required this.response}) : super(key: key);
 
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatThemeController = ChatThemeController.to;
 
   bool hasValidLogo(String? url) {
     return url != null &&

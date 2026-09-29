@@ -8,24 +8,38 @@ import 'package:BlueEra/core/api/model/photo_post_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
-import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
+import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../core/constants/size_config.dart';
 
 enum SymbolDuration { hours24, days7 }
 
+/// State and actions for creating or editing a photo (symbol) post, shared by
+/// the photo post screens. Registered by PhotoPostBinding.
 class PhotoPostController extends GetxController {
+  PhotoPostController(
+      {required PostRepo repo,
+      required TagUserController tagUsers,
+      this.editPost,
+      this.postVia})
+      : _repo = repo,
+        _tagUsers = tagUsers;
+
+  final PostRepo _repo;
+  final TagUserController _tagUsers;
+  final Post? editPost;
+  final PostVia? postVia;
+
+  bool get isPhotoPostEdit => editPost != null;
+
   TextEditingController descriptionTextEdit = TextEditingController();
   TextEditingController natureOfPostTextEdit = TextEditingController();
 
@@ -41,18 +55,41 @@ class PhotoPostController extends GetxController {
   final int maxCharCount = 140;
   final int maxPhotos = 5; // Updated to 5 as per requirement
   final int minPhotos = 1; // Minimum 1 photo required
-  Rx<Post>? postData = Post(id: '').obs;
-
-  // Location variables
-  final Rx<double?> latitude = Rx<double?>(null);
-  final Rx<double?> longitude = Rx<double?>(null);
-
-  bool isPhotoPostEdit = false;
 
   Rx<SymbolDuration> selectedSymbol = SymbolDuration.hours24.obs;
   Rx<SongModel?> songData = Rx<SongModel?>(null);
 
-  void addPhotos() async {
+  @override
+  void onInit() {
+    super.onInit();
+    final post = editPost;
+    if (post == null) return;
+    selectedPhotos.addAll(post.media ?? []);
+    descriptionTextEdit.text = post.subTitle ?? "";
+    natureOfPostTextEdit.text = post.natureOfPost ?? "";
+    final song = post.song;
+    if (song != null) {
+      songData.value = SongModel(
+          id: song.id,
+          name: song.name,
+          artist: song.artist,
+          coverUrl: song.coverUrl);
+    }
+    selectedSymbol.value = post.visibilityDuration == 1
+        ? SymbolDuration.hours24
+        : SymbolDuration.days7;
+  }
+
+  @override
+  void onClose() {
+    descriptionTextEdit.dispose();
+    natureOfPostTextEdit.dispose();
+    super.onClose();
+  }
+
+  /// Picks and compresses more photos. Returns true when any were added, so
+  /// the view can open the photo editor on them.
+  Future<bool> addPhotos() async {
     // if (selectedPhotos.length >= maxPhotos) {
     //   commonSnackBar(
     //     message: 'You can only upload up to $maxPhotos photos',
@@ -63,7 +100,7 @@ class PhotoPostController extends GetxController {
 
     final List<XFile>? images = await _picker.pickMultiImage();
 
-    if (images == null || images.isEmpty) return;
+    if (images == null || images.isEmpty) return false;
 
     int totalImage = selectedPhotos.length + images.length;
     log('total images--> $totalImage');
@@ -72,7 +109,7 @@ class PhotoPostController extends GetxController {
         message: 'You can only upload up to $maxPhotos photos',
       );
 
-      return;
+      return false;
     }
 
     for (final image in images) {
@@ -105,7 +142,7 @@ class PhotoPostController extends GetxController {
       }
     }
 
-    updatePhotoAfterEditing();
+    return true;
   }
 
   /// Helper to format bytes into KB/MB
@@ -148,11 +185,6 @@ class PhotoPostController extends GetxController {
     updatePhotoPost();
   }
 
-  void updateLocation(double lat, double lng) {
-    latitude.value = lat;
-    longitude.value = lng;
-  }
-
   void updateSong(SongModel song) {
     songData.value = song;
     updatePhotoPost();
@@ -179,177 +211,88 @@ class PhotoPostController extends GetxController {
     });
   }
 
-  late void Function(double) _updateProgressUI;
-
-  Future submitPost(PostVia? postVia) async {
-    if (!isPhotoPostEdit) {
-      if (selectedPhotoFiles.isEmpty || selectedPhotoFiles.length < minPhotos) {
-        commonSnackBar(message: 'Please upload at least $minPhotos photo');
-        return;
-      }
+  /// Creates the post, or updates the one being edited. Returns true when it
+  /// was saved; the caller decides where to go next.
+  Future<bool> submitPost() async {
+    if (!isPhotoPostEdit &&
+        (selectedPhotoFiles.isEmpty || selectedPhotoFiles.length < minPhotos)) {
+      commonSnackBar(message: 'Please upload at least $minPhotos photo');
+      return false;
     }
 
+    final taggedUserIds =
+        _tagUsers.selectedUsers.map((user) => user.id.toString()).join(',');
     try {
       isLoading.value = true;
-
-      showUploadingProgressDialog(context: Get.context!, progress: 0.01);
+      UploadProgressDialog.show(initialProgress: 0.01);
 
       final position = await getCurrentLocation();
-      updateLocation(
-        position?.latitude ?? 0,
-        position?.longitude ?? 0,
-      );
 
-      ResponseModel response = isPhotoPostEdit
-          ? await PostRepo().updatePostRepo(
+      final ResponseModel response = isPhotoPostEdit
+          ? await _repo.updatePostRepo(
               bodyReq: {
                 ApiKeys.type: AppConstants.PHOTO_POST,
                 ApiKeys.sub_title: description.value,
-                ApiKeys.nature_of_post: natureOfPost,
-                ApiKeys.tagged_users: Get.find<TagUserController>()
-                    .selectedUsers
-                    .map((user) => user.id.toString())
-                    .join(','),
+                ApiKeys.nature_of_post: natureOfPost.value,
+                ApiKeys.tagged_users: taggedUserIds,
                 ApiKeys.latitude: position?.latitude.toString(),
                 ApiKeys.longitude: position?.longitude.toString(),
               },
               isMultiPartPost: true,
-              postId: postData?.value.id,
+              postId: editPost?.id,
             )
-          : await PostRepo().createPost(
+          : await _repo.createPost(
               photoPost.value,
               selectedPhotoFiles,
-              latitude.value,
-              longitude.value,
+              position?.latitude ?? 0,
+              position?.longitude ?? 0,
               postVia,
-              (progress) {
-                _updateProgressUI(progress);
-              },
+              UploadProgressDialog.update,
               natureOfPost.value,
               songData.value,
-              (selectedSymbol == SymbolDuration.hours24) ? "1" : "7",
+              (selectedSymbol.value == SymbolDuration.hours24) ? "1" : "7",
+              taggedUserIds,
             );
+      UploadProgressDialog.close();
 
-      // The upload above can take long enough for the poster to leave, and
-      // `Get.context!` throws once nothing is mounted. Nothing to dismiss in
-      // that case — the progress dialog went with the screen.
-      // `mounted` too: Get.context can hand back a defunct element, which
-      // Navigator.of rejects exactly as it rejects a null one.
-      final ctx = Get.context;
-      if (ctx != null && ctx.mounted) {
-        Navigator.of(ctx, rootNavigator: true).pop();
-      }
-
-      if (response.isSuccess) {
-        // Same branch handles a create and an edit — only the create is a new
-        // post, so the edit is reported separately rather than double-counted.
-        AnalyticsService.I.log(
-          isPhotoPostEdit ? 'post_edited' : 'post_created',
-          AnalyticsService.params({
-            'post_type': AppConstants.PHOTO_POST,
-            'nature_of_post': natureOfPost.value,
-          }),
-        );
-        commonSnackBar(
-          message: response.response?.data?['message'] ??
-              'Your Symbol Post has been created!',
-        );
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
-            true;
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
-        resetForm();
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
           message: response.response?.data?['message'] ??
               'Failed to create post. Please try again.',
         );
+        return false;
       }
+      // Same branch handles a create and an edit — only the create is a new
+      // post, so the edit is reported separately rather than double-counted.
+      AnalyticsService.I.log(
+        isPhotoPostEdit ? 'post_edited' : 'post_created',
+        AnalyticsService.params({
+          'post_type': AppConstants.PHOTO_POST,
+          'nature_of_post': natureOfPost.value,
+        }),
+      );
+      commonSnackBar(
+        message: response.response?.data?['message'] ??
+            'Your Symbol Post has been created!',
+      );
+      return true;
     } catch (e) {
-      // Optional error logging
+      UploadProgressDialog.close();
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  void showUploadingProgressDialog({
-    required BuildContext context,
-    required double progress,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) {
-        return AlertDialog(
-          title: const Text(
-            "Uploading...",
-            style: TextStyle(fontSize: 16),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SizeConfig.size10),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              _updateProgressUI = (double newProgress) {
-                setState(() {
-                  progress = newProgress;
-                });
-              };
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 8,
-                  ),
-                  LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    backgroundColor: Colors.grey[300],
-                    color: Colors.blue,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "${(progress * 100).toStringAsFixed(0)}% completed",
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void resetForm() {
-    selectedPhotos.clear();
-    selectedPhotoFiles.clear();
-    description.value = '';
-    taggedPeople.clear();
-    natureOfPost.value = '';
-    charCount.value = 0;
-    latitude.value = null;
-    longitude.value = null;
-    updatePhotoPost();
-  }
-
   List<String> originalPhotos = [];
 
-  Future<void> updatePhotoAfterEditing() async {
-    // pass a fresh copy to editing screen
-    List<String> selectedEditPhotos =
-        await Get.to(() => PhotoPostEditingScreen());
-
-    // ✅ Keep originals safe, only update working copies
-    // originalPhotos =
-    selectedPhotos.value = List<String>.from(selectedEditPhotos);
-    selectedPhotoFiles.value = selectedEditPhotos.map((p) => File(p)).toList();
-
-    updatePhotoPost(); // refresh UI
+  /// Takes the photo editor's result. Null means the editor was dismissed
+  /// without one (e.g. the system back gesture), so the photos stay as they
+  /// were.
+  void applyEditedPhotos(List<String>? editedPhotos) {
+    if (editedPhotos == null) return;
+    selectedPhotos.value = List<String>.from(editedPhotos);
+    selectedPhotoFiles.value = editedPhotos.map((p) => File(p)).toList();
+    updatePhotoPost();
   }
 }

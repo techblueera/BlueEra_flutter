@@ -33,6 +33,7 @@ flutter test test/facility_controller_test.dart   # single test
 **Feature-based module structure** under `lib/features/`:
 ```
 feature/
+├── binding/       # GetX Bindings passed to the route (_getRoute(binding:)); create the screen's controllers
 ├── controller/    # GetX controllers (business logic)
 ├── model/         # Data models & API response models
 ├── repo/          # API repository layer (Dio-based)

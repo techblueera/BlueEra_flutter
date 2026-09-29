@@ -95,7 +95,6 @@ import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/call_controller.dart';
-import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -153,13 +152,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   int chatNotificationCount = 0;
   final ValueNotifier<bool> bottomBarVisibleNotifier = ValueNotifier(true);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final bottomBarController = Get.put(BottomBarController());
-  final chatViewController = getOrPut(() => ChatViewController());
+  final bottomBarController = BottomBarController.to;
+  final chatViewController = ChatViewController.to;
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-  final inventoryController = Get.put(InventoryController());
+  final inventoryController = InventoryController.to;
   final orderController = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
-  final dialogService = Get.put(DialogService());
+  final dialogService = getOrPut(() => DialogService(), permanent: true);
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -202,7 +201,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _getAllCategories();
       _heavyInitDone = true;
     }
-    _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
     _initializeChatMediaFolders();
@@ -794,10 +792,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case AppUpdateResult.inAppUpdateFailed:
         _updateLog("$type update failed inside Play");
     }
-  }
-
-  void _initializeControllers() {
-    getOrPut(() => ChatThemeController());
   }
 
   Future<void> _initializeUserData() async {

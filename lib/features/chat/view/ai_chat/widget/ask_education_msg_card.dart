@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/education_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -22,7 +21,7 @@ class AskEducationMsgCard extends StatelessWidget {
 
   AskEducationMsgCard({Key? key, required this.response}) : super(key: key);
 
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatThemeController = ChatThemeController.to;
 
 
   @override

@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/reel/service/video_actions.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -5,7 +6,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -55,10 +55,17 @@ class ReelVideoPopUpMenu extends StatelessWidget {
           await showCommonDialog(
               context: context,
               text: 'Are you sure you want to delete this video?',
-              confirmCallback: () {
-                logs("videoFeedItem.video?.id === ${videoFeedItem.video?.id}");
+              confirmCallback: () async {
                 safeBack();
-                Get.find<VideoController>().videoDelete(video: video, videoId: videoFeedItem.video?.id ?? '');
+                final videoId = videoFeedItem.video?.id ?? '';
+                // The video player keeps its own list to update; a feed card
+                // only needs the video deleted.
+                if (Get.isRegistered<VideoController>()) {
+                  await Get.find<VideoController>()
+                      .videoDelete(video: video, videoId: videoId);
+                } else {
+                  await VideoActions().deleteVideo(videoId);
+                }
               },
               cancelCallback: () {
                 Navigator.of(context).pop(); // Close the dialog

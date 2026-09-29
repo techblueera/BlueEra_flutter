@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
@@ -28,7 +27,7 @@ class MyProductProductsScreen extends StatefulWidget {
 }
 
 class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
-  final controller = getOrPut(() => InventoryController());
+  final controller = InventoryController.to;
   final ScrollController scrollController = ScrollController();
   final TextEditingController searchController = TextEditingController();
 

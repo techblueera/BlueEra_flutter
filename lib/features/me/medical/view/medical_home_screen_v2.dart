@@ -76,7 +76,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // Mirrors the wiring used by `HospitalHomeScreenV2`, `SchoolHomeScreenV2`
   // and the Order tab in `professionals_main.dart`.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` â†’ `Get.find<ChatFlagController>()`) doesn't

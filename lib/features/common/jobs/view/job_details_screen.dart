@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
@@ -321,8 +322,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 Expanded(
                   child: PositiveCustomBtn(
                     onTap: () async {
-                      await Get.find<CreateJobPostController>()
-                          .publishJobApi(jobId: JOBID);
+                      if (await Get.find<CreateJobPostController>()
+                          .publishJobApi(jobId: JOBID)) {
+                        Get.offAllNamed(
+                          RouteHelper.getBottomNavigationBarScreenRoute(),
+                          arguments: {ApiKeys.initialIndex: 1},
+                        );
+                      }
                     },
                     title: AppStrings.postJob,
                   ),

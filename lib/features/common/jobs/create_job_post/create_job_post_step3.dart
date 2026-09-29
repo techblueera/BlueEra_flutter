@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -97,7 +98,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
   final createJobPostController = Get.find<CreateJobPostController>();
   Worker? _jobDetailsWorker;
 
-  final controller = Get.put(JobPostStep3Controller());
+  final controller = Get.find<JobPostStep3Controller>();
 
   @override
   void initState() {
@@ -623,7 +624,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                   ),
                   Expanded(
                       child: PositiveCustomBtn(
-                    onTap: () {
+                    onTap: () async {
                       // Validate communication preference is selected
                       if (!controller.hasCommunicationPreferenceSelected) {
                         commonSnackBar(
@@ -680,11 +681,12 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                         };
                       }
 
-                      mainController.postJobStep3Api(
+                      if (await mainController.postJobStep3Api(
                         jobId: mainController.jobID.value,
                         interviewDetails: interviewDetails,
-                      );
-                      // Get.to(() => CreateJobPostStep4());
+                      )) {
+                        Get.toNamed(RouteHelper.getCreateJobPostStep4Route());
+                      }
                     },
                     title: AppStrings.continueTxt,
                   ))

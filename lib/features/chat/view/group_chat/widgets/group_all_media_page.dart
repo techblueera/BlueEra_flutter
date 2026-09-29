@@ -46,9 +46,7 @@ class GroupAllMediaPage extends StatefulWidget {
 class _GroupAllMediaPageState extends State<GroupAllMediaPage> {
   final chatViewController = Get.find<ChatViewController>();
   final ChatThemeController chatThemeController =
-      Get.isRegistered<ChatThemeController>()
-          ? Get.find<ChatThemeController>()
-          : Get.put(ChatThemeController());
+      ChatThemeController.to;
 
   final List<_MediaEntry> _media = [];
   final List<_MediaEntry> _docs = [];

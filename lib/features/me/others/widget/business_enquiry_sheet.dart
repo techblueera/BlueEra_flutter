@@ -198,7 +198,7 @@ class BusinessEnquirySheet {
     );
     if (enquiryId == null) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
       name: listing.listingName.isNotEmpty

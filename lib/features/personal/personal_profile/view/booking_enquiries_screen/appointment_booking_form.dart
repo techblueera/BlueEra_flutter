@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/custom_checkbox.dart';
 import 'package:flutter/material.dart';
@@ -12,45 +13,31 @@ import '../../../../../widgets/common_drop_down.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../../widgets/new_common_date_selection_dropdown.dart';
-import 'controller/booking_controller.dart';
+import 'controller/appointment_booking_controller.dart';
 import 'model/appointment_booking_model.dart';
 
 enum BookingType { online, offline }
 
+/// Opened through [RouteHelper.getAppointmentBookingScreenRoute], whose
+/// AppointmentBookingBinding provides the controller for the channel and video.
 class AppointmentBookingScreen extends StatefulWidget {
-  final String channelId;
-  final String videoId;
-
-  const AppointmentBookingScreen(
-      {super.key, required this.channelId, required this.videoId});
+  const AppointmentBookingScreen({super.key});
   @override
   State<AppointmentBookingScreen> createState() =>
       _AppointmentBookingScreenState();
 }
 
-String? _selectedFromTime;
-
 class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   BookingType selectedType = BookingType.offline;
   int? _selectedDay, _selectedMonth, _selectedYear;
+  String? _selectedFromTime;
   final nameController = TextEditingController();
   final mobileController = TextEditingController();
   final emailController = TextEditingController();
-  final BookingController bookingController = Get.put(BookingController());
-
-  @override
-  void initState() {
-    super.initState();
-
-    // _timeOfDay = generate24HoursAmPm();
-
-    // Fetch calendar data when screen loads
-    bookingController.getAvailabilityData(channelId: widget.channelId);
-  }
+  final bookingController = Get.find<AppointmentBookingController>();
 
   @override
   Widget build(BuildContext context) {
-    print("Channelids:${widget.channelId}");
     return Scaffold(
       appBar: CommonBackAppBar(
         title: 'Appointment Booking Form',
@@ -330,7 +317,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                         ? Colors.blue
                         : Colors.grey,
                     onTap: bookingController.isAvailabilitySet
-                        ? () {
+                        ? () async {
                             final name = nameController.text.trim();
                             final mobile = mobileController.text.trim();
                             final email = emailController.text.trim();
@@ -371,18 +358,13 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                               mobileNumber: mobile,
                               email: email,
                             );
-                            Map<String, dynamic> params = {
-                              ApiKeys.serviceProvider_channelId:
-                                  "${widget.channelId}",
-                              // "${68a5290138686a9a3fc59e3a}",
-                              ApiKeys.videoId: "${widget.videoId}",
-                              ApiKeys.bookingTime: "$bookingDateTime",
-                              ApiKeys.customerDetails: customer.toJson(),
-                            };
-                            print("giugg ${widget.videoId}");
-                            print("sgf ${widget.channelId}");
-                            bookingController.addBooingAppointment(
-                                params: params);
+                            if (await bookingController.book(
+                                at: bookingDateTime, customer: customer)) {
+                              Get.offAllNamed(
+                                RouteHelper.getBottomNavigationBarScreenRoute(),
+                                arguments: {ApiKeys.initialIndex: 1},
+                              );
+                            }
                           }
                         : null,
                     title: "Book Appointment",

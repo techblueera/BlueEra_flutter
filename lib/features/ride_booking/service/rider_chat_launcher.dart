@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 
@@ -29,7 +28,7 @@ Future<void> openRiderInquiryChat({
     commonSnackBar(message: 'Captain chat is unavailable right now');
     return;
   }
-  await getOrPut(() => ChatViewController()).checkChatConnectionAndOpenChat(
+  await ChatViewController.to.checkChatConnectionAndOpenChat(
     userId: riderUserId,
     name: name,
     conductNo: phone,

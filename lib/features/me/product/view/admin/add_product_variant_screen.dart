@@ -37,7 +37,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
   @override
   void initState() {
     super.initState();
-    inventoryController = Get.put(InventoryController());
+    inventoryController = InventoryController.to;
 
     // Make sure every visible variant is marked selected in the
     // inventory controller (publish reads from there).

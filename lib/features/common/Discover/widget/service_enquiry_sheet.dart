@@ -79,7 +79,7 @@ class ServiceEnquirySheet {
     );
     if (!ok) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.checkChatConnectionAndOpenChat(
       userId: targetUserId,
       route: AppConstants.route_discover,
@@ -141,7 +141,7 @@ class ServiceEnquirySheet {
       photoPaths: photoPaths,
     );
     if (!ok) return;
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.checkChatConnectionAndOpenChat(
       userId: userId,
       name: chatName,

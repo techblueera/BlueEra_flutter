@@ -181,7 +181,10 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
   Widget addVideoWidget() {
     return InkWell(
       onTap: () async {
-        msgController.pickVideoMedia();
+        msgController.pickVideoMedia(
+            trimVideo: (path) async =>
+                await Get.to(() => VideoTrimmerPage(videoPath: path))
+                    as String?);
       },
       child: Container(
         width: SizeConfig.screenWidth,

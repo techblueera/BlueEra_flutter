@@ -24,9 +24,7 @@ class _LaboratoryMainState extends State<LaboratoryMain> with RouteAware {
 
     // Keep LabFullDetailsController registered for the V2 overview / contact
     // tabs that look it up via Get.find.
-    if (!Get.isRegistered<LabFullDetailsController>()) {
-      Get.put(LabFullDetailsController(), permanent: true);
-    }
+    LabFullDetailsController.to;
 
     _bootstrapLabId();
   }

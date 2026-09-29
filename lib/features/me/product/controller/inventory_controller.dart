@@ -39,6 +39,12 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class InventoryController extends GetxController {
+  /// The signed-in business's inventory, registered on first use. Permanent:
+  /// shared by the shell and the product screens; logout deletes it.
+  static InventoryController get to => Get.isRegistered<InventoryController>()
+      ? Get.find<InventoryController>()
+      : Get.put(InventoryController(), permanent: true);
+
   Rx<ApiResponse> ownDraftAndPublicProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> searchProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> cloneVariantProductResponse = ApiResponse.initial('Initial').obs;

@@ -1,13 +1,10 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/jobs/repo/job_repo.dart';
-import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide MultipartFile;
@@ -15,10 +12,35 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 import '../../../../core/api/apiService/response_model.dart';
 import '../../auth/model/get_job_details_byId_model.dart';
-import 'job_details_screen_controller.dart';
 
+/// State and API calls for the 4-step create/edit job flow. Registered by
+/// CreateJobPostBinding on the flow's first route, so every step shares one
+/// instance and a new flow always starts empty.
 class CreateJobPostController extends GetxController {
-  late String jobId;
+  CreateJobPostController(
+      {required JobRepo repo, String editJobId = '', String createJobVia = ''})
+      : _repo = repo,
+        _createJobVia = createJobVia {
+    isEditMode.value = editJobId.isNotEmpty;
+    jobID.value = editJobId;
+  }
+
+  final String _createJobVia;
+
+  /// Bumped once the job being edited has been loaded into the form, so the
+  /// view can refresh widgets that read the controller outside `Obx`.
+  final RxInt formRevision = 0.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (isEditMode.value) _loadJobForEdit();
+  }
+
+  // No onClose disposing the text controllers: "Edit" on the preview at the
+  // end of a flow opens a second flow on top, whose binding deletes this
+  // instance while the first flow's screens are still in the stack and still
+  // show these fields. They need no disposal once those screens are gone.
 
   RxBool isLoading = false.obs;
   final companyName = ''.obs;
@@ -78,47 +100,9 @@ class CreateJobPostController extends GetxController {
     startLocationAddress.value = address;
   }
 
-  // Method to reset controller state
-  void resetControllerState() {
-    companyName.value = '';
-    companyAddress.value = '';
-    jobTitle.value = '';
-    department.value = '';
-    jobType.value = '';
-    workMode.value = '';
-    payType.value = '';
-    minSalary.value = '';
-    maxSalary.value = '';
-    selectedCompensationPerks.clear();
-    selectedJobDescriptionPerks.clear();
-    jobHighlights.clear();
-    jobDescription.value = '';
-    selectQualification.value = '';
-    selectTotalExperience.value = '';
-    selectedLanguages.clear();
-    selectedLanguages.add('English');
-    selectedSkills.clear();
-    selectedGender.value = '';
-    walkInInterview.value = '';
-    communicationPreference.value = '';
-    jobID.value = '';
-    isEditMode.value = false;
-    jobDetails.value = null;
-    startLocationLat?.value = 0.0;
-    startLocationLng?.value = 0.0;
-    startLocationAddress.value = '';
-    addressEditController.clear();
-    error.value = '';
-  }
+  final JobRepo _repo;
 
-  final JobRepo _repo = JobRepo();
-
-  ///POST JOB
-  Future<void> postJobApi(
-      {String? imagePath, required String? createJobVia}) async {
-    try {
-      await getUserLoginData();
-      final params = {
+  Map<String, dynamic> _detailsParams() => {
         ApiKeys.jobTitle: jobTitleController.text,
         ApiKeys.companyName: companyNameController.text,
         ApiKeys.jobType: jobType.value,
@@ -135,30 +119,66 @@ class CreateJobPostController extends GetxController {
         ApiKeys.locationLatitude: startLocationLat?.value ?? 0.0,
         ApiKeys.locationLongitude: startLocationLng?.value ?? 0.0,
         ApiKeys.locationAddress: addressEditController.text,
-        ApiKeys.postedFrom: createJobVia,
         ApiKeys.postedBy: userId,
+      };
+
+  /// Saves step 1: creates the draft job, or updates the one being edited.
+  /// Returns true when the flow can move on to step 2.
+  Future<bool> submitDetails({String? imagePath}) async {
+    return isEditMode.value
+        ? _updateJobPostDetails()
+        : _postJob(imagePath: imagePath);
+  }
+
+  Future<bool> _postJob({String? imagePath}) async {
+    try {
+      await getUserLoginData();
+      final params = {
+        ..._detailsParams(),
+        ApiKeys.postedFrom: _createJobVia,
       };
       if (imagePath != null && imagePath.isNotEmpty) {
         params[ApiKeys.jobPostImage] = await MultipartFile.fromFile(imagePath,
             filename: imagePath.split('/').last);
       }
       final response = await _repo.jobPostRepo(params: params);
-      if (response.isSuccess) {
-        final jobId = response.getExtraData('jobId') ??
-            response.getExtraData('data')?['jobId'];
-        jobID.value = jobId;
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        Get.toNamed(RouteHelper.getCreateJobPostStep2Route());
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      final jobId = response.getExtraData('jobId') ??
+          response.getExtraData('data')?['jobId'];
+      jobID.value = jobId;
+      commonSnackBar(message: response.message ?? AppStrings.success);
+      return true;
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 
-  Future<void> postJobStep2Api({required String jobId}) async {
+  Future<bool> _updateJobPostDetails() async {
+    try {
+      final response = await _repo.updateJobPostDetailsRepo(
+        jobId: jobID.value,
+        params: _detailsParams(),
+      );
+      if (!response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+      commonSnackBar(message: response.message ?? AppStrings.success);
+      return true;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  /// Saves step 2. Returns true when the flow can move on to step 3.
+  Future<bool> postJobStep2Api({required String jobId}) async {
     try {
       final params = {
         ApiKeys.qualifications: selectQualification.value,
@@ -172,24 +192,24 @@ class CreateJobPostController extends GetxController {
         jobId: jobId,
         params: params,
       );
-      if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        Get.toNamed(RouteHelper.getCreateJobPostStep3Route());
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      commonSnackBar(message: response.message ?? AppStrings.success);
+      return true;
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 
-  Future<void> postJobStep3Api(
+  /// Saves step 3. Returns true when the flow can move on to step 4.
+  Future<bool> postJobStep3Api(
       {required String jobId,
       required Map<String, dynamic> interviewDetails}) async {
     try {
-      // Debug logging for communication preference8
-
       final params = {
         ApiKeys.interviewDetails: {
           ApiKeys.isWalkIn: interviewDetails[ApiKeys.isWalkIn],
@@ -209,92 +229,62 @@ class CreateJobPostController extends GetxController {
         jobId: jobId,
         params: params,
       );
-
-      if (response.isSuccess) {
-        Get.toNamed(RouteHelper.getCreateJobPostStep4Route());
-        commonSnackBar(message: response.message ?? AppStrings.success);
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      commonSnackBar(message: response.message ?? AppStrings.success);
+      return true;
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 
-  Future<void> postJobStep4Api(
+  /// Saves step 4. Returns true when the job can be previewed.
+  Future<bool> postJobStep4Api(
       {required String jobId,
       required List<Map<String, dynamic>> customQuestions}) async {
     try {
-      final params = {
-        ApiKeys.customQuestions: customQuestions,
-      };
       final response = await _repo.jobPostStep4Repo(
         jobId: jobId,
-        params: params,
+        params: {ApiKeys.customQuestions: customQuestions},
       );
-      if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
-
-        Get.to(() => JobDetailScreen(
-              isPostEdit: AppConstants.EDIT,
-              isPostCreate: AppConstants.JOB_POST,
-              jobId: jobId,
-              isShowSaveJob: false,
-              isPostDirection: '',
-              isPostApply: '',
-            ));
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      commonSnackBar(message: response.message ?? AppStrings.success);
+      return true;
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 
-  Future<void> updateJobPostDetailsApi(
-      {required String jobId, required Map<String, dynamic> params}) async {
-    try {
-      final response = await _repo.updateJobPostDetailsRepo(
-        jobId: jobId,
-        params: params,
-      );
-
-      if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        Get.toNamed(RouteHelper.getCreateJobPostStep2Route());
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-  }
-
-  Future<void> publishJobApi({required String jobId}) async {
+  /// Publishes the drafted job. Returns true when it is live.
+  Future<bool> publishJobApi({required String jobId}) async {
     try {
       final response = await _repo.publishJobRepo(
         jobId: jobId,
         params: {},
       );
-      if (response.isSuccess) {
-        // Publish is the step that makes the post visible to seekers — the
-        // earlier draft steps are not a completed job posting.
-        AnalyticsService.I.log(
-            'job_post_published', AnalyticsService.params({'job_id': jobId}));
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        Get.offAllNamed(
-          RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 1},
-        );
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      // Publish is the step that makes the post visible to seekers — the
+      // earlier draft steps are not a completed job posting.
+      AnalyticsService.I.log(
+          'job_post_published', AnalyticsService.params({'job_id': jobId}));
+      commonSnackBar(message: response.message ?? AppStrings.success);
+      return true;
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 
@@ -322,10 +312,42 @@ class CreateJobPostController extends GetxController {
       error.value = 'Something went wrong: $e';
       jobDetails.value = null;
     } finally {
-      // Ensure we're still mounted before updating state
-      if (Get.isRegistered<JobDetailsScreenController>()) {
-        isLoading.value = false;
-      }
+      isLoading.value = false;
     }
+  }
+
+  /// Loads the job being edited and fills step 1's form from it.
+  Future<void> _loadJobForEdit() async {
+    await fetchJobDetails(jobID.value);
+    final job = jobDetails.value?.job;
+    addressEditController.text = job?.location?.addressString ?? "";
+    companyNameController.text = job?.companyName ?? "";
+    companyAddressController.text = job?.location?.addressString ?? "";
+    jobTitleController.text = job?.jobTitle ?? "";
+    departmentController.text = job?.department ?? "";
+    jobDescriptionController.text = job?.jobDescription ?? "";
+    jobType.value = job?.jobType ?? "";
+    workMode.value = job?.workMode ?? "";
+    payType.value = job?.compensation?.type ?? "";
+    maxSalaryController.text = job?.compensation?.maxSalary.toString() ?? "";
+    minSalaryController.text = job?.compensation?.minSalary.toString() ?? "";
+
+    selectedCompensationPerks.assignAll(_perkList(job?.benefits));
+    selectedJobDescriptionPerks.assignAll(_perkList(job?.jobHighlights));
+    formRevision.value++;
+  }
+
+  /// The job's perks as a plain list. The app saves them as one
+  /// JSON-encoded string (`jsonEncode(perks)`), so the API returns
+  /// `['["a","b"]']`; a plain `['a', 'b']` is taken as it is.
+  static List<String> _perkList(List<String>? stored) {
+    if (stored == null || stored.isEmpty) return [];
+    if (stored.length == 1) {
+      try {
+        final decoded = jsonDecode(stored.single);
+        if (decoded is List) return decoded.map((e) => e.toString()).toList();
+      } catch (_) {}
+    }
+    return List<String>.from(stored);
   }
 }

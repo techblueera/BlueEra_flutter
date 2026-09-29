@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
@@ -30,7 +29,7 @@ class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
   final controller = BlueEraNotificationController.to;
   // Self-register so the background + bubble colors match the rest of the chat
   // surfaces regardless of entry path (mirrors PersonalChatScreen).
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatThemeController = ChatThemeController.to;
 
   @override
   void initState() {

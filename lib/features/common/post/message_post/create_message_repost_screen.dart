@@ -1,23 +1,17 @@
-import 'dart:io';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart' as dio;
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
+import 'package:BlueEra/features/common/post/widget/return_to_feed.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -26,14 +20,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
+/// Reposts another post with the user's own message. Opened with
+/// `Get.to(..., binding: MessagePostBinding.repost(post))`.
 class CreateMessagePostScreenRepost extends StatefulWidget {
-  final Post? post;
-  final bool isEdit;
-  final bool isRepost = false;
-  final PostVia? postVia;
-
-  const CreateMessagePostScreenRepost(
-      {super.key, this.post, required this.isEdit, this.postVia});
+  const CreateMessagePostScreenRepost({super.key});
 
   @override
   State<CreateMessagePostScreenRepost> createState() =>
@@ -42,13 +32,9 @@ class CreateMessagePostScreenRepost extends StatefulWidget {
 
 class _CreateMessagePostScreenNewState
     extends State<CreateMessagePostScreenRepost> {
-  final msgController = Get.put(MessagePostController());
+  final msgController = Get.find<MessagePostController>();
 
-  @override
-  void dispose() {
-    deleteIfRegistered<MessagePostController>();
-    super.dispose();
-  }
+  Post? get _post => msgController.repostOf;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +44,6 @@ class _CreateMessagePostScreenNewState
           commonSnackBar(message: "Please wait, your request is still processing...");
           return false;
         }
-        msgController.clearRepostData();
         return true;
       },
       child: Scaffold(
@@ -68,10 +53,7 @@ class _CreateMessagePostScreenNewState
             return CommonBackAppBar(
               title: AppStrings.messageRepost,
               isLeading: msgController.isLoading.value ? false : true,
-              onBackTap: () {
-                msgController.clearRepostData();
-                safeBack();
-              },
+              onBackTap: () => safeBack(),
             );
           }),
         ),
@@ -91,62 +73,8 @@ class _CreateMessagePostScreenNewState
                   isValidate: (msgController.postText.value.isNotEmpty),
                   onTap: (msgController.postText.value.isNotEmpty)
                       ? () async {
-                          try {
-                            msgController.isLoading.value = true;
-
-                            final position = await getCurrentLocation();
-                            dio.FormData formData = dio.FormData();
-
-                            // Add media files
-                            for (int i = 0;
-                                i < (msgController.imagesList.length);
-                                i++) {
-                              final data = msgController.imagesList[i];
-
-                              File processed = File(data.path);
-
-                              String fileName = processed.path.split('/').last;
-                              formData.files.add(
-                                MapEntry(
-                                  ApiKeys.media,
-                                  await dio.MultipartFile.fromFile(
-                                    processed.path,
-                                    filename: fileName,
-                                  ),
-                                ),
-                              );
-                            }
-                            formData.fields.add(MapEntry(
-                                ApiKeys.type, AppConstants.MESSAGE_POST));
-                            formData.fields.add(MapEntry(
-                                ApiKeys.repostId, widget.post?.id ?? ""));
-
-                            formData.fields.add(MapEntry(ApiKeys.postVia,
-                                widget.postVia?.name ?? "profile"));
-
-                            if (msgController
-                                .descriptionMessage.value.text.isNotEmpty)
-                              formData.fields.add(MapEntry(ApiKeys.sub_title,
-                                  msgController.descriptionMessage.value.text));
-
-                            // Add location if available
-                            if (position?.latitude != null &&
-                                position?.longitude != null) {
-                              formData.fields.add(MapEntry(ApiKeys.latitude,
-                                  position?.latitude.toString() ?? ""));
-                              formData.fields.add(MapEntry(ApiKeys.longitude,
-                                  position?.longitude.toString() ?? ""));
-                            }
-                            await msgController.rePostMsgPostControllerNew(
-                              bodyReq: formData,
-                            );
-
-                            msgController.isLoading.value = false;
-                          } on Exception catch (e) {
-                            logs("ERROR ${e}");
-                            msgController.isLoading.value = false;
-
-                            // TODO
+                          if (await msgController.repost()) {
+                            returnToFeedAfterPosting();
                           }
                         }
                       : null,
@@ -261,8 +189,7 @@ class _CreateMessagePostScreenNewState
                                         child: Row(
                                           children: [
                                             CachedAvatarWidget(
-                                                imageUrl: widget
-                                                    .post?.user?.profileImage,
+                                                imageUrl: _post?.user?.profileImage,
                                                 size: 30.0,
                                                 borderRadius: 25),
                                             SizedBox(
@@ -279,7 +206,7 @@ class _CreateMessagePostScreenNewState
                                                   children: [
                                                     Flexible(
                                                       child: CustomText(
-                                                        widget.post?.user?.name,
+                                                        _post?.user?.name,
                                                         fontSize:
                                                             SizeConfig.large,
                                                         fontWeight:
@@ -291,11 +218,10 @@ class _CreateMessagePostScreenNewState
                                                             .secondaryTextColor,
                                                       ),
                                                     ),
-                                                    if (widget.post?.user
+                                                    if (_post?.user
                                                                 ?.username !=
                                                             null &&
-                                                        (widget
-                                                                .post
+                                                        (_post
                                                                 ?.user
                                                                 ?.username
                                                                 ?.isNotEmpty ??
@@ -306,7 +232,7 @@ class _CreateMessagePostScreenNewState
                                                               EdgeInsets.only(
                                                                   top: 0),
                                                           child: CustomText(
-                                                            " @${widget.post?.user?.username}",
+                                                            " @${_post?.user?.username}",
                                                             fontSize: SizeConfig
                                                                 .medium,
                                                             fontWeight:
@@ -347,7 +273,7 @@ class _CreateMessagePostScreenNewState
                                                 child: Container(
                                                   color: Colors.black,
                                                   child: CachedNetworkImage(
-                                                    imageUrl: widget.post?.media
+                                                    imageUrl: _post?.media
                                                             ?.first ??
                                                         "",
                                                     width: 90,
@@ -380,11 +306,11 @@ class _CreateMessagePostScreenNewState
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  if ((widget.post?.title
+                                                  if ((_post?.title
                                                           ?.isNotEmpty ??
                                                       false))
                                                     CustomText(
-                                                      widget.post?.title ?? "",
+                                                      _post?.title ?? "",
                                                       maxLines: 1,
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -395,7 +321,7 @@ class _CreateMessagePostScreenNewState
                                                     ),
                                                   SizedBox(height: 4),
                                                   CustomText(
-                                                    widget.post?.subTitle ?? "",
+                                                    _post?.subTitle ?? "",
                                                     maxLines: 2,
                                                     overflow:
                                                         TextOverflow.ellipsis,
@@ -421,7 +347,7 @@ class _CreateMessagePostScreenNewState
                                   left: SizeConfig.size15,
                                 ),
                                 child: FeedCard(
-                                    post: widget.post,
+                                    post: _post,
                                     index: 0,
                                     postFilteredType: PostType.otherPosts,
                                     horizontalPadding: 0,

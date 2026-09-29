@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/laboratory/binding/visited_lab_binding.dart';
 import 'dart:async';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
@@ -556,7 +557,7 @@ print("type==== ${type}");
             // It also fills in the owner's avatar and contact number, which
             // the link does not carry, so the app bar is not half-empty.
             if (isNewChat) {
-              final opened = await getOrPut(() => ChatViewController())
+              final opened = await ChatViewController.to
                   .checkChatConnectionAndOpenChat(
                 userId: chatUserId,
                 name: chatName.isNotEmpty ? chatName : null,
@@ -712,7 +713,8 @@ print("type==== ${type}");
   /// lab list ([LabProfilesListScreen]).
   static void _openLaboratory(String id) {
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-    Get.to(() => LabDetailScreen(businessId: id));
+    Get.to(() => LabDetailScreen(businessId: id),
+        binding: VisitedLabBinding(businessId: id));
   }
 
   /// Opens [FinanceDetailScreen] for a finance business reached via deep link /

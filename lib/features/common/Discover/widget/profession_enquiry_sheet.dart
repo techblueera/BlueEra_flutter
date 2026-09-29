@@ -74,7 +74,7 @@ class ProfessionEnquirySheet {
     );
     if (!ok) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.checkChatConnectionAndOpenChat(
       userId: userId,
       route: AppConstants.route_discover,

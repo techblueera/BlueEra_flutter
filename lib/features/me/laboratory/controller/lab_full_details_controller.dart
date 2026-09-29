@@ -15,6 +15,12 @@ import 'package:get/get.dart';
 /// `profile + tests + galleries + facility + health camps` payload and
 /// handles the banner/logo upload flow used by [lab_header_view].
 class LabFullDetailsController extends GetxController {
+  /// The signed-in lab's shared instance, registered on first use. Permanent:
+  /// the lab screens and tabs share it; logout deletes it.
+  static LabFullDetailsController get to => Get.isRegistered<LabFullDetailsController>()
+      ? Get.find<LabFullDetailsController>()
+      : Get.put(LabFullDetailsController(), permanent: true);
+
   final LabFullDetailsRepo _repo = LabFullDetailsRepo();
   final LabProfileRepo _repoProfile = LabProfileRepo();
 

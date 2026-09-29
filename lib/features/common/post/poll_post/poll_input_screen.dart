@@ -1,13 +1,9 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/poll_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -18,49 +14,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
-class PollInputScreen extends StatefulWidget {
-  final Post? post;
-  final bool isEdit;
-  final PostVia? postVia;
+/// Opened through [RouteHelper.getPollInputScreenRoute], whose PollBinding
+/// provides the controller.
+class PollInputScreen extends GetView<PollController> {
+  const PollInputScreen({super.key});
 
-  PollInputScreen({super.key, this.post, required this.isEdit, this.postVia});
-
-  @override
-  State<PollInputScreen> createState() => _PollInputScreenState();
-}
-
-class _PollInputScreenState extends State<PollInputScreen> {
-  final pollController = Get.put(PollController());
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    pollController.isPollPostEdit = widget.isEdit;
-
-    if (widget.isEdit) {
-      pollController.postId = widget.post?.id ?? "";
-
-      pollController.descriptionController.text = widget.post?.subTitle ?? "";
-      pollController.questionController.text =
-          widget.post?.poll?.question ?? "";
-
-      ///ADD OPTION IN POLL
-      widget.post?.poll?.options.forEach((data) {
-        pollController.optionControllers
-            .add(TextEditingController(text: data.text));
-      });
-    } else {
-      pollController.addOption();
-      pollController.addOption();
+  void _continue() {
+    final error = controller.validateQuestion();
+    if (error != null) {
+      commonSnackBar(message: error.tr);
+      return;
     }
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    deleteIfRegistered<PollController>();
+    Get.toNamed(RouteHelper.getPollReviewScreenRoute());
   }
 
   @override
@@ -87,19 +52,19 @@ class _PollInputScreenState extends State<PollInputScreen> {
                   CommonTextField(
                     title: AppStrings.yourQuestion.tr,
                     hintText: AppStrings.exampleQuestion.tr,
-                    textEditController: pollController.questionController,
+                    textEditController: controller.questionController,
                     inputLength: 100,
                     maxLength: 100,
                     validationMessage: AppStrings.required.tr,
                     validationType: null,
                     isCounterVisible: true,
-                    readOnly: (pollController.isPollPostEdit),
+                    readOnly: controller.isEdit,
                   ),
                   const SizedBox(height: 16),
 
                   Obx(() => Column(
                     children: List.generate(
-                      pollController.optionControllers.length,
+                      controller.optionControllers.length,
                           (index) => Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: Row(
@@ -113,22 +78,21 @@ class _PollInputScreenState extends State<PollInputScreen> {
                                     : index == 1
                                     ? AppStrings.exampleOption2.tr
                                     : AppStrings.exampleOptionDefault.tr,
-                                textEditController: pollController
-                                    .optionControllers[index],
+                                textEditController:
+                                    controller.optionControllers[index],
                                 inputLength: 36,
                                 maxLength: 36,
                                 validationMessage: AppStrings.required.tr,
                                 isCounterVisible: true,
-                                readOnly: (pollController.isPollPostEdit),
+                                readOnly: controller.isEdit,
                               ),
                             ),
-                            if ((pollController.optionControllers.length > 2) &&
-                                (!pollController.isPollPostEdit))
+                            if (controller.canRemoveOption)
                               IconButton(
                                 icon: const Icon(Icons.remove_circle,
                                     color: Colors.red),
                                 onPressed: () =>
-                                    pollController.removeOption(index),
+                                    controller.removeOption(index),
                               ),
                           ],
                         ),
@@ -136,56 +100,28 @@ class _PollInputScreenState extends State<PollInputScreen> {
                     ),
                   )),
 
-                  if ((!pollController.isPollPostEdit))
-                    Obx(() {
-                      if (pollController.optionControllers.length < 4)
-                        return InkWell(
-                          onTap: pollController.optionControllers.length < 4
-                              ? pollController.addOption
-                              : null,
-                          child: Row(
-                            children: [
-                              LocalAssets(
-                                  imagePath: AppIconAssets.addBlueIcon),
-                              SizedBox(width: SizeConfig.size10),
-                              CustomText(
-                                AppStrings.addMoreOption.tr,
-                                fontSize: SizeConfig.large,
-                                color: AppColors.primaryColor,
-                              )
-                            ],
-                          ),
-                        );
-                      return SizedBox();
-                    }),
+                  Obx(() {
+                    if (!controller.canAddOption) return const SizedBox();
+                    return InkWell(
+                      onTap: controller.addOption,
+                      child: Row(
+                        children: [
+                          LocalAssets(imagePath: AppIconAssets.addBlueIcon),
+                          SizedBox(width: SizeConfig.size10),
+                          CustomText(
+                            AppStrings.addMoreOption.tr,
+                            fontSize: SizeConfig.large,
+                            color: AppColors.primaryColor,
+                          )
+                        ],
+                      ),
+                    );
+                  }),
 
                   SizedBox(height: SizeConfig.size25),
 
                   PositiveCustomBtn(
-                      onTap: () {
-                        pollController.syncOptionsFromControllers();
-
-                        if (pollController.questionController.text
-                            .trim()
-                            .isEmpty) {
-                          commonSnackBar(
-                            message: AppStrings.fillQuestion.tr,
-                          );
-                          return;
-                        } else if (pollController.options.length >= 2) {
-                          Get.toNamed(
-                              RouteHelper.getPollReviewScreenRoute(),
-                              arguments: {
-                                ApiKeys.argPostVia: widget.postVia
-                              });
-                        } else {
-                          commonSnackBar(
-                            message: AppStrings.fillTwoOptions.tr,
-                          );
-                          return;
-                        }
-                      },
-                      title: AppStrings.continueTxt.tr),
+                      onTap: _continue, title: AppStrings.continueTxt.tr),
                 ],
               ),
             ),
@@ -194,5 +130,4 @@ class _PollInputScreenState extends State<PollInputScreen> {
       ),
     );
   }
-
 }

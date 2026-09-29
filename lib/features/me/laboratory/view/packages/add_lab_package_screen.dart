@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -58,7 +57,7 @@ class AddLabPackageScreen extends StatefulWidget {
 
 class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
   late final LabPackageController _pkgCtrl =
-      getOrPut(() => LabPackageController());
+      LabPackageController.to;
   final LabTestRepo _testRepo = LabTestRepo();
 
   final _nameController = TextEditingController();

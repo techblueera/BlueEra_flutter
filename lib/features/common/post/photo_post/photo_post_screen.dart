@@ -2,16 +2,14 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/features/common/reel/controller/song_controller.dart';
@@ -25,51 +23,27 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Opened through [RouteHelper.getPhotoPostScreenRoute], whose
+/// PhotoPostBinding provides the controllers.
 class PhotoPostScreen extends StatefulWidget {
-  final Post? post;
-  final bool isEdit;
-  final PostVia? postVia;
-
-  PhotoPostScreen({Key? key, this.post, required this.isEdit, this.postVia})
-      : super(key: key);
+  const PhotoPostScreen({super.key});
 
   @override
   State<PhotoPostScreen> createState() => _PhotoPostScreenState();
 }
 
 class _PhotoPostScreenState extends State<PhotoPostScreen> {
-  final controller = Get.put(PhotoPostController());
-  final tagUserController = Get.put(TagUserController());
+  final controller = Get.find<PhotoPostController>();
+  final tagUserController = Get.find<TagUserController>();
   final songController = Get.put(SongController());
 
-  @override
-  void initState() {
-    controller.isPhotoPostEdit = widget.isEdit;
-    if (widget.isEdit) {
-      controller.postData?.value = widget.post ?? Post(id: '');
-      controller.selectedPhotos.addAll(widget.post?.media ?? []);
-      controller.descriptionTextEdit.text = widget.post?.subTitle ?? "";
-      controller.natureOfPostTextEdit.text = widget.post?.natureOfPost ?? "";
-
-      if (widget.post?.song != null) {
-        controller.songData.value = SongModel(
-            id: widget.post?.song?.id ?? '',
-            name: widget.post?.song?.name ?? '',
-            artist: widget.post?.song?.artist ?? '',
-            coverUrl: widget.post?.song?.coverUrl ?? '');
-      }
-      controller.selectedSymbol.value = widget.post?.visibilityDuration == 1
-          ? SymbolDuration.hours24
-          : SymbolDuration.days7;
-    }
-    super.initState();
+  Future<void> _addPhotos() async {
+    if (await controller.addPhotos()) await _openPhotoEditor();
   }
 
-  @override
-  void dispose() {
-    deleteIfRegistered<PhotoPostController>();
-    deleteIfRegistered<TagUserController>();
-    super.dispose();
+  Future<void> _openPhotoEditor() async {
+    final edited = await Get.to(() => PhotoPostEditingScreen());
+    controller.applyEditedPhotos((edited as List?)?.cast<String>());
   }
 
   @override
@@ -108,8 +82,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
                         if (!controller.isPhotoPostEdit)
                           Obx(() => controller.selectedPhotos.isNotEmpty
                               ? InkWell(
-                                  onTap: () =>
-                                      controller.updatePhotoAfterEditing(),
+                                  onTap: _openPhotoEditor,
                                   child: CustomText(AppStrings.edit,
                                       color: AppColors.primaryColor,
                                       fontSize: SizeConfig.medium,
@@ -153,7 +126,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
       child: Obx(() {
         if (controller.selectedPhotos.isEmpty) {
           return InkWell(
-            onTap: controller.addPhotos,
+            onTap: _addPhotos,
             child: Container(
               width: SizeConfig.screenWidth,
               height: SizeConfig.size50 + 2,
@@ -249,7 +222,7 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
         if (controller.selectedPhotos.isNotEmpty &&
             controller.selectedPhotos.length < controller.maxPhotos) {
           return TextButton.icon(
-            onPressed: controller.addPhotos,
+            onPressed: _addPhotos,
             icon: LocalAssets(
               imagePath: AppIconAssets.addBlueIcon,
               imgColor: AppColors.primaryColor,
@@ -557,14 +530,13 @@ class _PhotoPostScreenState extends State<PhotoPostScreen> {
       child: PositiveCustomBtn(
           onTap: () {
             if (controller.selectedPhotos.isNotEmpty) {
-              if (widget.isEdit) {
+              if (controller.isPhotoPostEdit) {
                 controller
                     .updateDescription(controller.descriptionTextEdit.text);
                 controller
                     .updateNatureOfPost(controller.natureOfPostTextEdit.text);
               }
-              Get.toNamed(RouteHelper.getPhotoPostPreviewScreenRoute(),
-                  arguments: {ApiKeys.argPostVia: widget.postVia});
+              Get.toNamed(RouteHelper.getPhotoPostPreviewScreenRoute());
             } else {
               commonSnackBar(message: AppStrings.uploadOnePhoto);
             }

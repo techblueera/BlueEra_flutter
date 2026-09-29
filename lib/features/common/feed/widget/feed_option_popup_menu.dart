@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/post/binding/message_post_binding.dart';
 import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
@@ -31,10 +32,8 @@ class FeedPopUpMenu extends StatelessWidget {
       onSelected: (value) async {
         if (value == 'Edit Post') {
           if (post.type?.toUpperCase() == AppConstants.MESSAGE_POST) {
-            Get.to(() => MessagePostPreviewScreenNew(
-              isEdit: true,
-              post: post,
-            ));
+            Get.to(() => const MessagePostPreviewScreenNew(),
+                binding: MessagePostBinding(editPost: post));
           }
 
           if (post.type?.toUpperCase() == AppConstants.POLL_POST) {

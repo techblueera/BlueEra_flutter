@@ -48,12 +48,12 @@ class SocialMainScreen extends StatefulWidget {
 
 class _SocialMainScreenState extends State<SocialMainScreen>
     with SingleTickerProviderStateMixin {
-  ChatViewController chatViewController = getOrPut(() => ChatViewController());
+  ChatViewController chatViewController = ChatViewController.to;
   ChatThemeController chatThemeController =
-      getOrPut(() => ChatThemeController());
+      ChatThemeController.to;
 
   final addSymbolController = getOrPut(() => AddChatSymbolController());
-  final bottomBarController = getOrPut(() => BottomBarController());
+  final bottomBarController = BottomBarController.to;
 
   /// Shared with [ContentSearchField] in the header — read here only to keep
   /// the search row pinned while its suggestion panel is open.

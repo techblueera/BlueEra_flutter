@@ -3,14 +3,11 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/features/common/map/controller/add_place_step_two_controller.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/map/controller/add_place_step_one_controller.dart';
-import 'package:BlueEra/features/common/map/controller/category_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -19,7 +16,6 @@ import 'package:BlueEra/widgets/custom_check_box.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
-import 'package:BlueEra/widgets/visiting_hour_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -31,29 +27,8 @@ class AddPlaceStepOneScreen extends StatefulWidget {
 }
 
 class _AddPlaceStepOneScreenState extends State<AddPlaceStepOneScreen> {
-  final AddPlaceStepOneController controller =
-      Get.put(AddPlaceStepOneController());
-
-  @override
-  void initState() {
-    super.initState();
-    // Step two's controller is never deleted with its screen, so a new place
-    // would open step two with the previous one's contact details and hours.
-    // Dropped here, where no step two can be mounted, rather than in dispose:
-    // "Done" tears both steps down at once, and its onClose disposes the text
-    // controllers step two's fields are still attached to.
-    deleteIfRegistered<AddPlaceStepTwoController>();
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    deleteIfRegistered<AddPlaceStepOneController>();
-    deleteIfRegistered<AddPlaceStepOneController>();
-    deleteIfRegistered<VisitingHoursSelector>();
-    deleteIfRegistered<CategoryController>();
-    super.dispose();
-  }
+  // Registered by AddPlaceBinding on this screen's route.
+  final controller = Get.find<AddPlaceStepOneController>();
 
   @override
   Widget build(BuildContext context) {

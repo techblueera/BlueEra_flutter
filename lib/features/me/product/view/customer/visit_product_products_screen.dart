@@ -32,7 +32,7 @@ class VisitProductProductsScreen extends StatefulWidget {
 class _VisitProductProductsScreenState
     extends State<VisitProductProductsScreen> {
   final InventoryController controller =
-      getOrPut<InventoryController>(() => InventoryController());
+      InventoryController.to;
   final ProductSelfPickupController cartController =
       getOrPut<ProductSelfPickupController>(
           () => ProductSelfPickupController());

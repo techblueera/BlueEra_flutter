@@ -12,11 +12,8 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
-import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
-import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:dio/dio.dart';
-import 'package:get/get.dart' as GET;
 
 class PostRepo extends BaseService {
   /// Creating a post increments the user's posts count, so drop the cached
@@ -91,15 +88,11 @@ class PostRepo extends BaseService {
       void Function(double progress) onProgress,
       String natureOfPost,
       SongModel? song,
-      String visibilityDuration) async {
+      String visibilityDuration,
+      String tagUserIds) async {
     try {
       log('natureOfPost-- $natureOfPost');
       FormData formData = FormData();
-
-      String? tagUserIds = GET.Get.find<TagUserController>()
-          .selectedUsers
-          .map((user) => user.id.toString())
-          .join(',');
 
       // Add media files
       for (int i = 0; i < mediaFiles.length; i++) {
@@ -128,12 +121,11 @@ class PostRepo extends BaseService {
       // final position = await getCurrentLocation();
 
       // Add location if available
-      if (GET.Get.find<PhotoPostController>().latitude.value != null &&
-          GET.Get.find<PhotoPostController>().longitude.value != null) {
-        formData.fields.add(MapEntry(ApiKeys.latitude,
-            GET.Get.find<PhotoPostController>().latitude.toString()));
-        formData.fields.add(MapEntry(ApiKeys.longitude,
-            GET.Get.find<PhotoPostController>().longitude.toString()));
+      if (latitude != null && longitude != null) {
+        formData.fields
+            .add(MapEntry(ApiKeys.latitude, latitude.toString()));
+        formData.fields
+            .add(MapEntry(ApiKeys.longitude, longitude.toString()));
       }
       if (natureOfPost.isNotEmpty)
         formData.fields.add(MapEntry(ApiKeys.nature_of_post, natureOfPost));

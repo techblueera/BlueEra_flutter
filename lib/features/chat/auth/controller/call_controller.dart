@@ -1811,7 +1811,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     try {
       if (conversation.isNotEmpty || otherUserId.isNotEmpty) {
-        final chatController = getOrPut(() => ChatViewController());
+        final chatController = ChatViewController.to;
         final data = <String, dynamic>{
           if (conversation.isNotEmpty)
             ApiKeys.conversation_id: conversation

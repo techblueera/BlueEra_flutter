@@ -12,6 +12,12 @@ import 'package:get/get.dart';
 /// CRUD over the "Create Your Own Packages" bundle screens plus S3 image
 /// upload for the package cover. See lib/docs/LABORATORY_INTEGRATION.md §1.
 class LabPackageController extends GetxController {
+  /// The signed-in lab's shared instance, registered on first use. Permanent:
+  /// the lab screens and tabs share it; logout deletes it.
+  static LabPackageController get to => Get.isRegistered<LabPackageController>()
+      ? Get.find<LabPackageController>()
+      : Get.put(LabPackageController(), permanent: true);
+
   final LabPackageRepo _repo = LabPackageRepo();
 
   // ── Reactive state ──────────────────────────────────────────────────

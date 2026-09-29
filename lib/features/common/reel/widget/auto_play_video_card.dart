@@ -1,5 +1,5 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/features/common/post/service/repost_service.dart';
+import 'package:BlueEra/features/common/post/widget/return_to_feed.dart';
 import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -7,13 +7,8 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_feed_screen.dart';
-import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
-import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -235,41 +230,11 @@ class _PostFeedAutoPlayVideoCardState extends State<PostFeedAutoPlayVideoCard>
                                                     height: SizeConfig.size20),
                                                 InkWell(
                                                   onTap: () async {
-                                                    putLazy(
-                                                        () => MessagePostController());
 
                                                     ///REPOST MESSAGE AND POLL POST...
                                                     safeBack();
-                                                    ResponseModel
-                                                        responseModel =
-                                                        await PostRepo()
-                                                            .addRePostNewRepo(
-                                                      reqDataData: {
-                                                        ApiKeys.type:
-                                                            AppConstants
-                                                                .MESSAGE_POST,
-                                                        ApiKeys.repostId:
-                                                            widget.videoItem.videoId ??
-                                                                ""
-                                                      },
-                                                    );
-                                                    if (responseModel
-                                                        .isSuccess) {
-                                                      commonSnackBar(
-                                                          message:
-                                                              "Reposted successfully");
-                                                      Get.find<
-                                                              NavigationHelperController>()
-                                                          .shouldRefreshBottomBar
-                                                          .value = true;
-                                                      Get.until((route) =>
-                                                          route.settings.name ==
-                                                          RouteHelper
-                                                              .getBottomNavigationBarScreenRoute());
-                                                    } else {
-                                                      commonSnackBar(
-                                                          message:
-                                                              "You have already reposted this post");
+                                                    if (await quickRepost(widget.videoItem.videoId ?? "")) {
+                                                      returnToFeedAfterPosting();
                                                     }
                                                   },
                                                   child: Row(

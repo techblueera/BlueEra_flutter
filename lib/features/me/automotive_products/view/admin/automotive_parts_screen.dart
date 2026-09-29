@@ -49,7 +49,7 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
 
   final inventoryController = getOrPut(() => AutomotiveInventoryController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = ChatViewController.to;
 
   @override
   void initState() {

@@ -64,7 +64,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors `_chatViewController` in `professionals_main.dart`.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't

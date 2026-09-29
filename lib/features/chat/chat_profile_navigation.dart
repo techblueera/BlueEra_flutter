@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/deleted_user.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
@@ -76,7 +75,7 @@ Future<void> openChatProfile({
 
   final String? number = _tenDigits(contactNo);
   if (number != null) {
-    final controller = getOrPut(() => ChatViewController());
+    final controller = ChatViewController.to;
 
     // ── Fast path: already resolved (cached or prefetched) ──────────────────
     if (controller.isPhoneChecked(number)) {

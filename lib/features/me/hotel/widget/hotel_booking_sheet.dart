@@ -262,7 +262,7 @@ class HotelBookingSheet {
     );
     if (bookingId == null) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
       name: listing.hotelName.isNotEmpty ? listing.hotelName : listing.ownerName,

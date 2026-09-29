@@ -24,11 +24,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<FacilityController>()) {
-      controller = Get.put(FacilityController(), permanent: true);
-    } else {
-      controller = Get.find<FacilityController>();
-    }
+    controller = FacilityController.to;
   }
 
   @override

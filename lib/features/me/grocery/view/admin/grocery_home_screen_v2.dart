@@ -56,7 +56,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   // same event, so the data is shared with the Connect screen and
   // receives socket-driven updates while the user is on this screen.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Post tab removed for business accounts — the merchant's own feed is no
   // longer surfaced here. Restore the label, the `GroceryPostTab` view and the

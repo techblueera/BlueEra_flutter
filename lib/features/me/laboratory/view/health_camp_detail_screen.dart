@@ -42,11 +42,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
   void initState() {
     super.initState();
     if (widget.isOwnProfile) {
-      if (!Get.isRegistered<HealthCampController>()) {
-        controller = Get.put(HealthCampController(), permanent: true);
-      } else {
-        controller = Get.find<HealthCampController>();
-      }
+      controller = HealthCampController.to;
       controller!.fetchCampFullDetails();
     } else {
       _fetchOtherUserCamp();

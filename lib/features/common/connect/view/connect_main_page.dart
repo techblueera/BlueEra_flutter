@@ -189,7 +189,7 @@ class ConnectMainPage extends StatefulWidget {
 
     if (_openingJoinedChat) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     // Already reading that exact thread (tapped the push from inside the
     // chat) — nothing to do, and pushing again would duplicate the screen.
     if (chatViewController.userOpenUserId.value == request.peerId) return;
@@ -265,7 +265,7 @@ class ConnectMainPage extends StatefulWidget {
   /// Bring the user to this page's Chat tab, whether or not the bottom-nav
   /// shell is already on the stack.
   static void _showConnectChatTab() {
-    getOrPut(() => ChatViewController()).selectedChatTabIndex.value = 0;
+    ChatViewController.to.selectedChatTabIndex.value = 0;
     if (Get.isRegistered<BottomBarController>()) {
       Get.until((route) => route.isFirst);
       Get.find<BottomBarController>().onChangeIndex(_connectTabIndex);
@@ -306,7 +306,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   final symbolFeedController = Get.put(SymbolFeedController());
   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final ChatViewController chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
   final ChatPinArchiveController chatPinArchiveController =
       getOrPut(() => ChatPinArchiveController());
   final ChatFlagController chatFlagController =
@@ -1077,7 +1077,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       padding: const EdgeInsets.only(bottom: kFloatingBottomNavExtent),
       child: OrdersTabBody(
         onAddProducts: () {
-          final bottomBar = getOrPut(() => BottomBarController());
+          final bottomBar = BottomBarController.to;
           bottomBar.onChangeIndex(BottomBarController.meTabIndex);
         },
       ),

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/add_place_req_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -13,13 +12,27 @@ import 'package:BlueEra/features/common/map/repo/add_place_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Step two of adding a place: contact details and visiting hours, then the
+/// submit. Registered by AddPlaceBinding with the step one and visiting-hours
+/// controllers it reads when submitting.
 class AddPlaceStepTwoController extends GetxController {
+  AddPlaceStepTwoController(
+      {required AddPlaceRepo repo,
+      required AddPlaceStepOneController stepOne,
+      required VisitingHoursSelectorController visitingHours})
+      : _repo = repo,
+        _stepOne = stepOne,
+        _visitingHours = visitingHours;
+
+  final AddPlaceRepo _repo;
+  final AddPlaceStepOneController _stepOne;
+  final VisitingHoursSelectorController _visitingHours;
+
   final TextEditingController shortDescriptionController =
       TextEditingController();
   final TextEditingController mobileCodeController = TextEditingController();
   final TextEditingController mobileNumberController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  Rx<ApiResponse> addPlaceResponse = ApiResponse.initial('Initial').obs;
 
   Rx<ContactType?> selectedType = Rx<ContactType?>(ContactType.Mobile);
   RxBool validate = false.obs;
@@ -45,10 +58,10 @@ class AddPlaceStepTwoController extends GetxController {
     validate.value = emailIsNotEmpty;
   }
 
-  addPlaceController() async {
-    final addPlaceController = Get.find<AddPlaceStepOneController>();
-    final visitingHoursSelectorController =
-        Get.find<VisitingHoursSelectorController>();
+  /// Submits the place for review. Returns true when it was received.
+  Future<bool> submitPlace() async {
+    final addPlaceController = _stepOne;
+    final visitingHoursSelectorController = _visitingHours;
 
     // Format visiting hours data for API in the required JSON format
     List<Map<String, dynamic>> visitingHoursData = [];
@@ -81,7 +94,7 @@ class AddPlaceStepTwoController extends GetxController {
     try {
       // Add category IDs to the form data
 
-      ResponseModel responseModel = await AddPlaceRepo().addPlacePost(
+      ResponseModel responseModel = await _repo.addPlacePost(
           placeReq: AddPlaceReqModel(
         photoPath: addPlaceController.selectedImages,
         category: addPlaceController.selectedCategoryIds,
@@ -97,15 +110,13 @@ class AddPlaceStepTwoController extends GetxController {
         visitingHours: visitingHoursJson,
       ));
       final data = responseModel.response?.data;
-      if (responseModel.isSuccess) {
-        addPlaceResponse.value = ApiResponse.complete(responseModel);
-      } else {
-        commonSnackBar(
-            message: data['message'] ?? AppStrings.somethingWentWrong);
-      }
+      if (responseModel.isSuccess) return true;
+      commonSnackBar(
+          message: data['message'] ?? AppStrings.somethingWentWrong);
+      return false;
     } catch (e) {
       logs("ERROR ${e.toString()}");
-      addPlaceResponse.value = ApiResponse.error('error');
+      return false;
     }
   }
 }

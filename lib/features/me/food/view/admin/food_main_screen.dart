@@ -53,7 +53,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   // Drives the orders list shown under the Order tab. Same controller
   // the Connect screen uses, so socket-driven updates land on both.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Post tab removed for business accounts — the merchant's own feed is no
   // longer surfaced here. Restore the label, the `FoodPostTab` view and the

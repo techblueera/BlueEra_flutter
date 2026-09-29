@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/features/common/reel/widget/video_reported_dialog.dart';
 import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -401,17 +403,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         userId: videoFeedItem.video?.userId??'',
         contentId: videoFeedItem.video?.id??'',
         userBlockVoidCallback: () async {
-          await Get.find<VideoController>().userBlocked(
+          if (await Get.find<VideoController>().userBlocked(
             videoType: VideoType.videoFeed,
             otherUserId: videoFeedItem.video?.userId ?? '',
-          );
+          )) {
+            safeBack();
+          }
         },
-        reportCallback: (params){
-          Get.find<VideoController>().videoPostReport(
-              videoId: videoFeedItem.video?.id??'',
-              videoType: widget.videoType,
-              params: params
-          );
+        reportCallback: (params) async {
+          if (await Get.find<VideoController>().videoPostReport(
+                  videoId: videoFeedItem.video?.id ?? '',
+                  videoType: widget.videoType,
+                  params: params) &&
+              mounted) {
+            showVideoReportedDialog(context);
+          }
         }
     );
   }

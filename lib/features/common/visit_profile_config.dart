@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/me/laboratory/binding/visited_lab_binding.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -418,7 +419,8 @@ void _openHealthcare({
   if (category == 'DIAGNOSTIC') {
     // Resolves LaboratoryProfile._id from the business id itself, then loads
     // the tests.
-    Get.to(() => LabDetailScreen(businessId: businessId));
+    Get.to(() => LabDetailScreen(businessId: businessId),
+        binding: VisitedLabBinding(businessId: businessId));
     return;
   }
 

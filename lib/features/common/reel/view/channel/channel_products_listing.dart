@@ -29,7 +29,7 @@ class _ChannelProductListingState extends State<ChannelProductListing> {
     if (Get.isRegistered<InventoryController>()) {
       inventoryController = Get.find<InventoryController>();
     } else {
-      inventoryController = Get.put(InventoryController());
+      inventoryController = InventoryController.to;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

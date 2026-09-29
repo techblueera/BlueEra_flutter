@@ -89,6 +89,13 @@ import 'package:BlueEra/features/common/post/message_post/create_message_post_sc
 import 'package:BlueEra/features/common/post/photo_post/photo_post_preview_screen.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_review_screen.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/binding/shell_binding.dart';
+import 'package:BlueEra/features/common/jobs/binding/create_job_post_binding.dart';
+import 'package:BlueEra/features/common/map/binding/add_place_binding.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/binding/booking_enquiry_bindings.dart';
+import 'package:BlueEra/features/common/post/binding/message_post_binding.dart';
+import 'package:BlueEra/features/common/post/binding/photo_post_binding.dart';
+import 'package:BlueEra/features/common/post/binding/poll_binding.dart';
 import 'package:BlueEra/features/common/post/poll_post/poll_input_screen.dart';
 import 'package:BlueEra/features/common/post/poll_post/poll_review_screen.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
@@ -187,11 +194,20 @@ class RouteHelper {
   /// disposal, so they were never freed.
   ///
   /// Only for screens whose non-permanent controllers nothing outside the
-  /// screen (and the routes it pushes) still uses once it closes.
+  /// screen (and the routes it pushes) still uses once it closes. The routes
+  /// still built with MaterialPageRoute fail that test (the shell, the
+  /// sign-up flow, call screens, ...) and need their controllers scoped
+  /// first.
+  ///
+  /// [binding] registers the screen's controllers when the route is built,
+  /// which ties them to this route.
   static GetPageRoute<dynamic> _getRoute(Widget Function() page,
-          {RouteSettings? settings}) =>
+          {RouteSettings? settings, Bindings? binding}) =>
       GetPageRoute<dynamic>(
-          page: page, settings: settings, routeName: settings?.name);
+          page: page,
+          settings: settings,
+          routeName: settings?.name,
+          binding: binding);
 
   static String getMobileNumberLoginRoute() =>
       RouteConstant.MobileNumberScreen;
@@ -723,6 +739,9 @@ class RouteHelper {
         final bool deferHeavyInit = args?['deferHeavyInit'] == true;
         final bool runRiderGoLiveGate = args?['runRiderGoLiveGate'] == true;
         final bool landOnDiscover = args?['landOnDiscover'] == true;
+        // A plain route on purpose: see ShellBinding for why GetX must not own
+        // the shell's controllers.
+        ShellBinding().dependencies();
         return MaterialPageRoute(
           builder: (_) => BottomNavigationBarScreen(
             initialIndex: initialIndex,
@@ -757,54 +776,54 @@ class RouteHelper {
       //   //     args[ApiKeys.argCompanyData] != null ? args[ApiKeys.argCompanyData] as GetMyProfileModel : null;
       //   return MaterialPageRoute(builder: (_) => BusinessDetailsEditPageOne());
       case RouteConstant.BusinessOnboardingCategoryScreen:
-        return MaterialPageRoute(
-          builder: (_) => const BusinessOnboardingCategoryScreen(),
+        return _getRoute(
+          () => const BusinessOnboardingCategoryScreen(),
           settings: RouteSettings(
             name: RouteHelper.getBusinessOnboardingCategoryScreenRoute(),
           ),
         );
       case RouteConstant.BusinessOnboardingHoursTypeScreen:
-        return MaterialPageRoute(
-          builder: (_) => BusinessOnboardingHoursTypeScreen(),
+        return _getRoute(
+          () => BusinessOnboardingHoursTypeScreen(),
           settings: RouteSettings(
             name: RouteHelper.getBusinessOnboardingHoursTypeScreenRoute(),
           ),
         );
       case RouteConstant.BusinessOnboardingSelectHoursScreen:
-        return MaterialPageRoute(
-          builder: (_) => BusinessOnboardingSelectHoursScreen(),
+        return _getRoute(
+          () => BusinessOnboardingSelectHoursScreen(),
           settings: RouteSettings(
             name: RouteHelper.getBusinessOnboardingSelectHoursScreenRoute(),
           ),
         );
       case RouteConstant.BusinessOnboardingPhotoScreen:
-        return MaterialPageRoute(
-          builder: (_) => BusinessOnboardingPhotoScreen(),
+        return _getRoute(
+          () => BusinessOnboardingPhotoScreen(),
           settings: RouteSettings(
             name: RouteHelper.getBusinessOnboardingPhotoScreenRoute(),
           ),
         );
       case RouteConstant.BusinessOnboardingAddressScreen:
-        return MaterialPageRoute(
-          builder: (_) => const BusinessOnboardingAddressScreen(),
+        return _getRoute(
+          () => const BusinessOnboardingAddressScreen(),
           settings: RouteSettings(
             name: RouteHelper.getBusinessOnboardingAddressScreenRoute(),
           ),
         );
       case RouteConstant.BusinessOnboardingDescriptionScreen:
-        return MaterialPageRoute(
-          builder: (_) => BusinessOnboardingDescriptionScreen(),
+        return _getRoute(
+          () => BusinessOnboardingDescriptionScreen(),
           settings: RouteSettings(
             name: RouteHelper.getBusinessOnboardingDescriptionScreenRoute(),
           ),
         );
 
       case RouteConstant.BusinessVerificationScreen:
-        return MaterialPageRoute(builder: (_) => BusinessVerificationScreen());
+        return _getRoute(() => BusinessVerificationScreen());
       case RouteConstant.OwnershipVerificationScreen:
-        return MaterialPageRoute(builder: (_) => OwnershipVerificationScreen());
+        return _getRoute(() => OwnershipVerificationScreen());
       case RouteConstant.NotificationScreen:
-        return MaterialPageRoute(builder: (_) => NotificationScreen());
+        return _getRoute(() => NotificationScreen());
       case RouteConstant.ChannelScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
@@ -822,8 +841,8 @@ class RouteHelper {
         );
 
       case RouteConstant.ManageChannelScreen:
-        return MaterialPageRoute(
-          builder: (_) => ManageChannelScreen(),
+        return _getRoute(
+          () => ManageChannelScreen(),
           settings: RouteSettings(
             name: RouteHelper.getManageChannelScreenRoute(),
             arguments: settings.arguments,
@@ -835,73 +854,68 @@ class RouteHelper {
         final videoType = args[ApiKeys.videoType] as Video;
         final videoId = args[ApiKeys.videoId] as String?;
         final argPostVia = args[ApiKeys.argPostVia] as PostVia?;
-        return MaterialPageRoute(
-          builder: (_) => ReelUploadDetailsScreen(
+        return _getRoute(
+          () => ReelUploadDetailsScreen(
               videoPath: videoPath,
               videoType: videoType,
               videoId: videoId,
               postVia: argPostVia),
         );
       case RouteConstant.CustomizeMapScreen:
-        return MaterialPageRoute(builder: (_) => CustomizeMapScreen());
+        return _getRoute(() => CustomizeMapScreen());
       case RouteConstant.SearchLocationScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final onPlaceSelected = args?[ApiKeys.onPlaceSelected] as Function(
             double?, double?, String?)?;
         final fromScreen = args?[ApiKeys.fromScreen] as String;
-        return MaterialPageRoute(
-          builder: (_) => SearchLocationScreen(
+        return _getRoute(
+          () => SearchLocationScreen(
               onPlaceSelected: onPlaceSelected, fromScreen: fromScreen),
           settings:
               RouteSettings(name: RouteHelper.getSearchLocationScreenRoute()),
         );
 
       case RouteConstant.addPlaceStepOne:
-        return MaterialPageRoute(
-          builder: (_) => AddPlaceStepOneScreen(),
+        return _getRoute(
+          () => AddPlaceStepOneScreen(),
           settings:
               RouteSettings(name: RouteHelper.getAddPlaceStepOneScreenRoute()),
+          binding: AddPlaceBinding(),
         );
       case RouteConstant.addPlaceStepTwo:
-        return MaterialPageRoute(
-          builder: (_) => AddPlaceStepTwoScreen(),
+        return _getRoute(
+          () => AddPlaceStepTwoScreen(),
           settings:
               RouteSettings(name: RouteHelper.getAddPlaceStepTwoScreenRoute()),
         );
       case RouteConstant.categorySelectionScreen:
-        return MaterialPageRoute(
-          builder: (_) => CategorySelectionScreen(),
+        return _getRoute(
+          () => CategorySelectionScreen(),
           settings: RouteSettings(
               name: RouteHelper.getCategorySelectionScreenRoute()),
         );
       case RouteConstant.ChatContactsScreen:
-        return MaterialPageRoute(
-          builder: (_) => ContactsPage(),
+        return _getRoute(
+          () => ContactsPage(),
         );
       case RouteConstant.CreateJobPostScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final isEditMode = args?['isEditMode'] as bool? ?? false;
         final jobId = args?['jobId'] as String? ?? '';
         final createJobVia = args?['createJobVia'] as String? ?? '';
-        return MaterialPageRoute(
-          builder: (_) => CreateJobPostScreen(
-            isEditMode: isEditMode,
-            jobId: jobId,
-            createJobVia: createJobVia,
-          ),
+        return _getRoute(
+          () => const CreateJobPostScreen(),
+          binding: CreateJobPostBinding(
+              editJobId: isEditMode ? jobId : '', createJobVia: createJobVia),
         );
       case RouteConstant.CreateJobPostStep2:
-        return MaterialPageRoute(
-          builder: (_) => CreateJobPostStep2(),
+        return _getRoute(
+          () => CreateJobPostStep2(),
         );
       case RouteConstant.CreateJobPostStep3:
-        return MaterialPageRoute(
-          builder: (_) => CreateJobPostStep3(),
-        );
+        return _getRoute(() => CreateJobPostStep3());
       case RouteConstant.CreateJobPostStep4:
-        return MaterialPageRoute(
-          builder: (_) => CreateJobPostStep4(),
-        );
+        return _getRoute(() => CreateJobPostStep4());
       // case RouteConstant.CreateJobPostStep5:
       //   return MaterialPageRoute(
       //     builder: (_) => CreateJobPostStep5(),
@@ -910,44 +924,25 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final previouslySelectedItems =
             args[ApiKeys.previouslySelectedItems] as Map<String, String>?;
-        return MaterialPageRoute(
-          builder: (_) =>
+        return _getRoute(
+          () =>
               TagPeopleScreen(previouslySelectedItems: previouslySelectedItems),
           settings: RouteSettings(name: RouteHelper.getTagPeopleScreenRoute()),
         );
       case RouteConstant.CreateMessagePostScreen:
-        if ((settings.arguments != null)) {
-          final args = settings.arguments as Map<String, dynamic>;
-          final postData =
-              (args[ApiKeys.post] != null) ? args[ApiKeys.post] as Post : null;
-          final isEdit = (args[ApiKeys.isEdit] != null)
-              ? args[ApiKeys.isEdit] as bool
-              : false;
-          final postVia = args[ApiKeys.argPostVia] as PostVia?;
-
-          ///CHANGE IN ELSE BLOCK ALSO....
-          return MaterialPageRoute(
-            builder: (_) => CreateMessagePostScreenNew(
-                isEdit: isEdit, post: postData, postVia: postVia),
-          );
-          // return MaterialPageRoute(
-          //   builder: (_) => CreateMessagePostScreen(
-          //       isEdit: isEdit, post: postData, postVia: postVia),
-          // );
-        } else {
-          final args = settings.arguments as Map<String, dynamic>;
-          final postVia = args[ApiKeys.argPostVia] as PostVia?;
-          return MaterialPageRoute(
-            builder: (_) =>
-                CreateMessagePostScreenNew(isEdit: false, postVia: postVia),
-          );
-        }
+        // Edits open MessagePostPreviewScreenNew from the feed instead.
+        final args = settings.arguments as Map<String, dynamic>?;
+        return _getRoute(
+          () => const CreateMessagePostScreenNew(),
+          binding: MessagePostBinding(
+              postVia: args?[ApiKeys.argPostVia] as PostVia?),
+        );
 
       case RouteConstant.videoRecorderScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final postVia = args[ApiKeys.argPostVia] as PostVia?;
-        return MaterialPageRoute(
-          builder: (_) => VideoReelRecorderScreen(postVia: postVia),
+        return _getRoute(
+          () => VideoReelRecorderScreen(postVia: postVia),
         );
       case RouteConstant.fullVideoPreview:
         final args = settings.arguments as Map<String, dynamic>;
@@ -958,8 +953,8 @@ class RouteHelper {
         // cast this used to be would have thrown for anyone reaching the
         // preview without a post-via set.
         final argPostVia = args[ApiKeys.argPostVia] as PostVia?;
-        return MaterialPageRoute(
-            builder: (_) =>
+        return _getRoute(
+            () =>
                 FullVideoPreview(videoPath: videoPath, argPostVia: argPostVia),
             settings: settings);
       // case RouteConstant.videoTrimScreen:
@@ -973,8 +968,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final videoPath = args[ApiKeys.videoPath] as String?;
         final images = args[ApiKeys.filePath] as List<String>?;
-        return MaterialPageRoute(
-          builder: (_) => AllSongsScreen(video: videoPath, images: images),
+        return _getRoute(
+          () => AllSongsScreen(video: videoPath, images: images),
         );
       case RouteConstant.addSongScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -983,8 +978,8 @@ class RouteHelper {
         final audioUrl = args[ApiKeys.audioUrl] as String;
         final song = args[ApiKeys.song] as SongModel;
 
-        return MaterialPageRoute(
-          builder: (_) => AddSongScreen(
+        return _getRoute(
+          () => AddSongScreen(
               video: videoPath, images: images, audioUrl: audioUrl, song: song),
         );
 
@@ -997,78 +992,53 @@ class RouteHelper {
               ? args[ApiKeys.isEdit] as bool
               : false;
           final postVia = args[ApiKeys.argPostVia] as PostVia?;
-          return MaterialPageRoute(
-            builder: (_) => PollInputScreen(
-                isEdit: isEdit, post: postData, postVia: postVia),
+          return _getRoute(
+            () => const PollInputScreen(),
+            binding: PollBinding(
+                editPost: isEdit ? postData : null, postVia: postVia),
           );
         } else {
           final args = settings.arguments as Map<String, dynamic>;
           final postVia = args[ApiKeys.argPostVia] as PostVia?;
-          return MaterialPageRoute(
-            builder: (_) => PollInputScreen(isEdit: false, postVia: postVia),
+          return _getRoute(
+            () => const PollInputScreen(),
+            binding: PollBinding(postVia: postVia),
           );
         }
       // return MaterialPageRoute(
       //   builder: (_) => PollInputScreen(isEdit: null,),
       // );
       case RouteConstant.PollReviewScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final postVia = args[ApiKeys.argPostVia] as PostVia?;
-        return MaterialPageRoute(
-          builder: (_) => PollReviewScreen(postVia: postVia),
-        );
+        return _getRoute(() => const PollReviewScreen());
       case RouteConstant.PhotoPostScreen:
-        if ((settings.arguments != null)) {
-          final args = settings.arguments as Map<String, dynamic>;
-          final postData =
-              (args[ApiKeys.post] != null) ? args[ApiKeys.post] as Post : null;
-          final isEdit = (args[ApiKeys.isEdit] != null)
-              ? args[ApiKeys.isEdit] as bool
-              : false;
-          final postVia = args[ApiKeys.argPostVia] as PostVia?;
-          return MaterialPageRoute(
-            builder: (_) => PhotoPostScreen(
-                isEdit: isEdit, post: postData, postVia: postVia),
-          );
-        } else {
-          final args = settings.arguments as Map<String, dynamic>;
-          final postVia = args[ApiKeys.argPostVia] as PostVia?;
-          return MaterialPageRoute(
-            builder: (_) => PhotoPostScreen(isEdit: false, postVia: postVia),
-          );
-        }
-      // return MaterialPageRoute(
-      //   builder: (_) => PhotoPostScreen(),
-      // );
+        final args = settings.arguments as Map<String, dynamic>?;
+        final isEdit = args?[ApiKeys.isEdit] == true;
+        return _getRoute(
+          () => const PhotoPostScreen(),
+          binding: PhotoPostBinding(
+              editPost: isEdit ? (args?[ApiKeys.post] as Post?) : null,
+              postVia: args?[ApiKeys.argPostVia] as PostVia?),
+        );
       case RouteConstant.PhotoPostPreviewScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final postVia = args[ApiKeys.argPostVia] as PostVia?;
-        return MaterialPageRoute(
-          builder: (_) => PhotoPostPreviewScreen(postVia: postVia),
-        );
+        return _getRoute(() => PhotoPostPreviewScreen());
       case RouteConstant.PhotoPostReviewScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final postVia = args[ApiKeys.argPostVia] as PostVia?;
-        return MaterialPageRoute(
-          builder: (_) => PhotoPostReviewScreen(postVia: postVia),
-        );
+        return _getRoute(() => PhotoPostReviewScreen());
       case RouteConstant.videoPlayerScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final videoItem = args[ApiKeys.videoItem] as ShortFeedItem;
         final videoType = args[ApiKeys.videoType] as VideoType;
-        return MaterialPageRoute(
-          builder: (_) =>
-              VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
+        return _getRoute(
+          () => VideoPlayerScreen(videoItem: videoItem, videoType: videoType),
         );
       case RouteConstant.journeyPlanningScreen:
-        return MaterialPageRoute(
-          builder: (_) => JourneyPlanningScreen(),
+        return _getRoute(
+          () => JourneyPlanningScreen(),
         );
       case RouteConstant.UpdateJourneyScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final journeyId = args[ApiKeys.journey_id] as String;
-        return MaterialPageRoute(
-          builder: (_) => UpdateJourneyScreen(
+        return _getRoute(
+          () => UpdateJourneyScreen(
             journeyId: journeyId,
           ),
         );
@@ -1078,59 +1048,56 @@ class RouteHelper {
         final List<ShortFeedItem> videoItem =
             args[ApiKeys.videoItem] as List<ShortFeedItem>;
         final int initialIndex = args[ApiKeys.initialIndex] as int;
-        return MaterialPageRoute(
-          builder: (_) => ShortsPlayerScreen(
+        return _getRoute(
+          () => ShortsPlayerScreen(
               shorts: shorts,
               initialShorts: videoItem,
               initialIndex: initialIndex),
         );
       case RouteConstant.CreateResumeScreen:
-        return MaterialPageRoute(
-          builder: (_) => CreateResumeScreen(),
+        return _getRoute(
+          () => CreateResumeScreen(),
         );
       case RouteConstant.MyBookingScreen:
-        return MaterialPageRoute(
-          builder: (_) => const MyBookingsScreen(),
+        return _getRoute(
+          () => const MyBookingsScreen(),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.DoctorMyAppointmentsScreen:
-        return MaterialPageRoute(
-          builder: (_) => const DoctorMyAppointmentsScreen(),
+        return _getRoute(
+          () => const DoctorMyAppointmentsScreen(),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.MyEnquiresScreen:
-        return MaterialPageRoute(
-          builder: (_) => MyEnquiriesPage(),
+        return _getRoute(
+          () => MyEnquiriesPage(),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.setAvailabilityScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argId = args[ApiKeys.argId] as String;
-        return MaterialPageRoute(
-          builder: (_) => SetAvailabilityScreen(id: argId),
+        return _getRoute(
+          () => SetAvailabilityScreen(id: argId),
           settings: settings, // Pass the settings to preserve arguments
         );
       case RouteConstant.AppointmentBookingScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final channelId = args[ApiKeys.channelId] as String;
         final videoId = args[ApiKeys.videoId] as String;
-        return MaterialPageRoute(
-          builder: (_) => AppointmentBookingScreen(
-            channelId: channelId,
-            videoId: videoId,
-          ),
+        return _getRoute(
+          () => const AppointmentBookingScreen(),
           settings: settings, // Pass the settings to preserve arguments
+          binding:
+              AppointmentBookingBinding(channelId: channelId, videoId: videoId),
         );
       case RouteConstant.EnquiryForm:
         final args = settings.arguments as Map<String, dynamic>;
         final channelId = args[ApiKeys.channelId] as String;
         final videoId = args[ApiKeys.videoId] as String;
-        return MaterialPageRoute(
-          builder: (_) => SendEnquiryScreen(
-            channelId: channelId,
-            videoId: videoId,
-          ),
+        return _getRoute(
+          () => const SendEnquiryScreen(),
           settings: settings, // Pass the settings to preserve arguments
+          binding: SendEnquiryBinding(channelId: channelId, videoId: videoId),
         );
       case RouteConstant.addUpdateProductScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1144,29 +1111,29 @@ class RouteHelper {
               RouteSettings(name: RouteHelper.getAddUpdateProductScreenRoute()),
         );
       case RouteConstant.addBankAccountScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddBankAccountScreen(),
+        return _getRoute(
+            () => AddBankAccountScreen(),
             settings: RouteSettings(
                 name: RouteHelper.getAddBankAccountScreenRoute(),
                 arguments: settings.arguments));
       case RouteConstant.addAccountUpiScreen:
-        return MaterialPageRoute(
-          builder: (_) => AddAccountUpiScreen(),
+        return _getRoute(
+          () => AddAccountUpiScreen(),
           settings: RouteSettings(
               name: RouteHelper.getAddAccountUpiScreenRoute(),
               arguments: settings.arguments),
         );
 
       case RouteConstant.walletScreen:
-        return MaterialPageRoute(
-          builder: (_) => WalletScreen(),
+        return _getRoute(
+          () => WalletScreen(),
           settings: RouteSettings(
             name: RouteHelper.getWalletScreenRoute(),
           ),
         );
       case RouteConstant.allTransactionsScreen:
-        return MaterialPageRoute(
-          builder: (_) => SeeAllTransactionsView(),
+        return _getRoute(
+          () => SeeAllTransactionsView(),
           settings: RouteSettings(
             name: RouteHelper.getAllTransactionsScreen(),
           ),
@@ -1180,8 +1147,8 @@ class RouteHelper {
         final bool showViewDocProof =
             args?[ApiKeys.showViewDocProof] as bool? ?? false;
 
-        return MaterialPageRoute(
-            builder: (_) => AddDocumentScreen(
+        return _getRoute(
+            () => AddDocumentScreen(
                 showViewDocProof: showViewDocProof,
                 documentVia: argDocumentVia),
             settings:
@@ -1193,8 +1160,8 @@ class RouteHelper {
         final onHeaderVisibilityChanged =
             args[ApiKeys.onHeaderVisibilityChanged] as Function(bool)?;
 
-        return MaterialPageRoute(
-            builder: (_) => MoreCardsScreen(
+        return _getRoute(
+            () => MoreCardsScreen(
                   isFromHomeScreen: isFromHomeScreen,
                   headerHeight: headerHeight,
                   onHeaderVisibilityChanged: onHeaderVisibilityChanged,
@@ -1206,8 +1173,8 @@ class RouteHelper {
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
 
-        return MaterialPageRoute(
-            builder: (_) => AddProductTextOrSnapSearchScreen(
+        return _getRoute(
+            () => AddProductTextOrSnapSearchScreen(
                   id: id,
                   providerType: providerType,
                 ),
@@ -1218,20 +1185,20 @@ class RouteHelper {
       //       builder: (_) => ListingFormScreen(),
       //       settings: RouteSettings(name: getListingFormScreenRoute()));
       case RouteConstant.productScreen:
-        return MaterialPageRoute(
-            builder: (_) => ProductScreen(),
+        return _getRoute(
+            () => ProductScreen(),
             settings: RouteSettings(name: getProductScreenRoute()));
       case RouteConstant.manufacturerScreen:
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerProductScreen(),
+        return _getRoute(
+            () => ManufacturerProductScreen(),
             settings: RouteSettings(name: getManufacturerScreenRoute()));
       case RouteConstant.manufacturerAddProductViaAiStep1:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerAddProductViaAiStep1(
+        return _getRoute(
+            () => ManufacturerAddProductViaAiStep1(
                 id: id, providerType: providerType),
             settings: RouteSettings(
                 name: getManufacturerAddProductViaAiStep1Route()));
@@ -1244,8 +1211,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerAddProductViaAiStep2(
+        return _getRoute(
+            () => ManufacturerAddProductViaAiStep2(
                   controller: controller,
                   generateAiProductContent: generateAiProductContent,
                   id: id,
@@ -1264,8 +1231,8 @@ class RouteHelper {
         final String? id = args?[ApiKeys.id] as String?;
         final ProviderType? providerType =
             args?[ApiKeys.providerType] as ProviderType?;
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerProductPreviewScreen(
+        return _getRoute(
+            () => ManufacturerProductPreviewScreen(
                   id: id,
                   providerType: providerType,
                   productPreviewArgs: argProductData,
@@ -1281,8 +1248,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerCreateVariantScreen(
+        return _getRoute(
+            () => ManufacturerCreateVariantScreen(
                   controller: controller,
                   id: id,
                   providerType: providerType,
@@ -1295,8 +1262,8 @@ class RouteHelper {
             args[ApiKeys.providerType] as ProviderType;
         final String? channelId = args[ApiKeys.channelId] as String?;
 
-        return MaterialPageRoute(
-            builder: (_) => ServiceUploadScreen(
+        return _getRoute(
+            () => ServiceUploadScreen(
                   providerType: providerType,
                   channelId: channelId,
                 ),
@@ -1306,8 +1273,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) =>
+        return _getRoute(
+            () =>
                 AddProductViaAiStep1(id: id, providerType: providerType),
             settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
@@ -1320,8 +1287,8 @@ class RouteHelper {
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
 
-        return MaterialPageRoute(
-            builder: (_) => AddProductViaAiStep2(
+        return _getRoute(
+            () => AddProductViaAiStep2(
                   controller: controller,
                   generateAiProductContent: generateAiProductContent,
                   id: id,
@@ -1338,8 +1305,8 @@ class RouteHelper {
         final ProviderType? providerType =
             args?[ApiKeys.providerType] as ProviderType?;
 
-        return MaterialPageRoute(
-            builder: (_) => ProductPreviewScreen(
+        return _getRoute(
+            () => ProductPreviewScreen(
                   id: id,
                   providerType: providerType,
                   productPreviewArgs: argProductData,
@@ -1355,8 +1322,8 @@ class RouteHelper {
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
 
-        return MaterialPageRoute(
-            builder: (_) => ProductsStoreDetailsScreen(
+        return _getRoute(
+            () => ProductsStoreDetailsScreen(
                 productStore: productStore,
                 // isShowBusinessInfo: productDataBool,
                 id: id,
@@ -1371,8 +1338,8 @@ class RouteHelper {
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
 
-        return MaterialPageRoute(
-            builder: (_) => CreateVariantScreen(
+        return _getRoute(
+            () => CreateVariantScreen(
                   controller: controller,
                   id: id,
                   providerType: providerType,
@@ -1389,8 +1356,8 @@ class RouteHelper {
       //       settings: RouteSettings(
       //           name: getManufacturerInventoryBusinessCardsScreenRoute()));
       case RouteConstant.addFlatRoomRentalServiceScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddFlatRoomRentalServiceScreen(),
+        return _getRoute(
+            () => AddFlatRoomRentalServiceScreen(),
             settings:
                 RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
       // case RouteConstant.personalInformationRidingScreen:
@@ -1422,19 +1389,19 @@ class RouteHelper {
       //       builder: (_) => VehicleImagesRidingScreen(),
       //       settings: RouteSettings(name: getVehicleImagesRidingScreenRoute()));
       case RouteConstant.homeStayRentalService:
-        return MaterialPageRoute(
-            builder: (_) => HomeStayRentalService(),
+        return _getRoute(
+            () => HomeStayRentalService(),
             settings: RouteSettings(name: getHomeStayRentalServiceRoute()));
       case RouteConstant.vehicleRentalService:
-        return MaterialPageRoute(
-            builder: (_) => VehicleRentalService(),
+        return _getRoute(
+            () => VehicleRentalService(),
             settings: RouteSettings(name: getVehicleRentalServiceRoute()));
       case RouteConstant.rentalServiceFullDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final RentalServiceData rentalServiceData =
             args[ApiKeys.argRentalData] as RentalServiceData;
-        return MaterialPageRoute(
-            builder: (_) => RentalServiceFullDetailsScreen(
+        return _getRoute(
+            () => RentalServiceFullDetailsScreen(
                 rentalServiceData: rentalServiceData),
             settings:
                 RouteSettings(name: getRentalServiceFullDetailsScreenRoute()));
@@ -1557,8 +1524,8 @@ class RouteHelper {
         final List<GroceryNestedCategoryModel> argArrGrocerySuperCat =
             args[ApiKeys.argArrGrocerySuperCategory]
                 as List<GroceryNestedCategoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => GroceryNestedCategoryScreen(
+        return _getRoute(
+            () => GroceryNestedCategoryScreen(
                   argArrGrocerySuperCat: argArrGrocerySuperCat,
                   argArrGroceryCatKey: argArrGroceryCatKey,
                   argArrGroceryCatName: argArrGroceryCatName,
@@ -1578,8 +1545,8 @@ class RouteHelper {
             args[ApiKeys.argArrGroceryCatName] as String;
         final String argArrGroceryCatKey =
             args[ApiKeys.argArrGroceryCatKey] as String;
-        return MaterialPageRoute(
-            builder: (_) => GroceryNestedCategoryWithInventoryScreen(
+        return _getRoute(
+            () => GroceryNestedCategoryWithInventoryScreen(
                   userId: userId,
                   argGroceryCategoryWithInventory:
                       argGroceryCategoryWithInventory,
@@ -1595,8 +1562,8 @@ class RouteHelper {
             args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
         // final GroceryNestedCategoryModel argSelectedGroceryData =
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
-        return MaterialPageRoute(
-            builder: (_) => GroceryProductsSelectionScreen(
+        return _getRoute(
+            () => GroceryProductsSelectionScreen(
                   arrGroceries: argGroceries,
                   // selectedGroceryData: argSelectedGroceryData
                 ),
@@ -1607,16 +1574,16 @@ class RouteHelper {
       //       builder: (_) => AddGroceryScreen(),
       //       settings: RouteSettings(name: getAddGroceryScreenRoute()));
       case RouteConstant.addGroceryVariantScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddGroceryVariantScreen(),
+        return _getRoute(
+            () => AddGroceryVariantScreen(),
             settings: RouteSettings(name: getAddGroceryVariantScreenRoute()));
       case RouteConstant.myGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = args[ApiKeys.userId] as String;
         final List<GroceryNestedCategoryModel> argGroceries =
             args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => MyGroceryProductsScreen(
+        return _getRoute(
+            () => MyGroceryProductsScreen(
                 userId: userId, arrGroceries: argGroceries),
             settings: RouteSettings(name: getMyGroceryProductsScreenRoute()));
       case RouteConstant.visitGroceryProductsScreen:
@@ -1628,8 +1595,8 @@ class RouteHelper {
             (args[ApiKeys.argArrGroceryCatName] as String?) ?? '';
         final String argArrGroceryCatKey =
             (args[ApiKeys.argArrGroceryCatKey] as String?) ?? '';
-        return MaterialPageRoute(
-            builder: (_) => VisitGroceryProductsScreen(
+        return _getRoute(
+            () => VisitGroceryProductsScreen(
                   userId: userId,
                   visitBusinessId: visitBusinessId,
                   argArrGroceryCatKey: argArrGroceryCatKey,
@@ -1642,8 +1609,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final List<GroceryNestedCategoryModel> argCategories =
             args[ApiKeys.argCategories] as List<GroceryNestedCategoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => AllGroceryProductsScreen(
+        return _getRoute(
+            () => AllGroceryProductsScreen(
                   argSubCategory: argCategories,
                 ),
             settings: RouteSettings(
@@ -1673,8 +1640,8 @@ class RouteHelper {
                 ),
             settings: RouteSettings(name: getRiderServiceScreenRoute()));
       case RouteConstant.groceryCartScreen:
-        return MaterialPageRoute(
-            builder: (_) => GroceryCartScreen(),
+        return _getRoute(
+            () => GroceryCartScreen(),
             settings: RouteSettings(name: getGroceryCartScreenRoute()));
       // case RouteConstant.yourAddToCardScreen:
       //
@@ -1691,8 +1658,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final bool argBulkUpload = args[ApiKeys.argBulkUpload] as bool;
 
-        return MaterialPageRoute(
-            builder: (_) =>
+        return _getRoute(
+            () =>
                 GrocerySuperCategoryScreen(isAvailBulkUpload: argBulkUpload),
             settings:
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
@@ -1702,8 +1669,8 @@ class RouteHelper {
         final String? ownerID = args?[ApiKeys.id] as String?;
         final ProviderType? providerType =
             args?[ApiKeys.providerType] as ProviderType?;
-        return MaterialPageRoute(
-            builder: (_) => ProductSuperCategoryScreen(
+        return _getRoute(
+            () => ProductSuperCategoryScreen(
                   ownerID: ownerID,
                   providerType: providerType,
                 ),
@@ -1721,8 +1688,8 @@ class RouteHelper {
             (args[ApiKeys.argProducts] as List?)
                     ?.cast<ProductNestedCategoryResponse>() ??
                 const [];
-        return MaterialPageRoute(
-            builder: (_) => ProductNestedCategoryScreen(
+        return _getRoute(
+            () => ProductNestedCategoryScreen(
                   argArrProductSuperCat: superCats,
                   argArrProductCatId: catId,
                   argArrProductCatName: catName,
@@ -1737,8 +1704,8 @@ class RouteHelper {
             args[ApiKeys.argProducts] as List<ProductNestedCategoryResponse>;
         final String? categoryName =
             args[ApiKeys.argArrProductCatName] as String?;
-        return MaterialPageRoute(
-            builder: (_) => ProductSelectionScreen(
+        return _getRoute(
+            () => ProductSelectionScreen(
                   arrProducts: products,
                   categoryName: categoryName,
                 ),
@@ -1747,14 +1714,14 @@ class RouteHelper {
 
 
       case RouteConstant.addProductVariantScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddProductVariantScreen(),
+        return _getRoute(
+            () => AddProductVariantScreen(),
             settings: RouteSettings(
                 name: getAddProductVariantScreenRoute()));
 
       case RouteConstant.paymentSettingScreen:
-        return MaterialPageRoute(
-            builder: (_) => PaymentSettingScreen(),
+        return _getRoute(
+            () => PaymentSettingScreen(),
             settings: RouteSettings(name: getPaymentSettingScreenRoute()));
 
       // case RouteConstant.medicalOtcItemsScreen:
@@ -1767,8 +1734,8 @@ class RouteHelper {
       case RouteConstant.groceryConfirmScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argOrderId = args[ApiKeys.argOrderId] as String;
-        return MaterialPageRoute(
-            builder: (_) => GroceryConfirmScreen(orderId: argOrderId),
+        return _getRoute(
+            () => GroceryConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getGroceryConfirmScreenRoute()));
 
       case RouteConstant.createAccountTypeScreen:
@@ -1776,14 +1743,14 @@ class RouteHelper {
             builder: (_) => const CreateAccountTypeScreen(),
             settings: RouteSettings(name: getCreateAccountTypeScreenRoute()));
       case RouteConstant.gigWorkerOptionsScreen:
-        return MaterialPageRoute(
-            builder: (_) => GigWorkOptionsScreen(),
+        return _getRoute(
+            () => GigWorkOptionsScreen(),
             settings: RouteSettings(name: getGigWorkerOptionsScreenRoute()));
 
 
       case RouteConstant.medicalCategoryScreen:
-        return MaterialPageRoute(
-            builder: (_) => MedicalCategoryScreen(),
+        return _getRoute(
+            () => MedicalCategoryScreen(),
             settings: RouteSettings(name: getMedicalCategoryScreenRoute()));
 
 
@@ -1793,16 +1760,16 @@ class RouteHelper {
       //       settings: RouteSettings(name: getAddMedicalScreenRoute()));
 
       case RouteConstant.addMedicalVariantScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddMedicalVariantScreen(),
+        return _getRoute(
+            () => AddMedicalVariantScreen(),
             settings: RouteSettings(name: getAddMedicalVariantScreenRoute()));
 
       case RouteConstant.myMedicalProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argCategoryId = args[ApiKeys.argCategoryId] as String;
         final String argCategoryName = args[ApiKeys.argCategoryName] as String;
-        return MaterialPageRoute(
-            builder: (_) => MyMedicalProductsScreen(
+        return _getRoute(
+            () => MyMedicalProductsScreen(
                   categoryId: argCategoryId,
                   categoryName: argCategoryName,
                 ),
@@ -1818,8 +1785,8 @@ class RouteHelper {
         final String? argMedCategoryId = args[ApiKeys.argCategoryId] as String?;
         final String? argMedCategoryName =
             args[ApiKeys.argCategoryName] as String?;
-        return MaterialPageRoute(
-            builder: (_) => MyMedicalVariantScreen(
+        return _getRoute(
+            () => MyMedicalVariantScreen(
                   variants: variants,
                   isShowInGrid: argIsShowInGrid ?? true,
                   categoryId: argMedCategoryId,
@@ -1829,22 +1796,22 @@ class RouteHelper {
 
 
       case RouteConstant.medicalCartScreen:
-        return MaterialPageRoute(
-            builder: (_) => MedicalCartScreen(),
+        return _getRoute(
+            () => MedicalCartScreen(),
             settings: RouteSettings(name: getMedicalCartScreenRoute()));
 
       case RouteConstant.medicalConfirmScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argOrderId = args[ApiKeys.argOrderId] as String;
-        return MaterialPageRoute(
-            builder: (_) => MedicalConfirmScreen(orderId: argOrderId),
+        return _getRoute(
+            () => MedicalConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getMedicalConfirmScreenRoute()));
 
       case RouteConstant.medicalHomeScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argBusinessId = args[ApiKeys.argBusinessId] as String;
-        return MaterialPageRoute(
-            builder: (_) => MedicalHomeScreenV2(businessId: argBusinessId),
+        return _getRoute(
+            () => MedicalHomeScreenV2(businessId: argBusinessId),
             settings: RouteSettings(name: getMedicalHomeScreenRoute()));
 
       case RouteConstant.groceryStoresScreen:
@@ -1859,20 +1826,20 @@ class RouteHelper {
             settings: RouteSettings(name: getGroceryStoresScreenRoute()));
 
       case RouteConstant.addGrocerySnapSearchScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddGrocerySnapSearchScreen(),
+        return _getRoute(
+            () => AddGrocerySnapSearchScreen(),
             settings:
                 RouteSettings(name: getAddGrocerySnapSearchScreenRoute()));
 
       case RouteConstant.groceryRiderSnapSearchScreen:
-        return MaterialPageRoute(
-            builder: (_) => GroceryRiderSnapSearchScreen(),
+        return _getRoute(
+            () => GroceryRiderSnapSearchScreen(),
             settings:
                 RouteSettings(name: getGroceryRiderSnapSearchScreenRoute()));
 
       case RouteConstant.addMedicalSnapSearchScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddMedicalSnapSearchScreen(),
+        return _getRoute(
+            () => AddMedicalSnapSearchScreen(),
             settings:
                 RouteSettings(name: getAddMedicalSnapSearchScreenRoute()));
 
@@ -1882,8 +1849,8 @@ class RouteHelper {
             args[ApiKeys.controller] as GroceryController;
         final List<MissingProducts> argMissingProducts =
             args[ApiKeys.argMissingProducts] as List<MissingProducts>;
-        return MaterialPageRoute(
-            builder: (_) => MissingGroceryItemsScreen(
+        return _getRoute(
+            () => MissingGroceryItemsScreen(
                 controller: controller, missingProducts: argMissingProducts),
             settings: RouteSettings(name: getMissingGroceryItemsScreenRoute()));
 
@@ -1893,8 +1860,8 @@ class RouteHelper {
             args[ApiKeys.controller] as FoodServiceController;
         final List<MissingFoodProducts> argMissingProducts =
             args[ApiKeys.argMissingProducts] as List<MissingFoodProducts>;
-        return MaterialPageRoute(
-            builder: (_) => MissingFoodItemsScreen(
+        return _getRoute(
+            () => MissingFoodItemsScreen(
                 controller: controller, missingProducts: argMissingProducts),
             settings: RouteSettings(name: getMissingFoodItemsScreenRoute()));
 
@@ -1902,8 +1869,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final String businessId = args[ApiKeys.businessId] as String;
         final String userId = args[ApiKeys.userId] as String;
-        return MaterialPageRoute(
-            builder: (_) => VisitGroceryStoreScreen(
+        return _getRoute(
+            () => VisitGroceryStoreScreen(
                   visitBusinessId: businessId,
                   userId: userId,
                 ),
@@ -1911,8 +1878,8 @@ class RouteHelper {
 
 
       case RouteConstant.addFoodSnapSearchScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddFoodSnapSearchScreen(),
+        return _getRoute(
+            () => AddFoodSnapSearchScreen(),
             settings: RouteSettings(name: getAddFoodSnapSearchScreenRoute()));
 
       case RouteConstant.addSingleProductScreen:
@@ -1921,8 +1888,8 @@ class RouteHelper {
         final int? createMissingProductIndex =
             args[ApiKeys.argCreateMissingProductIndex] as int?;
 
-        return MaterialPageRoute(
-            builder: (_) => AddSingleFoodProductScreen(
+        return _getRoute(
+            () => AddSingleFoodProductScreen(
                 foodProductId: productId,
                 createMissingProductIndex: createMissingProductIndex),
             settings: RouteSettings(name: getAddSingleProductScreenRoute()));
@@ -1931,8 +1898,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final GroceryNestedCategoryModel foodCategoryData =
             args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
-        return MaterialPageRoute(
-            builder: (_) =>
+        return _getRoute(
+            () =>
                 FoodProductSelectionScreen(
                     foodCategoryData: foodCategoryData),
             settings: RouteSettings(name: getFoodProductSelectionScreenRoute()));
@@ -1947,8 +1914,8 @@ class RouteHelper {
             args[ApiKeys.argProductCatName] as String;
         final String argProductCatKey =
             args[ApiKeys.argProductCatKey] as String;
-        return MaterialPageRoute(
-            builder: (_) => ProductNestedCategoryWithInventoryScreen(
+        return _getRoute(
+            () => ProductNestedCategoryWithInventoryScreen(
                   argProductCategoryWithInventory:
                       argProductCategoryWithInventory,
                   argProductCatKey: argProductCatKey,
@@ -1962,16 +1929,16 @@ class RouteHelper {
         final List<ProductCategoryWithInventoryModel> argProductCategories =
             args[ApiKeys.argProductCategories]
                 as List<ProductCategoryWithInventoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => MyProductProductsScreen(
+        return _getRoute(
+            () => MyProductProductsScreen(
                   arrCategories: argProductCategories,
                 ),
             settings: RouteSettings(name: getMyProductProductsScreenRoute()));
 
       // ───────── AUTOMOTIVE module (parallel copy of product routes) ─────────
       case RouteConstant.automotivePartsScreen:
-        return MaterialPageRoute(
-            builder: (_) => AutomotivePartsScreen(),
+        return _getRoute(
+            () => AutomotivePartsScreen(),
             settings: RouteSettings(name: getAutomotivePartsScreenRoute()));
 
       case RouteConstant.automotiveAddProductTextOrSnapScreen:
@@ -1979,8 +1946,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveAddProductTextOrSnapSearchScreen(
+        return _getRoute(
+            () => AutomotiveAddProductTextOrSnapSearchScreen(
                   id: id,
                   providerType: providerType,
                 ),
@@ -1992,8 +1959,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) =>
+        return _getRoute(
+            () =>
                 AutomotiveAddProductViaAiStep1(id: id, providerType: providerType),
             settings:
                 RouteSettings(name: getAutomotiveAddProductViaAiStep1Route()));
@@ -2008,8 +1975,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveAddProductViaAiStep2(
+        return _getRoute(
+            () => AutomotiveAddProductViaAiStep2(
                   controller: controller,
                   generateAiProductContent: generateAiProductContent,
                   id: id,
@@ -2027,8 +1994,8 @@ class RouteHelper {
         final String? id = args?[ApiKeys.id] as String?;
         final ProviderType? providerType =
             args?[ApiKeys.providerType] as ProviderType?;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveProductPreviewScreen(
+        return _getRoute(
+            () => AutomotiveProductPreviewScreen(
                   id: id,
                   providerType: providerType,
                   productPreviewArgs: argProductData,
@@ -2044,8 +2011,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveProductsStoreDetailsScreen(
+        return _getRoute(
+            () => AutomotiveProductsStoreDetailsScreen(
                 productStore: productStore,
                 id: id,
                 providerType: providerType),
@@ -2059,8 +2026,8 @@ class RouteHelper {
         final String id = args[ApiKeys.id] as String;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveCreateVariantScreen(
+        return _getRoute(
+            () => AutomotiveCreateVariantScreen(
                   controller: controller,
                   id: id,
                   providerType: providerType,
@@ -2073,8 +2040,8 @@ class RouteHelper {
         final String? ownerID = args?[ApiKeys.id] as String?;
         final ProviderType? providerType =
             args?[ApiKeys.providerType] as ProviderType?;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveProductSuperCategoryScreen(
+        return _getRoute(
+            () => AutomotiveProductSuperCategoryScreen(
                   ownerID: ownerID,
                   providerType: providerType,
                 ),
@@ -2092,8 +2059,8 @@ class RouteHelper {
             (args[ApiKeys.argProducts] as List?)
                     ?.cast<AutomotiveProductNestedCategoryResponse>() ??
                 const [];
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveProductNestedCategoryScreen(
+        return _getRoute(
+            () => AutomotiveProductNestedCategoryScreen(
                   argArrProductSuperCat: superCats,
                   argArrProductCatId: catId,
                   argArrProductCatName: catName,
@@ -2109,8 +2076,8 @@ class RouteHelper {
                 as List<AutomotiveProductNestedCategoryResponse>;
         final String? categoryName =
             args[ApiKeys.argArrProductCatName] as String?;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveProductSelectionScreen(
+        return _getRoute(
+            () => AutomotiveProductSelectionScreen(
                   arrProducts: products,
                   categoryName: categoryName,
                 ),
@@ -2118,8 +2085,8 @@ class RouteHelper {
                 name: getAutomotiveStoreProductSelectionScreenRoute()));
 
       case RouteConstant.automotiveAddProductVariantScreen:
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveAddProductVariantScreen(),
+        return _getRoute(
+            () => AutomotiveAddProductVariantScreen(),
             settings: RouteSettings(
                 name: getAutomotiveAddProductVariantScreenRoute()));
 
@@ -2133,8 +2100,8 @@ class RouteHelper {
             args[ApiKeys.argProductCatName] as String;
         final String argProductCatKey =
             args[ApiKeys.argProductCatKey] as String;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveProductNestedCategoryWithInventoryScreen(
+        return _getRoute(
+            () => AutomotiveProductNestedCategoryWithInventoryScreen(
                   argProductCategoryWithInventory:
                       argProductCategoryWithInventory,
                   argProductCatKey: argProductCatKey,
@@ -2149,8 +2116,8 @@ class RouteHelper {
         final List<AutomotiveProductCategoryWithInventoryModel> argProductCategories =
             args[ApiKeys.argProductCategories]
                 as List<AutomotiveProductCategoryWithInventoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => AutomotiveMyProductProductsScreen(
+        return _getRoute(
+            () => AutomotiveMyProductProductsScreen(
                   arrCategories: argProductCategories,
                 ),
             settings: RouteSettings(
@@ -2161,8 +2128,8 @@ class RouteHelper {
         final List<ProductCategoryWithInventoryModel> argProductCategories =
             args[ApiKeys.argProductCategories]
                 as List<ProductCategoryWithInventoryModel>;
-        return MaterialPageRoute(
-            builder: (_) => MyManufacturerProductsScreen(
+        return _getRoute(
+            () => MyManufacturerProductsScreen(
                   arrCategories: argProductCategories,
                 ),
             settings:
@@ -2178,8 +2145,8 @@ class RouteHelper {
             args[ApiKeys.argProductCatName] as String;
         final String argProductCatKey =
             args[ApiKeys.argProductCatKey] as String;
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerNestedCategoryWithInventoryScreen(
+        return _getRoute(
+            () => ManufacturerNestedCategoryWithInventoryScreen(
                   argProductCategoryWithInventory:
                       argProductCategoryWithInventory,
                   argProductCatKey: argProductCatKey,
@@ -2207,8 +2174,8 @@ class RouteHelper {
             args[ApiKeys.argFoodGenAiResModel] as FoodGenAiResModel;
         final int? createMissingProductIndex =
             args[ApiKeys.argCreateMissingProductIndex] as int?;
-        return MaterialPageRoute(
-            builder: (_) => FoodAiDetailScreen(
+        return _getRoute(
+            () => FoodAiDetailScreen(
                 foodData: foodGenAiResModel,
                 createMissingProductIndex: createMissingProductIndex),
             settings: RouteSettings(name: getFoodAiDetailScreenRoute()));
@@ -2217,35 +2184,38 @@ class RouteHelper {
         final GroceryNestedCategoryModel foodCategoryData =
             args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
         final String? visitBusinessId = args[ApiKeys.argBusinessId] as String?;
-        return MaterialPageRoute(
-            builder: (_) => FoodCustomerListingScreen(
+        return _getRoute(
+            () => FoodCustomerListingScreen(
                   foodCategoryData: foodCategoryData,
                   visitBusinessId: visitBusinessId,
                 ),
             settings: RouteSettings(name: getFoodCustomerListingScreenRoute()));
 
       case RouteConstant.nearByRidersScreen:
-        return MaterialPageRoute(
-            builder: (_) => NearByRidersScreen(),
+        return _getRoute(
+            () => NearByRidersScreen(),
             settings: RouteSettings(name: getNearByRidersScreenRoute()));
 
       case RouteConstant.discoverV2Screen:
-        return MaterialPageRoute(
-            builder: (_) => const DiscoverScreen(),
+        return _getRoute(
+            () => const DiscoverScreen(),
             settings: RouteSettings(name: getDiscoverV2ScreenRoute()));
 
       case RouteConstant.globalSearchScreen:
         final initialQuery = settings.arguments is String
             ? settings.arguments as String
             : null;
-        return MaterialPageRoute(
-            builder: (_) => GlobalSearchScreen(initialQuery: initialQuery),
+        return _getRoute(
+            () => GlobalSearchScreen(initialQuery: initialQuery),
             settings: RouteSettings(name: getGlobalSearchScreenRoute()));
 
       case '/CallRoomScreen':
       case RouteConstant.OutgoingCallScreen:
       case RouteConstant.IncomingCallScreen:
       // case RouteConstant.IncomingRiderOrderScreen:
+        // Not a GetX route: the call screen owns no controllers (CallController
+        // is permanent), and it stays on top for a whole call, so anything a
+        // background handler first registered meanwhile would die at hang-up.
         return MaterialPageRoute(
           builder: (_) => const CallActivityRoomScreen(),
           settings: RouteSettings(name: settings.name),
@@ -2302,14 +2272,14 @@ class RouteHelper {
 
 
       case RouteConstant.chooseEarnServiceScreen:
-        return MaterialPageRoute(
-          builder: (_) => const ChooseEarnServiceScreen(),
+        return _getRoute(
+          () => const ChooseEarnServiceScreen(),
           settings: RouteSettings(name: RouteHelper.getChooseEarnServiceScreenRoute()),
         );
 
       case RouteConstant.earnServiceDashboardView:
-        return MaterialPageRoute(
-          builder: (_) => const EarnServiceDashboardView(),
+        return _getRoute(
+          () => const EarnServiceDashboardView(),
           settings: RouteSettings(name: RouteHelper.getEarnServiceDashboardViewRoute()),
         );
 

@@ -249,7 +249,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   // where ChatViewController isn't already live — e.g. the medical/provider
   // home embeds it outside the bottom-nav tab tree. Matches the dominant
   // pattern used by the other chat lists (personal_chat_list, group_chat_screen).
-  final chatViewController = getOrPut(() => ChatViewController());
+  final chatViewController = ChatViewController.to;
   late final ChatPinArchiveController pinArchiveController;
   late final ChatLockController lockController;
 
@@ -284,7 +284,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     // so BusinessChatsList is self-sufficient on the provider/seller screens,
     // which previously relied on ConnectMainPage having pre-registered them.
     getOrPut(() => ChatFlagController());
-    getOrPut(() => ChatThemeController());
+    ChatThemeController.to;
     // Ride threads a rider has already worked are remembered on disk (see
     // [RideChatRegistry]) — read them back before the first rows are bucketed
     // so finished rides don't flash into the Inquiry tab after a relaunch.

@@ -14,7 +14,6 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 
 import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -44,11 +43,11 @@ class ChatForwardScreen extends StatefulWidget {
 }
 
 class _ChatForwardScreenState extends State<ChatForwardScreen> {
-  final chatViewController = getOrPut(() => ChatViewController());
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatViewController = ChatViewController.to;
+  final chatThemeController = ChatThemeController.to;
  bool symbolSelected=false;
  bool _isSending = false;
-  final bottomBarController = getOrPut(() => BottomBarController());
+  final bottomBarController = BottomBarController.to;
 
   // Inline local search of the conversations shown on this screen.
   bool _isSearching = false;

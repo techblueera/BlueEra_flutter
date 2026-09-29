@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -302,7 +303,9 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                       onTap: () async {
                         final jobId = controller.jobID.value;
                         if (jobId.isNotEmpty) {
-                          await controller.postJobStep2Api(jobId: jobId);
+                          if (await controller.postJobStep2Api(jobId: jobId)) {
+                            Get.toNamed(RouteHelper.getCreateJobPostStep3Route());
+                          }
                         } else {
                           commonSnackBar(message: AppStrings.jobIdMissing);
                         }

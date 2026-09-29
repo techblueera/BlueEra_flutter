@@ -1,14 +1,11 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_post_screen_new.dart';
@@ -16,6 +13,7 @@ import 'package:BlueEra/features/common/post/message_post/edit_photo_feed_widget
 import 'package:BlueEra/features/common/post/message_post/insta_slider_network_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/insta_slider_widget.dart';
 import 'package:BlueEra/features/common/post/message_post/photo_upload_widget.dart';
+import 'package:BlueEra/features/common/post/widget/return_to_feed.dart';
 import 'package:BlueEra/features/common/post/widget/tag_user_screen.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/channel_profile_header.dart';
@@ -33,14 +31,11 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
+/// Previews a new message post, or edits an existing one. Uses the
+/// MessagePostController of the route that started the flow (the create
+/// screen, or this screen's own route when the feed opens it for an edit).
 class MessagePostPreviewScreenNew extends StatefulWidget {
-  final PostVia? postVia;
-  final Post? post;
-  final bool isEdit;
-
-  MessagePostPreviewScreenNew(
-      {Key? key, this.postVia, this.post, required this.isEdit})
-      : super(key: key);
+  const MessagePostPreviewScreenNew({Key? key}) : super(key: key);
 
   @override
   State<MessagePostPreviewScreenNew> createState() =>
@@ -49,8 +44,8 @@ class MessagePostPreviewScreenNew extends StatefulWidget {
 
 class _MessagePostPreviewScreenNewState
     extends State<MessagePostPreviewScreenNew> {
-  late MessagePostController msgPostController;
-  late TagUserController tagUserController;
+  final msgPostController = Get.find<MessagePostController>();
+  final tagUserController = Get.find<TagUserController>();
   late String originalCaption;
   late bool hasChanges;
 
@@ -65,53 +60,15 @@ class _MessagePostPreviewScreenNewState
 
   @override
   void initState() {
-    if (Get.isRegistered<MessagePostController>()) {
-      msgPostController = Get.find<MessagePostController>();
-    } else {
-      msgPostController = Get.put(MessagePostController());
-    }
-    msgPostController.taggedSelectedUsersList?.value =
-        widget.post?.taggedUsers ?? [];
-    msgPostController.isMsgPostEdit = widget.isEdit;
-
-    if (Get.isRegistered<TagUserController>()) {
-      tagUserController = Get.find<TagUserController>();
-    } else {
-      tagUserController = Get.put(TagUserController());
-    }
-    // TODO: implement initState
-
-    if (widget.isEdit) {
-      widget.post?.media?.forEach((action) {
-        msgPostController.uploadImageList.add(action);
-      });
-
-      msgPostController.postId = widget.post?.id ?? "";
-      msgPostController.postText.value = widget.post?.message ?? "";
-      msgPostController.postTextDataController.value.text =
-          widget.post?.message ?? "";
-      msgPostController.descriptionMessage.value.text =
-          widget.post?.subTitle ?? "";
-
-      msgPostController.natureOfPostController.value.text =
-          widget.post?.natureOfPost ?? "";
-
-      if (widget.post?.referenceLink?.isNotEmpty ?? false) {
-        msgPostController.isAddLink.value = true;
-        msgPostController.referenceLinkController.value.text =
-            widget.post?.referenceLink ?? "";
-      }
-
-      // Store original caption for change detection
-      originalCaption = widget.post?.subTitle ?? "";
-    }
+    // Store original caption for change detection
+    originalCaption = msgPostController.editPost?.subTitle ?? "";
     hasChanges = false;
     super.initState();
 
     // Validate the trimmed/picked video once on entry, and again whenever the
     // user re-trims (imagesList mutates). Skipped in edit mode because the
     // existing post's media is a remote URL, not a local file.
-    if (!widget.isEdit) {
+    if (!msgPostController.isMsgPostEdit) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _validateCurrentVideoIfNeeded();
       });
@@ -354,7 +311,7 @@ class _MessagePostPreviewScreenNewState
                                   padding: EdgeInsets.symmetric(
                                       horizontal: SizeConfig.size15),
                                   child: InstaSliderNetwork(
-                                    post: widget.post,
+                                    post: msgPostController.editPost,
                                   ),
                                 ),
                               // Video validation status
@@ -561,66 +518,18 @@ class _MessagePostPreviewScreenNewState
                                       return PositiveCustomBtn(
                                         onTap: isUpdateEnabled
                                             ? () async {
-                                                try {
-                                                  // Validate description length
-                                                  String descriptionText =
-                                                      msgPostController
-                                                          .descriptionMessage
-                                                          .value
-                                                          .text
-                                                          .trim();
-                                                  if (descriptionText.length <
-                                                      30) {
-                                                    commonSnackBar(
-                                                        message:
-                                                            'Description must be at least 30 characters long',
-                                                        snackBackgroundColor:
-                                                            AppColors.red);
-                                                    return;
-                                                  }
-
-                                                  String? tagUserIds =
-                                                      tagUserController
-                                                          .selectedUsers
-                                                          .map((user) => user.id
-                                                              .toString())
-                                                          .join(',');
-                                                  msgPostController
-                                                      .isLoading.value = true;
-
-                                                  dynamic reqData;
-
-                                                  if (msgPostController
-                                                      .isMsgPostEdit) {
-                                                    reqData = {
-                                                      ApiKeys.type: AppConstants
-                                                          .MESSAGE_POST,
-                                                      ApiKeys.sub_title:
-                                                          descriptionText,
-                                                      ApiKeys.tagged_users:
-                                                          tagUserIds.isNotEmpty
-                                                              ? tagUserIds
-                                                              : ""
-                                                    };
-                                                    await msgPostController
-                                                        .editMsgPostController(
-                                                      bodyReq: reqData,
-                                                    );
-                                                  } else {
-                                                    await msgPostController
-                                                        .uploadMessagePost(
-                                                            postVia:
-                                                                widget.postVia);
-                                                  }
-
-                                                  msgPostController
-                                                      .isLoading.value = false;
-                                                } on Exception catch (e) {
-                                                  logs("ERRO ${e}");
-                                                  msgPostController
-                                                      .isLoading.value = false;
-
-                                                  // TODO
+                                                final error = msgPostController
+                                                    .validateDescription();
+                                                if (error != null) {
+                                                  commonSnackBar(
+                                                      message: error,
+                                                      snackBackgroundColor:
+                                                          AppColors.red);
+                                                  return;
+                                                }
+                                                if (await msgPostController
+                                                    .submit()) {
+                                                  returnToFeedAfterPosting();
                                                 }
                                               }
                                             : null,

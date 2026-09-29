@@ -1,4 +1,4 @@
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,16 +9,14 @@ import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import 'controller/booking_controller.dart';
-import 'model/appointment_booking_model.dart';
+import 'controller/send_enquiry_controller.dart';
 
 
 
+/// Opened through [RouteHelper.sentEnquiresRoute], whose SendEnquiryBinding
+/// provides the controller for the channel and video.
 class SendEnquiryScreen extends StatefulWidget {
-  final String channelId;
-  final String videoId;
-
-  const SendEnquiryScreen({super.key, required this.channelId,  required this.videoId});
+  const SendEnquiryScreen({super.key});
   @override
   State<SendEnquiryScreen> createState() =>
       _SendEnquiryScreenState();
@@ -34,19 +32,10 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
   final mobileController = TextEditingController();
   final emailController = TextEditingController();
   final enquiryController = TextEditingController();
-  final BookingController bookingController = Get.put(BookingController());
+  final enquiry = Get.find<SendEnquiryController>();
 
-  @override
-  void initState() {
-    super.initState();
-
-
-
-  }
   @override
   Widget build(BuildContext context) {
-    print("userchannelId:$channelId",);
-    print("userVideoId:${widget.videoId}");
     return Scaffold(
       appBar: CommonBackAppBar(
         title: 'Enquiry Form ',
@@ -122,30 +111,19 @@ class _SendEnquiryScreenState extends State<SendEnquiryScreen> {
               CustomBtn(
                 radius: SizeConfig.size6,
                 bgColor: Colors.blue,
-                onTap: () {
-                  final name = nameController.text.trim();
-                  final mobile = mobileController.text.trim();
-                  final email = emailController.text.trim();
-                  final msg = enquiryController.text.trim();
-                  enquiryController.text.trim();
-
-
-                  final customer = CustomerDetails(
-                    name: name,
-                    mobileNumber: mobile,
-                    email: email,
+                onTap: () async {
+                  final sent = await enquiry.send(
+                    name: nameController.text.trim(),
+                    email: emailController.text.trim(),
+                    mobile: mobileController.text.trim(),
+                    message: enquiryController.text.trim(),
                   );
-                  Map<String,dynamic> params = {
-                    ApiKeys.serviceProvider_channelId: "${widget.channelId}",
-                    ApiKeys.message : msg,
-                    ApiKeys.videoId: "${widget.videoId}",
-                   ApiKeys.user_email:email,
-                   ApiKeys.user_phone:mobile,
-                   ApiKeys.user_name:name
-                  };
-                  print("giugg ${widget.videoId}");
-                  print("sgf ${customer}");
-                  bookingController.addEnquiry(params: params);
+                  if (sent) {
+                    Get.offAllNamed(
+                      RouteHelper.getBottomNavigationBarScreenRoute(),
+                      arguments: {ApiKeys.initialIndex: 1},
+                    );
+                  }
 
                 },
                 title: "Send Enquiry",

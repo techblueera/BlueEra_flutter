@@ -11,6 +11,12 @@ import 'package:get/get.dart';
 /// specimen / collection / gender / package pickers) used by the test form
 /// and listing screens.
 class LabTestController extends GetxController {
+  /// The signed-in lab's shared instance, registered on first use. Permanent:
+  /// the lab screens and tabs share it; logout deletes it.
+  static LabTestController get to => Get.isRegistered<LabTestController>()
+      ? Get.find<LabTestController>()
+      : Get.put(LabTestController(), permanent: true);
+
   final LabTestRepo _repo = LabTestRepo();
 
   final RxBool isLoading = false.obs;

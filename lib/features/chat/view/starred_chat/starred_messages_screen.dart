@@ -27,8 +27,8 @@ class StarredMessagesScreen extends StatelessWidget {
     final controller = getOrPut(() => StarredMessageController());
     // MessageCard depends on these via Get.find — make sure they exist even
     // when the screen is opened without ever entering a chat first.
-    getOrPut(() => ChatViewController());
-    getOrPut(() => ChatThemeController());
+    ChatViewController.to;
+    ChatThemeController.to;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F4F4),
@@ -299,4 +299,4 @@ class _StarredMessageTile extends StatelessWidget {
       return '';
     }
   }
-}
+}

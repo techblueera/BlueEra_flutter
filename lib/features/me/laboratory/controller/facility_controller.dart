@@ -11,6 +11,12 @@ import 'package:get/get.dart';
 /// payment methods, …). All flags are pushed to the API as a single
 /// `Facilities` snapshot via [saveFacilities].
 class FacilityController extends GetxController {
+  /// The signed-in lab's shared instance, registered on first use. Permanent:
+  /// the lab screens and tabs share it; logout deletes it.
+  static FacilityController get to => Get.isRegistered<FacilityController>()
+      ? Get.find<FacilityController>()
+      : Get.put(FacilityController(), permanent: true);
+
   final FacilityRepo _repo = FacilityRepo();
 
   final RxBool isLoading = false.obs;

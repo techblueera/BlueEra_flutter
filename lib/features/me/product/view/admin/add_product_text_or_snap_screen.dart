@@ -50,7 +50,7 @@ class AddProductTextOrSnapSearchScreen extends StatefulWidget {
 class _AddProductTextOrSnapSearchScreenState
     extends State<AddProductTextOrSnapSearchScreen> {
   final scrollController = ScrollController();
-  final controller = Get.put(InventoryController());
+  final controller = InventoryController.to;
   final Rx<_AddProductMode> _selectedMode = _AddProductMode.textSearch.obs;
 
   /// Live keystroke mirror — `controller.searchProduct` only updates

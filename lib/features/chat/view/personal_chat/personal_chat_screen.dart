@@ -1,6 +1,5 @@
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/view/widget/call_customer_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -65,7 +64,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
   // (e.g. opened from an order/inquiry deep-link) — the theme controller is
   // otherwise registered by the chat list/tab flows. Matches how the other
   // chat screens obtain it.
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatThemeController = ChatThemeController.to;
   final TextEditingController editingController = TextEditingController();
 
 

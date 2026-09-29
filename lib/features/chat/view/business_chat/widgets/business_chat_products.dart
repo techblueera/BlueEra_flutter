@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -32,7 +31,7 @@ class BusinessChatProducts extends StatefulWidget {
 
 class _BusinessChatProductsState extends State<BusinessChatProducts> {
   final InventoryController controller =
-      getOrPut<InventoryController>(() => InventoryController());
+      InventoryController.to;
 
   @override
   void initState() {

@@ -12,6 +12,12 @@ import 'package:get/get.dart';
 import '../../auth/model/adminvideo_model.dart';
 
 class BottomBarController extends GetxController {
+  /// The bottom bar's state, registered on first use. Permanent: the shell
+  /// lives for the whole session and is rebuilt by `offAllNamed`.
+  static BottomBarController get to => Get.isRegistered<BottomBarController>()
+      ? Get.find<BottomBarController>()
+      : Get.put(BottomBarController(), permanent: true);
+
   RxInt currentIndex = 0.obs;
 
   /// Drives bottom-nav + subscription-peek visibility from any descendant

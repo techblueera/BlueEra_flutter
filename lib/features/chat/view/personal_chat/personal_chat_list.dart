@@ -57,7 +57,7 @@ class PersonalChatsList extends StatefulWidget {
 }
 
 class _PersonalChatsListState extends State<PersonalChatsList> {
-  final chatViewController = getOrPut(() => ChatViewController());
+  final chatViewController = ChatViewController.to;
   final pinArchiveController = getOrPut(() => ChatPinArchiveController());
   final lockController = getOrPut(() => ChatLockController());
   final customTabController = getOrPut(() => CustomChatTabController());

@@ -50,12 +50,8 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
   @override
   void initState() {
     super.initState();
-    _testController = Get.isRegistered<LabTestController>()
-        ? Get.find<LabTestController>()
-        : Get.put(LabTestController(), permanent: true);
-    _packageController = Get.isRegistered<LabPackageController>()
-        ? Get.find<LabPackageController>()
-        : Get.put(LabPackageController(), permanent: true);
+    _testController = LabTestController.to;
+    _packageController = LabPackageController.to;
     _testController.fetchPopularTests();
     _packageController.fetchMyPackages();
     _fetchAllTestsForFilter();

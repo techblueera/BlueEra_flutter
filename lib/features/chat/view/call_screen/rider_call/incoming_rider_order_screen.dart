@@ -7,7 +7,6 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
 
 
-import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
 import '../../../auth/controller/call_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
@@ -472,7 +471,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   /// call. The call screen stays in the navigation stack underneath, so the
   /// WebRTC call keeps running and Back from Connect returns to it.
   void _goToConnectInquiry() {
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.selectedChatTabIndex.value = 1;
     Get.toNamed(RouteHelper.getHomeScreenRoute());
   }

@@ -61,7 +61,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
   // Drives the inquiry list on the Order tab — same controller the Connect
   // screen uses, so socket-driven updates land on both.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Backs the Overview tab — loads the creator's own earn-artist profile.
   final EarnArtistController _earnArtistController =

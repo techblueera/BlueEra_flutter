@@ -185,7 +185,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                     photoPostController.originalPhotos.removeAt(index);
                     _imageKeys.removeAt(index);
                     if (selectedPhotos.isEmpty) {
-                      Navigator.pop(context);
+                      Navigator.pop(context, <String>[]);
                       return;
                     }
                     setState(() {});

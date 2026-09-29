@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -70,8 +69,8 @@ class AiCommonSearchScreen extends StatefulWidget {
 }
 
 class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
-  final chatViewController = getOrPut(() => ChatViewController());
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatViewController = ChatViewController.to;
+  final chatThemeController = ChatThemeController.to;
   final TextEditingController editingController = TextEditingController();
   final _scrollController = ScrollController();
 

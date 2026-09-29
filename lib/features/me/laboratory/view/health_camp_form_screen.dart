@@ -37,11 +37,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<HealthCampController>()) {
-      controller = Get.put(HealthCampController(), permanent: true);
-    } else {
-      controller = Get.find<HealthCampController>();
-    }
+    controller = HealthCampController.to;
     controller.preloadForm(widget.existing);
   }
 
