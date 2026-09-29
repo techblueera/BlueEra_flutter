@@ -81,6 +81,7 @@ import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -331,15 +332,18 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<EarnCoinController>());
   }
 
-  /// Drops the signed-in user's profile editor, earn profiles and documents.
+  /// Drops the signed-in user's profile editor, earn profiles, earn products
+  /// and documents.
   ///
   /// They are registered permanently (their `to` accessors) because the Me tabs,
   /// profile sheets and setup screens share them for the whole session, so
   /// nothing else frees them: without this the next account would see the
-  /// previous one's profession, earn profiles and uploaded documents.
+  /// previous one's profession, earn profiles, products and uploaded
+  /// documents.
   static void _resetPersonalProfileControllers() {
     _drop(() => deleteIfRegistered<PersonalCreateProfileController>());
     _drop(() => deleteIfRegistered<EarnProfileController>());
+    _drop(() => deleteIfRegistered<EarnServiceController>());
     _drop(() => deleteIfRegistered<MyDocumentsController>());
   }
 

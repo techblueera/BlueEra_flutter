@@ -40,6 +40,9 @@ class AddSelfServiceScreen extends StatefulWidget {
 }
 
 class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
+  // Opened from the self-employed Services tab, which owns the controller and
+  // keeps showing it after this form closes; only drop one created here.
+  final bool _ownsController = !Get.isRegistered<SelfWorkServiceController>();
   final controller = getOrPut(() => SelfWorkServiceController());
 
   @override
@@ -56,7 +59,7 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
   @override
   void dispose() {
     super.dispose();
-    deleteIfRegistered<SelfWorkServiceController>();
+    if (_ownsController) deleteIfRegistered<SelfWorkServiceController>();
   }
 
   @override

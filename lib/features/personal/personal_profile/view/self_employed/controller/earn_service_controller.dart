@@ -11,7 +11,15 @@ import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class EarnServiceController extends GetxController{
+/// The signed-in user's earn services: their own products and order tabs.
+class EarnServiceController extends GetxController {
+  /// Registered on first use. Permanent: the earn home, service picker, gig
+  /// options and Me-tab store section share it; logout deletes it
+  /// (LogoutHelper._resetPersonalProfileControllers).
+  static EarnServiceController get to => Get.isRegistered<EarnServiceController>()
+      ? Get.find<EarnServiceController>()
+      : Get.put(EarnServiceController(), permanent: true);
+
   Rx<ApiResponse> ownProductsResponse =
       ApiResponse.initial('Initial').obs;
 

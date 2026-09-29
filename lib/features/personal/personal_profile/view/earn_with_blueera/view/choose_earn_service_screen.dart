@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
@@ -40,7 +39,7 @@ class ChooseEarnServiceScreen extends StatefulWidget {
 }
 
 class _ChooseEarnServiceScreenState extends State<ChooseEarnServiceScreen> {
-  final controller = getOrPut(() => EarnServiceController());
+  final controller = EarnServiceController.to;
   int _selectedIndex = 0;
 
   final List<_EarnOption> _options = [

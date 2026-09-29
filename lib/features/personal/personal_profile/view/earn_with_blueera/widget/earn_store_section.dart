@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -32,7 +31,7 @@ class EarnStoreCards extends StatefulWidget {
 class _EarnStoreCardsState extends State<EarnStoreCards> {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
   final _earnProfileCtrl = EarnProfileController.to;
-  final _earnServiceCtrl = getOrPut(() => EarnServiceController());
+  final _earnServiceCtrl = EarnServiceController.to;
 
   // The three earn flavours surfaced in the Store tab, in display order.
   static const List<String> _earnTypes = [
