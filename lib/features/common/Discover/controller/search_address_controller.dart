@@ -6,6 +6,7 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/features/common/Discover/model/favorite_location_model.dart';
 import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
+import 'package:BlueEra/features/common/Discover/service/favourite_location_service.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -204,29 +205,7 @@ class SearchAddressController extends GetxController {
     required String tag,
     required bool isCustomTag,
   }) async {
-    final res = await _favoriteRepo.addFavoriteLocation(
-      address: address,
-      latitude: latitude,
-      longitude: longitude,
-      tag: tag,
-    );
-    if (!res.isSuccess) throw FavouriteSaveError(res.message);
-    final data = res.response?.data;
-    FavoriteLocation? created;
-    if (data is Map) {
-      // Server may return either the FavoriteLocation directly or
-      // nested under a 'favorite' key.
-      final raw = data.containsKey('_id') || data.containsKey('id')
-          ? data
-          : (data['favorite'] as Map?);
-      if (raw != null) {
-        created = FavoriteLocation.fromJson(Map<String, dynamic>.from(raw));
-      }
-    }
-    // Fall back to a locally-built model so the list updates immediately even
-    // if the server response shape differs.
-    created ??= FavoriteLocation(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    final created = await FavouriteLocationService(repo: _favoriteRepo).add(
       address: address,
       latitude: latitude,
       longitude: longitude,
@@ -236,11 +215,4 @@ class SearchAddressController extends GetxController {
     favourites.insert(0, created);
     return created;
   }
-}
-
-/// A favourite the server refused to save; [message] is its reason, if any.
-class FavouriteSaveError implements Exception {
-  FavouriteSaveError(this.message);
-
-  final String? message;
 }

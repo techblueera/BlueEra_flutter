@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
+import 'package:BlueEra/features/common/Discover/service/favourite_location_service.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/features/common/Discover/binding/search_address_binding.dart';
@@ -53,6 +53,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   static const String _recentSearchesKey = 'recent_transport_searches';
 
   final authController = getOrPut(() => AuthController());
+  final _places = PlaceLookupService();
   final discoverController = DiscoverController.to;
 
   GoogleMapController? mapController;
@@ -467,38 +468,18 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
   Future<void> _fetchPredictions(String query) async {
     setState(() => _isLoadingPredictions = true);
-    try {
-      final responseModel = await PlaceRepo().autoCompleteSearch(query: query);
-      if (!mounted) return;
-      if (responseModel.statusCode == 200) {
-        final data = responseModel.response?.data;
-        final predictionsJson = (data['predictions'] as List?) ?? [];
-        final results = PlacePrediction.fromList(predictionsJson);
-        // Predictions render immediately and NOTHING is resolved here. The
-        // lat/lng + distance hydration that used to run over every prediction
-        // cost one billed Place Details per row, per keystroke burst; the tap
-        // handler now resolves the single row the user picks. Nearby results
-        // still come first — the autocomplete request is location-biased, which
-        // is free. See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
-        setState(() {
-          _predictions = results;
-          _isLoadingPredictions = false;
-        });
-      } else {
-        setState(() {
-          _predictions = [];
-          _isLoadingPredictions = false;
-        });
-      }
-    } catch (e) {
-      log("Autocomplete error: $e");
-      if (mounted) {
-        setState(() {
-          _predictions = [];
-          _isLoadingPredictions = false;
-        });
-      }
-    }
+    // Predictions render immediately and NOTHING is resolved here. The
+    // lat/lng + distance hydration that used to run over every prediction
+    // cost one billed Place Details per row, per keystroke burst; the tap
+    // handler now resolves the single row the user picks. Nearby results
+    // still come first — the autocomplete request is location-biased, which
+    // is free. See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
+    final results = await _places.search(query);
+    if (!mounted) return;
+    setState(() {
+      _predictions = results;
+      _isLoadingPredictions = false;
+    });
   }
 
   // ─── Recent searches ────────────────────────────────────────────────────
@@ -711,20 +692,17 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     }
     setState(() => _favoriteSavingTag = tag);
     try {
-      final res = await FavoriteLocationRepo().addFavoriteLocation(
+      await FavouriteLocationService().add(
         address: address,
         latitude: _pickedLatLng!.latitude,
         longitude: _pickedLatLng!.longitude,
         tag: tag,
       );
       if (!mounted) return;
-      if (res.isSuccess) {
-        commonSnackBar(message: 'Saved to ${_favoriteLabelFor(tag)}');
-      } else {
-        commonSnackBar(
-          message: res.message ?? 'Could not save favourite',
-        );
-      }
+      commonSnackBar(message: 'Saved to ${_favoriteLabelFor(tag)}');
+    } on FavouriteSaveError catch (e) {
+      if (!mounted) return;
+      commonSnackBar(message: e.message ?? 'Could not save favourite');
     } catch (e) {
       if (!mounted) return;
       commonSnackBar(message: 'Could not save favourite');
@@ -1373,11 +1351,11 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
   /// Resolve the tapped row's coordinates, then apply it. The one Place Details
   /// call this screen makes — cached per `place_id` for the session by
-  /// [PlaceRepo.resolvePlace].
+  /// [PlaceLookupService.resolve].
   Future<void> _selectPrediction(PlacePrediction item) async {
     if (_resolvingPlaceId != null) return; // ignore a second tap mid-lookup
     setState(() => _resolvingPlaceId = item.placeId);
-    final resolved = await PlaceRepo().resolvePlace(item.placeId);
+    final resolved = await _places.resolve(item.placeId);
     if (!mounted) return;
     setState(() => _resolvingPlaceId = null);
     if (resolved == null) {
