@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/app_targeted_share.dart';
@@ -299,7 +298,7 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   /// Opens the update-referral screen, seeding the shared controller with
   /// the current code so the field is pre-filled.
   void _openUpdateReferral(String? referralCode) {
-    final c = getOrPut(() => ReferralController());
+    final c = ReferralController.to;
     c.loadProfileReferralInfo();
     if ((referralCode ?? '').trim().isNotEmpty) {
       c.profileReferralCode.value = referralCode!.trim();

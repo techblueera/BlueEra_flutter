@@ -14,6 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ReferralController extends GetxController {
+  /// The signed-in account's instance, registered on first use. Permanent:
+  /// the drawer, wallet and share surfaces share it for the session; logout
+  /// deletes it (LogoutHelper._resetWalletAndReferralControllers).
+  static ReferralController get to => Get.isRegistered<ReferralController>()
+      ? Get.find<ReferralController>()
+      : Get.put(ReferralController(), permanent: true);
+
   final ReferralRepoNew _repo = ReferralRepoNew();
 
   // --- Async statuses ------------------------------------------------------

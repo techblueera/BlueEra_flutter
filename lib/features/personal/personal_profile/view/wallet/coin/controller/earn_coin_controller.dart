@@ -8,6 +8,13 @@ import 'package:get/get.dart';
 /// Drives the Coin Wallet card + the 5-tab "View Details" screen.
 /// Read-only except [redeem]. Contract: docs/backend/FLUTTER-MASTER-GUIDE.md.
 class EarnCoinController extends GetxController {
+  /// The signed-in account's instance, registered on first use. Permanent:
+  /// the drawer, wallet and share surfaces share it for the session; logout
+  /// deletes it (LogoutHelper._resetWalletAndReferralControllers).
+  static EarnCoinController get to => Get.isRegistered<EarnCoinController>()
+      ? Get.find<EarnCoinController>()
+      : Get.put(EarnCoinController(), permanent: true);
+
   final EarnCoinRepo _repo = EarnCoinRepo();
 
   // ── Balance (coin chip + Coin Wallet card + details header) ──────────

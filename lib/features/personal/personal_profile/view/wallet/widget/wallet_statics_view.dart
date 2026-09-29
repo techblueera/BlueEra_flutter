@@ -47,7 +47,7 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
   final _joiningBounceController = getOrPut(() => JoiningBounceController());
 
   /// Coin balance for the Coin Wallet card — GET /earn/balance.
-  final _earnController = getOrPut(() => EarnCoinController());
+  final _earnController = EarnCoinController.to;
 
   /// Joining Bonus checklist expand/collapse — "See More" / "Show Less".
   bool _bonusExpanded = false;

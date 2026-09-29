@@ -314,9 +314,9 @@ class LogoutHelper {
 
   /// Drops the wallet, coin and referral controllers.
   ///
-  /// The home drawer registers these with `getOrPut`, so they live as long
-  /// as the home route: for the whole session. ReferralController matters
-  /// most: `_currentUserReferralCode` (common_methods.dart) prefers its code
+  /// They are registered permanently (their `to` accessors), so they live for
+  /// the whole session. ReferralController matters most:
+  /// `_currentUserReferralCode` (common_methods.dart) prefers its code
   /// when appending `?referralCode=` to every deep link the app builds, so
   /// the next account's share links credited the previous account's
   /// referrals. The wallet ones held the previous account's balance, bank

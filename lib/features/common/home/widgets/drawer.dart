@@ -53,7 +53,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-  final walletController = getOrPut(() => WalletController());
+  final walletController = WalletController.to;
 
   final lang = getOrPut(() => LanguageControllerNew());
 

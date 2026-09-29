@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +47,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
   // Used only when no [videoUrls] are supplied — the intro/overview video is
   // pulled from GET /earn-service/overview instead of being bundled in the app.
   final ReferralController _referralController =
-      getOrPut(() => ReferralController());
+      ReferralController.to;
   Worker? _overviewWorker;
 
   List<String> _videoUrls = const [];
