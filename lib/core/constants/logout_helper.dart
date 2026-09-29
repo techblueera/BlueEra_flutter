@@ -84,6 +84,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/con
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -197,8 +198,10 @@ class LogoutHelper {
   ///   `Get.put` calls happen from non-route contexts (AuthController,
   ///   drawer), so smart-management never auto-disposes them.
   /// - `ChatViewController`: owns chat sockets/listeners.
+  /// - `FeedController`: the feeds, including my posts and saved posts.
   static void _resetSessionControllers() {
     _drop(() => deleteIfRegistered<ChatViewController>());
+    _drop(() => deleteIfRegistered<FeedController>());
     _drop(() => deleteIfRegistered<ViewPersonalDetailsController>());
     _drop(() => deleteIfRegistered<ViewBusinessDetailsController>());
     // Rider pair: both are registered `permanent: true`, because their

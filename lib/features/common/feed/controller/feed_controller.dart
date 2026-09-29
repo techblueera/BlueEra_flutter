@@ -28,6 +28,13 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class FeedController extends GetxController {
+  /// The session's feed, registered on first use. Permanent: the home feed,
+  /// channel and profile feeds, rider posts tab and feed cards all share its
+  /// per-type lists, whichever of them opens first; logout deletes it.
+  static FeedController get to => Get.isRegistered<FeedController>()
+      ? Get.find<FeedController>()
+      : Get.put(FeedController(), permanent: true);
+
   Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
   ApiResponse likeDislikeResponse = ApiResponse.initial('Initial');
   ApiResponse deletePostResponse = ApiResponse.initial('Initial');

@@ -39,7 +39,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final OverviewController overViewController = Get.put(OverviewController());
-  final FeedController feedController = Get.put(FeedController());
+  final FeedController feedController = FeedController.to;
   VisitProfileController visitController =
       Get.isRegistered<VisitProfileController>()
           ? Get.find<VisitProfileController>()

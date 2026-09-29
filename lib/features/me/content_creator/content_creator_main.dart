@@ -333,9 +333,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
 
   // ─── POST TAB ────────────────────────────────────────────────────────────
   List<Widget> _buildPostTab() {
-    if (!Get.isRegistered<FeedController>()) {
-      Get.put(FeedController());
-    }
+    FeedController.to;
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),

@@ -81,9 +81,7 @@ class _FeedCardState extends State<FeedCard> {
     openFeedProfile(_post?.user?.copyWith(id: authorId));
   }
 
-  final feedController = Get.isRegistered<FeedController>()
-      ? Get.find<FeedController>()
-      : Get.put(FeedController());
+  final feedController = FeedController.to;
 
   @override
   Widget build(BuildContext context) {
