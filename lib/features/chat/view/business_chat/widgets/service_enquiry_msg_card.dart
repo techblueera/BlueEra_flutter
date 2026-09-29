@@ -1,10 +1,10 @@
+import 'package:BlueEra/features/common/Discover/controller/service_enquiry_controller.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -98,7 +98,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
     if (enquiryId.isEmpty) return;
 
     setState(() => _isUpdating = true);
-    final controller = DiscoverController.to;
+    final controller = ServiceEnquiryController.to;
     final ok = await controller.updateServiceEnquiryStatus(
       enquiryId: enquiryId,
       status: status,
