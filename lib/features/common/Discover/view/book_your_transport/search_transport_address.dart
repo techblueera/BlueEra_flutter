@@ -13,6 +13,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
+import 'package:BlueEra/features/common/Discover/binding/search_address_binding.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_address_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -409,12 +410,16 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     final start = isPickup
         ? (fromLatLng ?? _currentLatLng)
         : (toLatLng ?? fromLatLng ?? _currentLatLng);
+    // A GetPageRoute so SearchAddressBinding's controller is freed on close.
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(
-        builder: (_) => SearchAddressScreen(
+      GetPageRoute<Map<String, dynamic>>(
+        settings: const RouteSettings(name: '/SearchAddressScreen'),
+        routeName: '/SearchAddressScreen',
+        page: () => SearchAddressScreen(
           isPickup: isPickup,
           initialMapCenter: start,
         ),
+        binding: SearchAddressBinding(),
       ),
     );
     if (!mounted) {

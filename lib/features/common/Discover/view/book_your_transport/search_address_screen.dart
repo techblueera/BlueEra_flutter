@@ -1,22 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/Discover/controller/search_address_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/favorite_location_model.dart';
-import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// Rapido-rider–style "Pickup from / Drop at" search screen.
 ///
@@ -40,30 +36,17 @@ class SearchAddressScreen extends StatefulWidget {
 }
 
 class _SearchAddressScreenState extends State<SearchAddressScreen> {
-  static const String _recentSearchesKey = 'recent_transport_searches';
+  final SearchAddressController controller =
+      Get.find<SearchAddressController>();
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
-  Timer? _debounce;
-  String _searchQuery = '';
-  bool _isLoadingPredictions = false;
-  List<PlacePrediction> _predictions = [];
-
-  /// `place_id` currently being resolved by a row tap, or null. Drives the row
-  /// spinner and blocks a second tap while a lookup is in flight.
-  String? _resolvingPlaceId;
-
-  List<Map<String, dynamic>> _recentSearches = [];
-  List<FavoriteLocation> _favourites = [];
-  bool _isLoadingFavourites = false;
-
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() => _onSearchChanged(_searchController.text));
-    _loadRecentSearches();
-    _loadFavourites();
+    _searchController
+        .addListener(() => controller.onQueryChanged(_searchController.text));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchFocusNode.requestFocus();
     });
@@ -71,141 +54,30 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
   }
 
-  // ─── Data loaders ───────────────────────────────────────────────────────
-
-  Future<void> _loadRecentSearches() async {
-    final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getStringList(_recentSearchesKey) ?? [];
-    if (!mounted) return;
-    setState(() {
-      _recentSearches =
-          stored.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
-    });
-  }
-
-  Future<void> _saveRecentSearch(double lat, double lng, String address) async {
-    if (address.isEmpty) return;
-    final entry = {'lat': lat, 'lng': lng, 'address': address};
-    _recentSearches.removeWhere((e) => e['address'] == address);
-    _recentSearches.insert(0, entry);
-    if (_recentSearches.length > 10) {
-      _recentSearches = _recentSearches.sublist(0, 10);
-    }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      _recentSearchesKey,
-      _recentSearches.map((e) => jsonEncode(e)).toList(),
-    );
-  }
-
-  Future<void> _loadFavourites() async {
-    setState(() => _isLoadingFavourites = true);
-    try {
-      final ResponseModel res =
-          await FavoriteLocationRepo().listFavorites();
-      if (!mounted) return;
-      if (res.isSuccess) {
-        final data = res.response?.data;
-        final list = (data is Map ? data['favorites'] as List? : null) ?? [];
-        _favourites = list
-            .map((e) => FavoriteLocation.fromJson(
-                Map<String, dynamic>.from(e as Map)))
-            .toList();
-      }
-    } catch (e) {
-      log('listFavorites error: $e');
-    } finally {
-      if (mounted) setState(() => _isLoadingFavourites = false);
-    }
-  }
-
   // ─── Search ─────────────────────────────────────────────────────────────
 
-  void _onSearchChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () {
-      if (!mounted) return;
-      final trimmed = query.trim();
-      setState(() => _searchQuery = trimmed);
-      if (trimmed.isEmpty) {
-        setState(() => _predictions = []);
-      } else {
-        _fetchPredictions(trimmed);
-      }
-    });
-  }
-
-  Future<void> _fetchPredictions(String query) async {
-    setState(() => _isLoadingPredictions = true);
-    try {
-      final responseModel = await PlaceRepo().autoCompleteSearch(query: query);
-      if (!mounted) return;
-      if (responseModel.statusCode == 200) {
-        final data = responseModel.response?.data;
-        final predictionsJson = (data['predictions'] as List?) ?? [];
-        final results = PlacePrediction.fromList(predictionsJson);
-        // Render the predictions as they arrive and resolve NOTHING here.
-        //
-        // This used to loop over every prediction calling Place Details, to fill
-        // in lat/lng and a "x km away" label — 5 billed lookups per keystroke
-        // burst, for a list the user takes one row from. Coordinates are now
-        // fetched in the tap handler (see [_selectPrediction]) and the ordering
-        // that the distance label used to convey comes from the location bias on
-        // the autocomplete request itself, which is free.
-        // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
-        setState(() {
-          _predictions = results;
-          _isLoadingPredictions = false;
-        });
-      } else {
-        setState(() {
-          _predictions = [];
-          _isLoadingPredictions = false;
-        });
-      }
-    } catch (e) {
-      log('Autocomplete error: $e');
-      if (mounted) {
-        setState(() {
-          _predictions = [];
-          _isLoadingPredictions = false;
-        });
-      }
-    }
-  }
-
   /// Resolve the tapped prediction's coordinates, then pick it.
-  ///
-  /// The one Place Details call this screen makes. [PlaceRepo.resolvePlace]
-  /// caches per `place_id` for the session, so re-picking a place already used
-  /// as a pickup costs nothing.
   Future<void> _selectPrediction(PlacePrediction p) async {
-    if (_resolvingPlaceId != null) return; // ignore a second tap mid-lookup
-    setState(() => _resolvingPlaceId = p.placeId);
-    final resolved = await PlaceRepo().resolvePlace(p.placeId);
-    if (!mounted) return;
-    setState(() => _resolvingPlaceId = null);
-    if (resolved == null) {
+    final resolved = await controller.selectPrediction(p);
+    if (!mounted || resolved == null) return; // a second tap mid-lookup
+    if (!resolved) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
     }
-    // Cache it back onto the prediction so the favourite button on this row
-    // doesn't have to look it up again.
-    p.lat = resolved.lat;
-    p.lng = resolved.lng;
-    await _pick(resolved.lat, resolved.lng, p.description ?? '');
+    await _pick(p.lat!, p.lng!, p.description ?? '');
   }
 
 //  ─── Pick / submit ──────────────────────────────────────────────────────
 
   Future<void> _pick(double lat, double lng, String address) async {
-    if (address.isNotEmpty) await _saveRecentSearch(lat, lng, address);
+    if (address.isNotEmpty) {
+      await controller.saveRecentSearch(lat, lng, address);
+    }
     if (!mounted) return;
     Navigator.of(context).pop({
       'lat': lat,
@@ -243,17 +115,6 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
 
   // ─── Favourites toggle ──────────────────────────────────────────────────
 
-  bool _isFavourited(String address) {
-    return _favourites.any((f) => f.address == address);
-  }
-
-  FavoriteLocation? _findFavourite(String address) {
-    for (final f in _favourites) {
-      if (f.address == address) return f;
-    }
-    return null;
-  }
-
   Future<void> _toggleFavourite({
     required double lat,
     required double lng,
@@ -263,26 +124,22 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
       commonSnackBar(message: AppStrings.addressIsEmpty.tr);
       return;
     }
-    final existing = _findFavourite(address);
+    final existing = controller.findFavourite(address);
     if (existing != null) {
       // Already a favourite — remove it.
-      try {
-        final res = await FavoriteLocationRepo().deleteFavorite(existing.id);
-        if (!mounted) return;
-        if (res.isSuccess) {
-          setState(() => _favourites.removeWhere((f) => f.id == existing.id));
-          commonSnackBar(message: AppStrings.removedFromFavourites.tr);
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.couldNotRemoveFavourite.tr);
-        }
-      } catch (e) {
-        log('deleteFavorite error: $e');
-        if (mounted) commonSnackBar(message: AppStrings.couldNotRemoveFavourite.tr);
-      }
+      final error = await controller.removeFavourite(existing);
+      if (!mounted) return;
+      commonSnackBar(
+          message: error == null
+              ? AppStrings.removedFromFavourites.tr
+              : (error.isNotEmpty
+                  ? error
+                  : AppStrings.couldNotRemoveFavourite.tr));
       return;
     }
-    // Open the bottom sheet to choose tag and save.
-    final saved = await showModalBottomSheet<FavoriteLocation>(
+    // Open the bottom sheet to choose a tag and save; the sheet adds it to
+    // the controller's list.
+    await showModalBottomSheet<FavoriteLocation>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -292,9 +149,8 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
         longitude: lng,
       ),
     );
-    if (!mounted || saved == null) return;
-    setState(() => _favourites.insert(0, saved));
   }
+
 
   // ─── Build ──────────────────────────────────────────────────────────────
 
@@ -320,12 +176,16 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
       body: SafeArea(
         child: Column(
         children: [
-          _buildSearchRow(),
+          // The clear button shows once the (debounced) query is non-empty.
+          Obx(() {
+            controller.searchQuery.value;
+            return _buildSearchRow();
+          }),
           const SizedBox(height: 12),
           _buildSelectOnMapPill(),
           const SizedBox(height: 12),
           const Divider(height: 1),
-          Expanded(child: _buildList()),
+          Expanded(child: Obx(_buildList)),
         ],
       ),
       ),
@@ -369,10 +229,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
                               size: 18, color: AppColors.grayText),
                           onPressed: () {
                             _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                              _predictions = [];
-                            });
+                            controller.clearSearch();
                           },
                         )
                       : null,
@@ -422,11 +279,18 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
   }
 
   Widget _buildList() {
+    // Read everything the rows use up front: ListView builds its rows lazily,
+    // outside the Obx that wraps this, so reads there would not be tracked.
+    final predictions = controller.predictions.toList();
+    controller.resolvingPlaceId.value;
+    controller.favourites.length;
+
     final showingPredictions =
-        _searchQuery.isNotEmpty || _isLoadingPredictions;
+        controller.searchQuery.value.isNotEmpty ||
+        controller.isLoadingPredictions.value;
 
     if (showingPredictions) {
-      if (_isLoadingPredictions) {
+      if (controller.isLoadingPredictions.value) {
         return const Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
           child: Center(
@@ -443,20 +307,20 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
           ),
         );
       }
-      if (_predictions.isEmpty) {
+      if (predictions.isEmpty) {
         return _emptyTextCenter(AppStrings.noResultsFound.tr);
       }
       return ListView.separated(
         padding: EdgeInsets.zero,
-        itemCount: _predictions.length,
+        itemCount: predictions.length,
         separatorBuilder: (_, __) => _dashedDivider(),
-        itemBuilder: (context, i) => _buildPredictionTile(_predictions[i]),
+        itemBuilder: (context, i) => _buildPredictionTile(predictions[i]),
       );
     }
 
     // Default: favourites + recents.
     final children = <Widget>[];
-    if (_isLoadingFavourites) {
+    if (controller.isLoadingFavourites.value) {
       children.add(const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Center(
@@ -471,11 +335,11 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
         ),
       ));
     }
-    for (final fav in _favourites) {
+    for (final fav in controller.favourites) {
       children.add(_buildFavouriteTile(fav));
       children.add(_dashedDivider());
     }
-    for (final r in _recentSearches) {
+    for (final r in controller.recentSearches) {
       children.add(_buildRecentTile(r));
       children.add(_dashedDivider());
     }
@@ -589,7 +453,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
     final lat = (search['lat'] as num).toDouble();
     final lng = (search['lng'] as num).toDouble();
     final address = (search['address'] as String?) ?? '';
-    final favourited = _isFavourited(address);
+    final favourited = controller.isFavourited(address);
     return InkWell(
       onTap: () => _pick(lat, lng, address),
       child: Padding(
@@ -633,8 +497,9 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
 
   Widget _buildPredictionTile(PlacePrediction p) {
     final desc = p.description ?? '';
-    final favourited = _isFavourited(desc);
-    final resolving = _resolvingPlaceId != null && _resolvingPlaceId == p.placeId;
+    final favourited = controller.isFavourited(desc);
+    final resolving = controller.resolvingPlaceId.value != null &&
+        controller.resolvingPlaceId.value == p.placeId;
     // Coordinates are no longer pre-fetched for the list, so the tap resolves
     // them — see [_selectPrediction]. The distance column that used to sit under
     // this icon went with that pre-fetch; nearby results now come back first
@@ -670,15 +535,10 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
               // been resolved yet — so resolve on demand here as well (cached,
               // so favouriting then picking the same row costs one lookup).
               onTap: () async {
-                var lat = p.lat ?? 0.0;
-                var lng = p.lng ?? 0.0;
-                if (lat == 0.0 && lng == 0.0) {
-                  final resolved = await PlaceRepo().resolvePlace(p.placeId);
-                  if (resolved == null || !mounted) return;
-                  p.lat = lat = resolved.lat;
-                  p.lng = lng = resolved.lng;
+                if (!await controller.resolveCoordinates(p) || !mounted) {
+                  return;
                 }
-                _toggleFavourite(lat: lat, lng: lng, address: desc);
+                _toggleFavourite(lat: p.lat!, lng: p.lng!, address: desc);
               },
               borderRadius: BorderRadius.circular(20),
               child: Padding(
@@ -1034,41 +894,20 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
     if (tag == null || tag.isEmpty) return;
     setState(() => _saving = true);
     try {
-      final res = await FavoriteLocationRepo().addFavoriteLocation(
+      final created = await Get.find<SearchAddressController>().addFavourite(
         address: widget.address,
         latitude: widget.latitude,
         longitude: widget.longitude,
         tag: tag,
+        isCustomTag: _selectedTag == '__custom__',
       );
       if (!mounted) return;
-      if (res.isSuccess) {
-        final data = res.response?.data;
-        FavoriteLocation? created;
-        if (data is Map) {
-          // Server may return either the FavoriteLocation directly or
-          // nested under a 'favorite' key.
-          final raw = data.containsKey('_id') || data.containsKey('id')
-              ? data
-              : (data['favorite'] as Map?);
-          if (raw != null) {
-            created = FavoriteLocation.fromJson(
-                Map<String, dynamic>.from(raw));
-          }
-        }
-        // Fall back to a locally-built model so the caller can update
-        // its list immediately even if the server response shape differs.
-        created ??= FavoriteLocation(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          address: widget.address,
-          latitude: widget.latitude,
-          longitude: widget.longitude,
-          tag: tag,
-          isCustomTag: _selectedTag == '__custom__',
-        );
-        commonSnackBar(message: AppStrings.addedToFavourites.tr);
-        Navigator.of(context).pop(created);
-      } else {
-        commonSnackBar(message: res.message ?? AppStrings.couldNotSaveFavourite.tr);
+      commonSnackBar(message: AppStrings.addedToFavourites.tr);
+      Navigator.of(context).pop(created);
+    } on FavouriteSaveError catch (e) {
+      if (mounted) {
+        commonSnackBar(
+            message: e.message ?? AppStrings.couldNotSaveFavourite.tr);
       }
     } catch (e) {
       log('addFavoriteLocation error: $e');
