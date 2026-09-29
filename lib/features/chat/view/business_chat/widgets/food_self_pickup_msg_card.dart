@@ -13,6 +13,7 @@ import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/auth/service/self_pickup_ready_service.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_find_rider_sheet.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
@@ -29,8 +30,6 @@ import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
-import 'package:BlueEra/features/me/food/repo/food_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -957,40 +956,29 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
 
     setState(() => _isMarkingReady = true);
 
-    try {
-      final response = widget.isTiffin
-          ? await EarnProfileRepo().markTiffinOrderReadyRepo(orderId: orderId)
+    final error = await SelfPickupReadyService().markReady(
+      widget.isTiffin
+          ? SelfPickupOrderKind.tiffin
           : widget.isHomeMade
-              ? await EarnProfileRepo()
-                  .markHomeFoodOrderReadyRepo(orderId: orderId)
-              : await FoodRepo().markFoodOrderReadyRepo(orderId: orderId);
-
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
-      }
-
+              ? SelfPickupOrderKind.homeMade
+              : SelfPickupOrderKind.food,
+      orderId,
+    );
+    if (error == null) {
       widget.message.metadata?.orderStatus = true;
       _order?.isReady = true;
-      if (!mounted) return;
-      setState(() {});
-
-      commonSnackBar(
-          message: widget.isTiffin
-              ? 'Tiffin order marked as ready for pickup'
-              : widget.isHomeMade
-                  ? 'Home-made food order marked as ready for pickup'
-                  : 'Food order marked as ready for pickup');
-      log('${widget.isTiffin ? 'Tiffin' : widget.isHomeMade ? 'Home-made food' : 'Food'} self-pickup order $orderId marked as ready');
-    } catch (e) {
-      log('Error marking order ready: $e');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (!mounted) return;
-      setState(() => _isMarkingReady = false);
     }
+    if (!mounted) return;
+    setState(() => _isMarkingReady = false);
+
+    commonSnackBar(
+        message: error != null
+            ? (error.isNotEmpty ? error : AppStrings.somethingWentWrong)
+            : widget.isTiffin
+                ? 'Tiffin order marked as ready for pickup'
+                : widget.isHomeMade
+                    ? 'Home-made food order marked as ready for pickup'
+                    : 'Food order marked as ready for pickup');
   }
 
   @override

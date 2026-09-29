@@ -13,6 +13,7 @@ import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/auth/service/self_pickup_ready_service.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_action_bar.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_find_rider_sheet.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
@@ -29,8 +30,6 @@ import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
-import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
-import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -946,36 +945,26 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
 
     setState(() => _isMarkingReady = true);
 
-    try {
-      final response = widget.isMedical
-          ? await MedicalRepo().markMedicalOrderReadyRepo(orderId: orderId)
-          : await ProductRepo().markProductOrderReadyRepo(orderId: orderId);
-
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
-      }
-
+    final error = await SelfPickupReadyService().markReady(
+      widget.isMedical
+          ? SelfPickupOrderKind.medical
+          : SelfPickupOrderKind.product,
+      orderId,
+    );
+    if (error == null) {
       widget.message.metadata?.orderStatus = true;
       _order?.isReady = true;
-      if (!mounted) return;
-      setState(() {});
-
-      commonSnackBar(
-        message: widget.isMedical
-            ? 'Pharmacy order marked as ready for pickup'
-            : 'Product order marked as ready for pickup',
-      );
-      log('${widget.isMedical ? 'Medical' : 'Product'} self-pickup order $orderId marked as ready');
-    } catch (e) {
-      log('Error marking order ready: $e');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (!mounted) return;
-      setState(() => _isMarkingReady = false);
     }
+    if (!mounted) return;
+    setState(() => _isMarkingReady = false);
+
+    commonSnackBar(
+      message: error != null
+          ? (error.isNotEmpty ? error : AppStrings.somethingWentWrong)
+          : widget.isMedical
+              ? 'Pharmacy order marked as ready for pickup'
+              : 'Product order marked as ready for pickup',
+    );
   }
 
   @override
