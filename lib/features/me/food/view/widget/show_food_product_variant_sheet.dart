@@ -4,10 +4,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
-import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/me/food/service/food_variant_inventory_service.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
@@ -257,6 +255,9 @@ class _VariantListState extends State<_VariantList> {
   late final List<FoodVariants> _variants =
       List<FoodVariants>.from(widget.product.variants ?? const []);
 
+  /// Price, stock and delete calls, and their mirror onto the shared product.
+  final FoodVariantInventoryService _inventory = FoodVariantInventoryService();
+
   /// Inventory id of the variant whose stock toggle is mid-flight, so only
   /// that row's pill spins.
   String? _togglingStockId;
@@ -302,78 +303,20 @@ class _VariantListState extends State<_VariantList> {
     await _savePrice(item, sellingPrice: result.sellingPrice, mrp: result.mrp);
   }
 
-  /// Writes the new pair, then mirrors it exactly where [_toggleStock] mirrors
-  /// its flag — the local working copy AND the shared product — so the sheet and
-  /// the screen behind it both show the new price without a refetch.
-  ///
-  /// READ, merge, then write. `PUT kitchen-inventory/{id}` replaces the whole
-  /// `price` subdocument, so sending only `{mrp, sellingPrice}` silently reset
-  /// `packingCharges` to 0 (verified against the live service — 20 became 0).
-  /// The variant models parsed from the listing endpoints carry neither
-  /// `currency` nor `packingCharges`, so the only way to send them back
-  /// unchanged is to fetch the record first.
-  ///
-  /// A failed pre-read ABORTS rather than writing what it has: a price edit
-  /// must not be able to zero a charge the merchant never touched.
+  /// Saves the new pair (see [FoodVariantInventoryService.updatePrice]), which
+  /// also mirrors it onto the shared product, so the sheet and the screen
+  /// behind it both show the new price without a refetch.
   Future<void> _savePrice(
     FoodVariants item, {
     required int sellingPrice,
     required int mrp,
   }) async {
-    final inventoryId = item.inventoryId ?? '';
-    setState(() => _savingPriceId = inventoryId);
-
-    final current = await FoodRepo().getKitchenInventoryByIdRepo(
-      inventoryId: inventoryId,
-    );
-    if (!mounted) return;
-    final existingPrice = current.isSuccess
-        ? (current.response?.data?['data']?['price'] as Map?)
-        : null;
-    if (existingPrice == null) {
-      setState(() => _savingPriceId = null);
-      commonSnackBar(
-          message: "Couldn't read the current price. Please try again.");
-      return;
-    }
-
-    final res = await FoodRepo().updateKitchenInventoryVariantRepo(
-      inventoryId: inventoryId,
-      params: {
-        'price': {
-          // Everything the record already had, with only the two edited
-          // numbers replaced.
-          ...Map<String, dynamic>.from(existingPrice),
-          'mrp': mrp,
-          'sellingPrice': sellingPrice,
-        },
-      },
-    );
-    if (!mounted) return;
-
-    if (!res.isSuccess) {
-      setState(() => _savingPriceId = null);
-      commonSnackBar(message: res.message ?? "Couldn't update the price.");
-      return;
-    }
-
-    item.baseSellingPrice = sellingPrice;
-    item.mrp = mrp;
-    for (final v in widget.product.variants ?? const <FoodVariants>[]) {
-      if (v.inventoryId == inventoryId) {
-        v.baseSellingPrice = sellingPrice;
-        v.mrp = mrp;
-      }
-    }
-    // Repairs what this in-place patch cannot reach: the freshness guard, the
-    // sibling rails still holding the old row, and the saved snapshot on disk —
-    // a stale snapshot would put the old price straight back on the next open.
-    if (Get.isRegistered<RestaurantController>()) {
-      Get.find<RestaurantController>().markMenuChanged();
-    }
+    setState(() => _savingPriceId = item.inventoryId ?? '');
+    final error = await _inventory.updatePrice(widget.product, item,
+        sellingPrice: sellingPrice, mrp: mrp);
     if (!mounted) return;
     setState(() => _savingPriceId = null);
-    commonSnackBar(message: 'Price updated.');
+    commonSnackBar(message: error ?? 'Price updated.');
   }
 
   /// "Half Plate - 250 g" — the variant as the merchant named it.
@@ -460,9 +403,9 @@ class _VariantListState extends State<_VariantList> {
     );
   }
 
-  /// Flips one variant's manual out-of-stock flag via
-  /// `PATCH kitchen-inventory/stock/flip-out-of-stock`. Goes straight to the
-  /// repo, same as delete above — the food sheet has no controller of its own.
+  /// Flips one variant's manual out-of-stock flag (see
+  /// [FoodVariantInventoryService.setOutOfStock]), which also mirrors it onto
+  /// the shared product for the screen behind the sheet.
   Future<void> _toggleStock(FoodVariants item, bool markOutOfStock) async {
     final inventoryId = item.inventoryId ?? '';
     if (inventoryId.isEmpty) {
@@ -471,42 +414,19 @@ class _VariantListState extends State<_VariantList> {
     }
 
     setState(() => _togglingStockId = inventoryId);
-    // A FLIP, not a set — no value goes up. That is safe here because
-    // [StockStatusPill] only ever calls back with `!currentFlag`, so
-    // `markOutOfStock` IS the inverse of what the server holds, and applying it
-    // below matches what the flip just did.
-    final res = await FoodRepo().flipOutOfStockRepo(
-      inventoryIds: [inventoryId],
-    );
-    if (!mounted) return;
-
-    if (!res.isSuccess) {
-      setState(() => _togglingStockId = null);
-      commonSnackBar(message: res.message ?? "Couldn't update stock.");
-      return;
-    }
-
-    // Mutate the shared product's variant too, so the screen behind the sheet
-    // shows the new state on return — mirrors [_onDeleted].
-    item.isOutOfStock = markOutOfStock;
-    for (final v in widget.product.variants ?? const <FoodVariants>[]) {
-      if (v.inventoryId == inventoryId) v.isOutOfStock = markOutOfStock;
-    }
-    // Repairs everything this sheet's in-place patch cannot reach: the
-    // freshness guard, the sibling rails that still hold the old row, and the
-    // saved snapshot on disk. See [RestaurantController.markMenuChanged].
-    if (Get.isRegistered<RestaurantController>()) {
-      Get.find<RestaurantController>().markMenuChanged();
-    }
+    final error =
+        await _inventory.setOutOfStock(widget.product, item, markOutOfStock);
     if (!mounted) return;
     setState(() => _togglingStockId = null);
     commonSnackBar(
-      message: markOutOfStock ? 'Marked out of stock.' : 'Marked in stock.',
+      message: error ??
+          (markOutOfStock ? 'Marked out of stock.' : 'Marked in stock.'),
     );
   }
 
-  /// Confirms, then calls `DELETE kitchen-inventory/{inventoryId}`. Returns
-  /// `true` only when the variant was actually deleted (so the row dismisses).
+  /// Confirms, then deletes the variant (which also drops it from the shared
+  /// product). Returns `true` only when the variant was actually deleted (so
+  /// the row dismisses).
   Future<bool> _confirmAndDelete(FoodVariants item) async {
     final inventoryId = item.inventoryId ?? '';
     if (inventoryId.isEmpty) {
@@ -518,13 +438,11 @@ class _VariantListState extends State<_VariantList> {
     if (confirmed != true) return false;
 
     AppLoader.show();
-    final res =
-        await FoodRepo().deleteKitchenInventoryRepo(inventoryId: inventoryId);
+    final error = await _inventory.delete(widget.product, item);
     AppLoader.hide();
 
-    if (!res.isSuccess) {
-      commonSnackBar(
-          message: res.message ?? 'Could not delete the variant.');
+    if (error != null) {
+      commonSnackBar(message: error);
       return false;
     }
     return true;
@@ -532,18 +450,6 @@ class _VariantListState extends State<_VariantList> {
 
   void _onDeleted(FoodVariants item) {
     _variants.removeWhere((v) => v.inventoryId == item.inventoryId);
-    widget.product.variants
-        ?.removeWhere((v) => v.inventoryId == item.inventoryId);
-    // Ask the food screens to refetch on return so counts stay in sync, and
-    // drop the saved snapshot — a deleted variant must not survive on disk.
-    if (Get.isRegistered<RestaurantController>()) {
-      Get.find<RestaurantController>().markMenuChanged();
-    }
-    // A deleted variant is stockable again, so the add screens must start
-    // offering it once more — the mirror of the refresh a publish triggers.
-    if (Get.isRegistered<FoodServiceController>()) {
-      Get.find<FoodServiceController>().markStockedVariantsChanged();
-    }
     if (mounted) setState(() {});
     commonSnackBar(message: 'Variant deleted.');
   }
