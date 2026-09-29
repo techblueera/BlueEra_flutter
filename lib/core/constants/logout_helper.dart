@@ -30,6 +30,12 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
 import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/active_orders_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_broadcast_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
+import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
+import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/bookmark_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
@@ -324,7 +330,8 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<LabPackageController>());
     _drop(() => deleteIfRegistered<BusinessOnboardingController>());
     _drop(() => deleteIfRegistered<PortfolioProfessionalsController>());
-    _drop(() => deleteIfRegistered<JobSeekerPortfolioProfessionalsController>());
+    _drop(
+        () => deleteIfRegistered<JobSeekerPortfolioProfessionalsController>());
     _drop(() => deleteIfRegistered<MedicalCartController>());
     _drop(() => deleteIfRegistered<BookmarkController>());
     _drop(() => deleteIfRegistered<PaymentQrController>());
@@ -338,6 +345,7 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<ProfessionalDiscoverController>());
     _resetWalletAndReferralControllers();
     _resetPersonalProfileControllers();
+    _resetOrderAndNotificationControllers();
   }
 
   /// Drops the wallet, coin and referral controllers.
@@ -368,6 +376,31 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<EarnProfileController>());
     _drop(() => deleteIfRegistered<EarnServiceController>());
     _drop(() => deleteIfRegistered<MyDocumentsController>());
+  }
+
+  /// Drops the order and notification state, and clears the ride overlay.
+  ///
+  /// All of these are registered permanently through their accessors, so
+  /// nothing reclaimed them: the next account saw the previous one's active
+  /// orders rail and order cards, the broadcast dispatch polls kept running for
+  /// the previous customer's orders (its `onClose` cancels them), and both
+  /// notification lists kept the previous account's notifications in memory
+  /// while pointing at Hive boxes the wipe had already deleted. Each accessor
+  /// re-creates its controller on next use, which re-opens a fresh box.
+  ///
+  /// The ride overlay is only reset, not deleted: its screens reach it through
+  /// a bare `Get.find`, and main registers it once for the whole process.
+  static void _resetOrderAndNotificationControllers() {
+    _drop(() => deleteIfRegistered<ActiveOrdersController>());
+    _drop(() => deleteIfRegistered<OrderBroadcastController>());
+    _drop(() => deleteIfRegistered<OrderLifecycleController>());
+    _drop(() => deleteIfRegistered<BlueEraNotificationController>());
+    _drop(() => deleteIfRegistered<NotificationCacheService>());
+    _drop(() {
+      if (Get.isRegistered<RideNavigationOverlayController>()) {
+        Get.find<RideNavigationOverlayController>().clearRideData();
+      }
+    });
   }
 
   /// Drops the "other service" business-profile controllers.
