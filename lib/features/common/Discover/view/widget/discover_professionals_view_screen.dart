@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -5,7 +6,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
@@ -59,7 +59,7 @@ class _DiscoverProfessionalsViewScreenState extends State<DiscoverProfessionalsV
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
-    final controller = DiscoverController.to;
+    final controller = ProfessionalDiscoverController.to;
     final result = await controller.getProfessionalByUserId(widget.userId!);
     if (!mounted) return;
     setState(() {

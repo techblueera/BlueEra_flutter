@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -5,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
@@ -51,7 +51,7 @@ class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscove
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
-    final controller = DiscoverController.to;
+    final controller = ProfessionalDiscoverController.to;
     final result = await controller.getEarnServiceByUserId(widget.userId!);
     if (!mounted) return;
     setState(() {

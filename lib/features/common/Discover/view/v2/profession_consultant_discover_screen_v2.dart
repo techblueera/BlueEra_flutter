@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/category_filter.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -12,7 +13,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
@@ -142,7 +142,7 @@ class ProfessionConsultantDiscoverScreenV2 extends StatefulWidget {
 
 class _ProfessionConsultantDiscoverScreenV2State
     extends State<ProfessionConsultantDiscoverScreenV2> {
-  final controller = DiscoverController.to;
+  final controller = ProfessionalDiscoverController.to;
 
   /// Custom pin for the backdrop map — rendered once, reused for every marker.
   BitmapDescriptor? _markerIcon;
@@ -1592,7 +1592,7 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
 
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
 /// on [ProfessionConsultantDiscoverScreenV2]. Loads every consultant
-/// (unpaginated) via [DiscoverController.fetchAllProfessionalConsForMap] and
+/// (unpaginated) via [ProfessionalDiscoverController.fetchAllProfessionalConsForMap] and
 /// renders them through `google_maps_flutter`'s built-in clustering so 100+ pins
 /// stay smooth — nearby consultants collapse into a count badge that splits open
 /// on zoom-in.
@@ -1615,7 +1615,7 @@ class _ProfessionConsultantMapScreenV2State
   GoogleMapController? _mapController;
   BitmapDescriptor? _serviceIcon;
 
-  final DiscoverController _ctrl = Get.find<DiscoverController>();
+  final _ctrl = ProfessionalDiscoverController.to;
   static const ClusterManagerId _clusterManagerId =
       ClusterManagerId('profession_consultants_v2');
 

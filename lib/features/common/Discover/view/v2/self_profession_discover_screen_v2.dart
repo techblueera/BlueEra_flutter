@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/category_filter.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -13,7 +14,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
@@ -152,7 +152,7 @@ class SelfProfessionDiscoverScreenV2 extends StatefulWidget {
 
 class _SelfProfessionDiscoverScreenV2State
     extends State<SelfProfessionDiscoverScreenV2> {
-  final controller = DiscoverController.to;
+  final controller = ProfessionalDiscoverController.to;
   final String serviceSubType = 'selfWork';
   final String earnServiceType = AppConstants.service;
 
@@ -1645,7 +1645,7 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
 
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
 /// on [SelfProfessionDiscoverScreenV2]. Loads every provider (unpaginated) via
-/// [DiscoverController.fetchAllEarnServicesForMap] and renders them through
+/// [ProfessionalDiscoverController.fetchAllEarnServicesForMap] and renders them through
 /// `google_maps_flutter`'s built-in clustering so 100+ pins stay smooth —
 /// nearby providers collapse into a count badge that splits open on zoom-in.
 ///
@@ -1672,7 +1672,7 @@ class _SelfProfessionMapScreenV2State
   GoogleMapController? _mapController;
   BitmapDescriptor? _serviceIcon;
 
-  final DiscoverController _ctrl = Get.find<DiscoverController>();
+  final _ctrl = ProfessionalDiscoverController.to;
   static const ClusterManagerId _clusterManagerId =
       ClusterManagerId('self_profession_services_v2');
 

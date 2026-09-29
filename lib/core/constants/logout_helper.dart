@@ -83,6 +83,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -317,6 +318,8 @@ class LogoutHelper {
     // Holds any ongoing fare-call ride / multi-shop order; its onClose stops
     // the polls.
     _drop(() => deleteIfRegistered<DiscoverController>());
+    // Its Discover listings and the providers saved on this device.
+    _drop(() => deleteIfRegistered<ProfessionalDiscoverController>());
     _resetWalletAndReferralControllers();
     _resetPersonalProfileControllers();
   }

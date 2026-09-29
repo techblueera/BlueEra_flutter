@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/features/me/laboratory/binding/visited_lab_binding.dart';
 import 'dart:async';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -9,7 +10,6 @@ import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
@@ -831,7 +831,7 @@ print("type==== ${type}");
         // `service` opens the screen already hydrated; if the fetch returns
         // null we still hand over `userId` so the screen self-fetches and
         // shows its own loader/empty state.
-        final controller = DiscoverController.to;
+        final controller = ProfessionalDiscoverController.to;
         final ServiceData? service =
             await controller.getEarnServiceByUserId(id);
         Get.to(() => SelfEmployeeViewDiscoverScreen(
@@ -856,7 +856,7 @@ print("type==== ${type}");
   /// business reached via deep link / QR scan
   /// (`https://beapp.in/app/business/services/<userId>`). The link carries the
   /// owner (user) id used when the listing was shared. The screen fetches its
-  /// own [ProfessionalConsData] via `DiscoverController.getProfessionalByUserId`
+  /// own [ProfessionalConsData] via `ProfessionalDiscoverController.getProfessionalByUserId`
   /// in its initState (registering the controller itself), so passing the id as
   /// `userId` is enough to hydrate the full view — mirroring the in-app tap flow
   /// from the Discover professionals list.

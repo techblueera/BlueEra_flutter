@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -9,7 +10,6 @@ import 'package:BlueEra/features/common/Discover/view/healthcare/hospital_list_s
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_discover_list_screen.dart';
 import 'package:BlueEra/features/me/medical/view/pharmacy_stores_screen.dart';
@@ -38,7 +38,7 @@ class HealthCareListingScreen extends StatefulWidget {
 }
 
 class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
-  final controller = DiscoverController.to;
+  final controller = ProfessionalDiscoverController.to;
   late List<OnboardingCategoryModel> _professionalConsultantCategories;
   int _locationVersion = 0;
 
