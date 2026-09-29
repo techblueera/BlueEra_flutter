@@ -1,10 +1,9 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
-import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
+import 'package:BlueEra/features/ride_booking/service/ride_feedback_service.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +40,8 @@ class RideCompletedScreen extends StatefulWidget {
 }
 
 class _RideCompletedScreenState extends State<RideCompletedScreen> {
+  final _feedback = RideFeedbackService();
+
   int _rating = 0;
 
   /// Selected tags, held as the API's **slugs** rather than the labels on
@@ -449,19 +450,8 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
   /// RATING, not the report, so nothing is sent with it: the report sheet is
   /// one tap by design.
   Future<void> _submitReport(String reasonSlug) async {
-    final orderId = widget.booking.rideId;
-    if (orderId.isEmpty) {
-      commonSnackBar(message: 'Could not send your report. Please try again.');
-      return;
-    }
-
-    RideReportResult? result;
-    try {
-      result = await RideBookingRepo()
-          .reportRide(orderId: orderId, reason: reasonSlug);
-    } catch (e) {
-      log('ride report failed — order=$orderId reason=$reasonSlug: $e');
-    }
+    final result = await _feedback.report(
+        orderId: widget.booking.rideId, reasonSlug: reasonSlug);
 
     if (!mounted) return;
     if (result == null || !result.success) {
@@ -488,20 +478,12 @@ class _RideCompletedScreenState extends State<RideCompletedScreen> {
     // band is ever offered — so the server's "tags must match the star set"
     // rule cannot be violated from here. It is still worth knowing the rule
     // exists: a 5-star rating carrying `rash_driving` is a `400`.
-    final orderId = widget.booking.rideId;
-    RideRatingResult? result;
-    try {
-      if (orderId.isNotEmpty) {
-        result = await RideBookingRepo().rateRide(
-          orderId: orderId,
-          rating: _rating,
-          tags: _tags.toList(),
-          comment: _commentController.text,
-        );
-      }
-    } catch (e) {
-      log('ride rating failed — order=$orderId: $e');
-    }
+    final result = await _feedback.rate(
+      orderId: widget.booking.rideId,
+      rating: _rating,
+      tags: _tags.toList(),
+      comment: _commentController.text,
+    );
 
     if (!mounted) return;
     setState(() => _submitting = false);

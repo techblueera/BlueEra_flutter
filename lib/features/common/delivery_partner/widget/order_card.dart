@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 // Aliased: this file declares its own `User`, which collides with the order
 // payload's `User` from rider_orders_details_model.
-import 'package:BlueEra/core/api/model/user_profile_res.dart' as profile_res;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -16,11 +15,9 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/delivery_partner/service/customer_identity_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/ride_completed_rating_dialog.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -77,7 +74,7 @@ class _OrderCardState extends State<OrderCard> {
   /// category/sub-category for a business. Null until resolved, and stays null
   /// when the lookup fails: the card degrades to name + number rather than
   /// showing a gap where a line was promised.
-  _CustomerIdentity? _identity;
+  CustomerIdentity? _identity;
 
   @override
   void initState() {
@@ -150,71 +147,19 @@ class _OrderCardState extends State<OrderCard> {
     final userId = widget.order.user?.id;
     if (userId == null || userId.isEmpty) return;
 
-    final cached = _identityCache[userId];
+    final cached = CustomerIdentityService.cached(userId);
     if (cached != null) {
       _identity = cached;
       return; // already have it — no setState needed, build() reads it
     }
 
-    final identity = await _fetchCustomerIdentity(userId);
+    final identity = await CustomerIdentityService().fetch(userId);
     if (identity == null || !mounted) return;
     // The card may have been recycled onto a different order while in flight.
     if (widget.order.user?.id != userId) return;
     if (!mounted) return;
     setState(() => _identity = identity);
   }
-
-  static Future<_CustomerIdentity?> _fetchCustomerIdentity(String userId) {
-    // De-dupe concurrent lookups: several cards in one list can belong to the
-    // same customer, and they all build at once.
-    return _identityInFlight.putIfAbsent(userId, () async {
-      try {
-        final response = await UserRepo().getUserById(userId: userId);
-        if (!response.isSuccess || response.response?.data == null) return null;
-
-        final user = profile_res.UserProfileRes
-            .fromJson(response.response?.data)
-            .user;
-        final isBusiness =
-            (user?.accountType ?? '').toUpperCase().contains('BUSINESS');
-
-        final identity = isBusiness
-            ? await _fetchBusinessIdentity(userId)
-            // Individual: profession is the headline; designation is the
-            // fallback for profiles that only filled the job title in.
-            : _CustomerIdentity.of(user?.profession ?? user?.designation);
-
-        if (identity != null) _identityCache[userId] = identity;
-        return identity;
-      } catch (_) {
-        // Fail soft — the row still has the name and number, which is what the
-        // rider actually needs at the kerb.
-        return null;
-      } finally {
-        _identityInFlight.remove(userId);
-      }
-    });
-  }
-
-  /// Business customers: category, narrowed by sub-category when both are set.
-  /// Only the resolved `*_details.name` values are used — the bare
-  /// `category_Of_Business` fields are ids, which would render as a hash.
-  static Future<_CustomerIdentity?> _fetchBusinessIdentity(String userId) async {
-    final response = await BusinessProfileRepo().viewBusinessProfileById(userId);
-    if (!response.isSuccess || response.response?.data == null) return null;
-
-    final details =
-        ViewBusinessProfileModel.fromJson(response.response?.data).data;
-    return _CustomerIdentity.of(
-      details?.categoryDetails?.name,
-      secondary: details?.subCategoryDetails?.name,
-      isBusiness: true,
-    );
-  }
-
-  /// Keyed by user id, shared across every card in the list.
-  static final Map<String, _CustomerIdentity> _identityCache = {};
-  static final Map<String, Future<_CustomerIdentity?>> _identityInFlight = {};
 
   @override
   Widget build(BuildContext context) {
@@ -1560,7 +1505,7 @@ class _OrderCardState extends State<OrderCard> {
 
   /// The profession / category line, tinted to read as an attribute of the
   /// customer rather than a second name.
-  Widget _buildCustomerIdentityLine(_CustomerIdentity identity) {
+  Widget _buildCustomerIdentityLine(CustomerIdentity identity) {
     return Row(
       children: [
         Icon(
@@ -2277,45 +2222,6 @@ class _OrderCardState extends State<OrderCard> {
   String _formatTime(String isoString) {
     final dateTime = DateTime.parse(isoString).toLocal();
     return DateFormat('hh:mm a').format(dateTime);
-  }
-}
-
-/// What the customer does, for the ongoing ride card's customer row.
-///
-/// One type for both account kinds because the row renders them identically —
-/// only the icon differs — and the card should not have to know which lookup
-/// produced the text.
-class _CustomerIdentity {
-  /// `Plumber`, or `Restaurant · Bakery` for a business with a sub-category.
-  final String label;
-  final bool isBusiness;
-
-  const _CustomerIdentity({required this.label, required this.isBusiness});
-
-  /// Builds an identity from values that are routinely null or blank, returning
-  /// null when there is nothing worth showing. [secondary] narrows [primary]
-  /// (sub-category under category) and is dropped when it merely repeats it.
-  ///
-  /// [isBusiness] is passed explicitly rather than inferred from [secondary]
-  /// being present: a business that never set a sub-category still has to read
-  /// as a business.
-  static _CustomerIdentity? of(
-    String? primary, {
-    String? secondary,
-    bool isBusiness = false,
-  }) {
-    final head = primary?.trim() ?? '';
-    final tail = secondary?.trim() ?? '';
-    if (head.isEmpty) {
-      return tail.isEmpty
-          ? null
-          : _CustomerIdentity(label: tail, isBusiness: isBusiness);
-    }
-    final sameThing = tail.isEmpty || tail.toLowerCase() == head.toLowerCase();
-    return _CustomerIdentity(
-      label: sameThing ? head : '$head · $tail',
-      isBusiness: isBusiness,
-    );
   }
 }
 

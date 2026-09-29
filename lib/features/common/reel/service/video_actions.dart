@@ -4,19 +4,24 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 
-/// One-off actions on a video post: delete, block its author, report it.
+/// One-off actions on a video post: delete, block or follow its author,
+/// report it.
 ///
 /// Callable from any screen (feed cards, the video player) without a
 /// registered controller. Each tells the user how it went and returns true on
 /// success; closing dialogs and updating lists is up to the caller.
 class VideoActions {
-  VideoActions({ChannelRepo? channelRepo, AuthRepo? authRepo})
+  VideoActions(
+      {ChannelRepo? channelRepo, AuthRepo? authRepo, UserRepo? userRepo})
       : _channelRepo = channelRepo ?? ChannelRepo(),
-        _authRepo = authRepo ?? AuthRepo();
+        _authRepo = authRepo ?? AuthRepo(),
+        _userRepo = userRepo ?? UserRepo();
 
   final ChannelRepo _channelRepo;
   final AuthRepo _authRepo;
+  final UserRepo _userRepo;
 
   /// Deletes the user's own video.
   Future<bool> deleteVideo(String videoId) async {
@@ -67,6 +72,24 @@ class VideoActions {
       }
       return true;
     } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  /// Follows ([follow] true) or unfollows the video's author.
+  Future<bool> setFollowing(String authorId, {required bool follow}) async {
+    try {
+      final response = follow
+          ? await _userRepo.followUser(followUserId: authorId)
+          : await _userRepo.unfollowUser(followUserId: authorId);
+      if (!response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+      return true;
+    } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     }
