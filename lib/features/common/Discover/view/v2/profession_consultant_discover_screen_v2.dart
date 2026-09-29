@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/model/category_filter.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';

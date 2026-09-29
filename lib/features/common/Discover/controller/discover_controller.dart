@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/model/category_filter.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_broadcast_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
@@ -6,27 +7,19 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
-import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
-import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/me/school/repo/school_repo.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +27,6 @@ import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import '../../../../core/api/model/new_food_home_res_model.dart';
 import '../model/get_booking_rider_model.dart';
 import '../model/multi_shop_rider_model.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
@@ -46,42 +38,6 @@ import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
 import 'rider_location_poll_controller.dart';
 import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
-
-enum CategoryFilter {
-  nearest('Nearest', AppStrings.filterNearest),
-  experienced('Experienced', AppStrings.filterExperienced),
-  priceLowToHigh('Price (Low-High)', AppStrings.filterPriceLowToHigh);
-
-  final String label;
-  final String _translationKey;
-
-  const CategoryFilter(this.label, this._translationKey);
-
-  /// Returns the translated label, falling back to the English [label]
-  /// if the current locale has no translation yet (so the UI never breaks
-  /// or shows raw keys while Hindi/other-language packs are still loading).
-  String get localizedLabel {
-    final translated = _translationKey.tr;
-    return translated == _translationKey ? label : translated;
-  }
-}
-
-enum DiscoverFilter {
-  home('Home', AppStrings.discoverHome),
-  deals('Deals', AppStrings.discoverDeals),
-  events('Events', AppStrings.discoverEvents),
-  careerJobs('Career / Jobs', AppStrings.discoverCareerJobs);
-
-  final String label;
-  final String _translationKey;
-
-  const DiscoverFilter(this.label, this._translationKey);
-
-  String get localizedLabel {
-    final translated = _translationKey.tr;
-    return translated == _translationKey ? label : translated;
-  }
-}
 
 class DiscoverController extends GetxController {
   /// The session's instance, registered on first use. Permanent: an ongoing
@@ -107,17 +63,10 @@ class DiscoverController extends GetxController {
   // var educationServiceResponse = ApiResponse.initial('Initial').obs;
   // var foodRestaurantServiceResponse = ApiResponse.initial('Initial').obs;
   var rentalServiceResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
   Set<Marker> markers = {};
-  final ScrollController scrollController = ScrollController();
-  Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
 
-  final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
-  Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
   Rx<OnboardingCategoryModel?> selectedEarnServiceData =
-  Rx<OnboardingCategoryModel?>(null);
-  Rx<OnboardingCategoryModel?> selectedProfConsServiceData =
   Rx<OnboardingCategoryModel?>(null);
   RxInt selectedTabIndex = 0.obs;
   final List<CategoryFilter> filters = CategoryFilter.values;
@@ -143,22 +92,13 @@ class DiscoverController extends GetxController {
       <ProfessionalConsData>[].obs;
   Rx<ApiResponse> professionalConsMapResponse =
       ApiResponse.initial('Initial').obs;
-  RxList<SchoolDetailsData> schoolDetailsDataDataList =
-      <SchoolDetailsData>[].obs;
 
-  RxList<FoodData> foodRestaurantDataList = <FoodData>[].obs;
   RxBool isEarnServiceLoading = false.obs;
   RxBool isProfConServiceLoading = false.obs;
-  RxBool isEducationServiceLoading = false.obs;
-  RxBool isFoodRestaurantLoading = false.obs;
   int earnServicePage = 1;
   int profConsServicePage = 1;
-  int educationServicePage = 1;
-  int foodRestaurantServicePage = 1;
   var isEarnServiceLoadingMore = false.obs;
   var isProfConServiceLoadingMore = false.obs;
-  var isEducationServiceLoadingMore = false.obs;
-  var isFoodRestaurantLoadingMore = false.obs;
   Rx<VehicleAllResponse> ridersDetailsList = VehicleAllResponse().obs;
   var bookingRiderListResponse = ApiResponse.initial('Initial').obs;
 
@@ -202,7 +142,6 @@ class DiscoverController extends GetxController {
   RxDouble? selectedToLong = 0.0.obs;
   RxString? selectedFromAddress = "".obs;
   RxString? selectedToAddress = "".obs;
-  RxString transportDistanceText = "".obs;
   RxDouble roadDistanceKm = 0.0.obs;
   RxString selectedRideType = AppConstants.oneWay.obs;
   RxString selectedBookingFor = AppConstants.mySelf.obs;
@@ -333,18 +272,7 @@ class DiscoverController extends GetxController {
   /// Consultant Service
   Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData =
   Rx<OnboardingCategoryModel?>(null);
-  Rx<OnboardingCategoryModel?> selectedEducationServiceData =
-  Rx<OnboardingCategoryModel?>(null);
 
-  Rx<OnboardingCategoryModel?> selectedFoodServiceData =
-  Rx<OnboardingCategoryModel?>(null);
-
-  /// Products
-  RxList<GetProductData> productDataList = <GetProductData>[].obs;
-  RxBool isProductDataLoadingMore = false.obs;
-  RxBool isProductDataFirstLoading = false.obs;
-  int productDataPage = 1;
-  bool productDataHasMore = true;
 
   // final List<CollapsibleGridModel> discoverOptions = [
   //   CollapsibleGridModel(
@@ -412,104 +340,6 @@ class DiscoverController extends GetxController {
   //       icon: AppImageAssets.tutor),
   // ];
   // final selectedOption = Rxn<CollapsibleGridModel>();
-
-  ///GET STORE PRODUCT ONLY....
-  Future<void> getAllProductNearBy(
-      {ProviderType? providerType,
-        String? productCategory,
-        bool isLoadMore = false,
-        String? query}) async {
-    if (isLoadMore) {
-      if (isProductDataLoadingMore.value || !productDataHasMore) return;
-      isProductDataLoadingMore.value = true;
-    } else {
-      isProductDataFirstLoading.value = true;
-      productDataPage = 1;
-      productDataHasMore = true;
-      productDataList.clear();
-
-      // /// fetch local data not for search
-      // if(query == null){
-      //   final cachedProduct = await HiveServices().getAllStoreProduct(userId);
-      //   if (cachedProduct != null && cachedProduct.isNotEmpty) {
-      //     productDataList.assignAll(cachedProduct);
-      //     isProductDataFirstLoading.value = false;
-      //   }
-      // }
-    }
-
-    try {
-      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
-
-      const int limit = 20;
-
-      // Build query parameters dynamically
-      final Map<String, dynamic> queryParams = {
-        ApiKeys.page: productDataPage,
-        ApiKeys.limit: limit,
-        ApiKeys.maxDistance: kmRadius5000,
-      };
-      double lat = LocationService.lat != 0.0 ? LocationService.lat : 0.0;
-      double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;
-
-      if ((lat != 0.0) && (long != 0.0)) {
-        queryParams[ApiKeys.latitude] = lat;
-        queryParams[ApiKeys.longitude] = long;
-      }
-      if (providerType != null)
-        queryParams[ApiKeys.ownerType] = providerType.title;
-      if (productCategory != null) queryParams[ApiKeys.key] = productCategory;
-
-      final response;
-      if (query != null) {
-        response =
-        await StoreRepo().productSearchFilterRepo(queryParams: queryParams);
-      } else {
-        if (productCategory != null) {
-          response =
-          await StoreRepo().productFilterRepo(queryParams: queryParams);
-        } else {
-          response =
-          await StoreRepo().homePageProductRepo(queryParams: queryParams);
-        }
-      }
-
-      if (response.isSuccess) {
-        productsResponse.value = ApiResponse.complete(response);
-        final getOwnProductModel =
-        GetProductModel.fromJson(response.response?.data);
-
-        final List<GetProductData> newData = getOwnProductModel.data;
-
-        if (newData.isNotEmpty) {
-          if (isLoadMore) {
-            productDataList.addAll(newData);
-          } else {
-            productDataList.assignAll(newData);
-            log('product data length--> ${productDataList.length}');
-            log('loggggg 1--> ${productDataList[0].product.business_name}');
-
-            if (query == null) {
-              await HiveServices().saveAllStoreProduct(productDataList, userId);
-            }
-          }
-          productDataPage++;
-        }
-      } else {
-        productDataHasMore = false;
-        productsResponse.value = ApiResponse.error('error');
-      }
-    } catch (e, s) {
-      log('stack trace --> $s');
-      productsResponse.value = ApiResponse.error('error');
-    } finally {
-      if (isLoadMore) {
-        isProductDataLoadingMore.value = false;
-      } else {
-        isProductDataFirstLoading.value = false;
-      }
-    }
-  }
 
   /// Service-enquiry submission used by the Discover self-profession
   /// "Enquire" form. **Dummy for now** — it simulates a successful network
@@ -1079,142 +909,6 @@ class DiscoverController extends GetxController {
       professionalConsMapResponse.value = ApiResponse.complete(response);
     } catch (e) {
       professionalConsMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  /// fetch Earn service
-  Future<void> fetchFoodRestaurantService({bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isFoodRestaurantLoadingMore.value || !hasMoreFoodRestaurantData) {
-        return;
-      }
-      isFoodRestaurantLoadingMore.value = true;
-    } else {
-      foodRestaurantDataList.clear();
-      isFoodRestaurantLoading.value = true;
-      foodRestaurantServicePage = 1;
-      hasMoreFoodRestaurantData = true;
-    }
-
-    ResponseModel response = await SchoolRepo().getSearchFoodRepo(
-        reqParm: selectedFoodServiceData.value?.slugId ?? "");
-
-    try {
-      if (response.isSuccess) {
-        // foodRestaurantServiceResponse.value = ApiResponse.complete(response);
-        final responseModel =
-        FoodRestaurantServiceModel.fromJson(response.response?.data);
-
-        List<FoodData> tempNewItems = responseModel.data ?? [];
-        if (tempNewItems.length < limit) {
-          hasMoreFoodRestaurantData = false;
-        }
-
-        if (isLoadMore) {
-          foodRestaurantDataList.addAll(tempNewItems);
-        } else {
-          foodRestaurantDataList.assignAll(tempNewItems);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          foodRestaurantServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          // foodRestaurantServiceResponse.value = ApiResponse.error('error');
-        }
-      }
-    } catch (e, s) {
-      print('stack trace --> $s');
-      // foodRestaurantServiceResponse.value = ApiResponse.error('error');
-    } finally {
-      if (isLoadMore) {
-        isFoodRestaurantLoadingMore.value = false;
-      } else {
-        isFoodRestaurantLoading.value = false;
-      }
-    }
-  }
-
-  /// Fetches education-category businesses (colleges, schools, etc.) using the
-  /// shared `business/filter` endpoint. The category slug
-  /// (e.g. `COLLEGE_UNIVERSITY`) comes from [selectedEducationServiceData].
-  ///
-  /// The endpoint returns business records (see [BusinessFilterResModel]).
-  /// Each is adapted into a [SchoolDetailsData] via [_businessToSchoolDetail]
-  /// so the existing UI (`AllEducationServiceScreen`, `DiscoverSchoolHomeScreen`,
-  /// `SchoolAboutUsController`) keeps working without a parallel rewrite —
-  /// they all consume `schoolDetailsDataDataList`.
-  Future<void> fetchEducationServiceServices({bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isEducationServiceLoadingMore.value || !hasMoreEducationServiceData) {
-        return;
-      }
-      isEducationServiceLoadingMore.value = true;
-    } else {
-      // NOT cleared here. `assignAll` below already replaces the list in one
-      // atomic step when the response lands, so this only ever blanked the
-      // screen for the length of a round trip — and a blank list has no scroll
-      // extent, so the viewport collapses to one screen and the position is
-      // clamped to zero. Every non-paging caller paid for that: switching
-      // category, retrying after an empty result, and submitting a rating
-      // (which reloads) all threw the reader back to the top.
-      isEducationServiceLoading.value = true;
-      educationServicePage = 1;
-      hasMoreEducationServiceData = true;
-    }
-
-    final Map<String, dynamic> queryParams = {
-      if (selectedEducationServiceData.value?.slugId != null)
-        ApiKeys.category: selectedEducationServiceData.value?.slugId,
-      if (selectedEducationServiceData.value?.slugId == null)
-        "typeOfBusiness": "Siksha",
-      ApiKeys.page: educationServicePage,
-      ApiKeys.limit: limit,
-    };
-
-    try {
-      final ResponseModel response = await DiscoverRepo()
-          .fetchBusinessFilterRepo(queryParams: queryParams);
-
-      if (response.isSuccess) {
-        final responseModel =
-        BusinessFilterResModel.fromJson(response.response?.data);
-
-        final List<BusinessFilterData> rawItems = responseModel.data ?? [];
-        final List<SchoolDetailsData> tempNewItems =
-        rawItems.map((b) => b.toSchoolDetail()).toList();
-
-        // Pagination: prefer the server's totalPages signal when available,
-        // and fall back to the page-size heuristic used elsewhere in this
-        // controller for consistency.
-        final pagination = responseModel.pagination;
-        if (pagination?.totalPages != null && pagination?.page != null) {
-          if (pagination!.page! >= pagination.totalPages!) {
-            hasMoreEducationServiceData = false;
-          }
-        } else if (tempNewItems.length < limit) {
-          hasMoreEducationServiceData = false;
-        }
-
-        if (isLoadMore) {
-          schoolDetailsDataDataList.addAll(tempNewItems);
-        } else {
-          schoolDetailsDataDataList.assignAll(tempNewItems);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          educationServicePage++;
-        }
-      }
-    } catch (e, s) {
-      print('stack trace --> $s');
-    } finally {
-      if (isLoadMore) {
-        isEducationServiceLoadingMore.value = false;
-      } else {
-        isEducationServiceLoading.value = false;
-      }
     }
   }
 
@@ -2946,4 +2640,4 @@ class ParcelCategoryModel {
       'description': description,
     };
   }
-}
+}
