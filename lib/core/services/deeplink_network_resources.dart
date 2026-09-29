@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -6,7 +7,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -116,15 +116,13 @@ class DeepLinkNetworkResources {
     // HotelDiscoverHomeScreen does `Get.find<ViewBusinessDetailsController>()`
     // in initState — make sure it exists on a cold-start deep link.
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-    final discover = DiscoverController.to;
-
     Get.dialog(
       const Center(child: CircularProgressIndicator()),
       barrierDismissible: false,
     );
     HotelServiceData? hotel;
     try {
-      hotel = await discover.fetchHotelByBusinessId(businessId);
+      hotel = await DiscoverRepo().fetchHotelByBusinessId(businessId);
     } catch (e) {
       logs('DEEPLINK_DEBUG: Error fetching hotel by businessId: $e');
     } finally {

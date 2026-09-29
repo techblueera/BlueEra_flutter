@@ -8,19 +8,16 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
-import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -62,7 +59,6 @@ class DiscoverController extends GetxController {
 
   // var educationServiceResponse = ApiResponse.initial('Initial').obs;
   // var foodRestaurantServiceResponse = ApiResponse.initial('Initial').obs;
-  var rentalServiceResponse = ApiResponse.initial('Initial').obs;
   Set<Marker> markers = {};
 
 
@@ -147,19 +143,6 @@ class DiscoverController extends GetxController {
   RxString selectedBookingFor = AppConstants.mySelf.obs;
   final myFriendPhoneController = TextEditingController();
 
-  /// Rental Services && Hotel Services
-  RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
-  RxList<HotelServiceData> hotelServices = <HotelServiceData>[].obs;
-
-  /// Unpaginated stay lists for the map view. Same separation rationale as
-  /// [earnServiceMapList] — list pagination state is left untouched.
-  RxList<RentalServiceData> rentalServicesMapList = <RentalServiceData>[].obs;
-  RxList<HotelServiceData> hotelServicesMapList = <HotelServiceData>[].obs;
-  Rx<ApiResponse> staysMapResponse = ApiResponse.initial('Initial').obs;
-  RxBool isRentalServiceLoading = false.obs;
-  int rentalServicePage = 1;
-  var isRentalServiceLoadingMore = false.obs;
-  bool hasMoreRentalServiceData = true;
 
   // --- Fare-call queue state ---
   RxBool isFareCallInProgress = false.obs;
@@ -218,8 +201,6 @@ class DiscoverController extends GetxController {
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
-  Rxn<OnboardingCategoryModel> selectedStayCategory =
-  Rxn<OnboardingCategoryModel>();
   RxString selectedParcelCategory = "Document".obs;
   final receiversNameController = TextEditingController();
   final receiversNumberController = TextEditingController();
@@ -241,18 +222,6 @@ class DiscoverController extends GetxController {
 
   void removeParcelDetails(ParcelCategoryModel value) {
     parcelDetailsList.remove(value);
-  }
-
-  var selectedRoomType = "".obs;
-
-  List<String> getDynamicRoomTypes(HotelServiceData hotelData) {
-    final rooms = hotelData.rooms ?? [];
-
-    return rooms
-        .map((e) => e.type ?? "")
-        .where((t) => t.isNotEmpty)
-        .toSet()
-        .toList();
   }
 
   void onSelectRider(RiderUser rider) {
@@ -346,7 +315,6 @@ class DiscoverController extends GetxController {
   // while a back-and-return for the same selection reuses the loaded list.
   final FetchCache _earnServiceCache = FetchCache();
   final FetchCache _profConCache = FetchCache();
-  final FetchCache _rentalCache = FetchCache();
 
   /// Radius (km) the earn-services search is scoped to — tightened to a real
   /// "near you" area (was 1500 km, which is national-scale). The v2 Book-Home-
@@ -442,14 +410,6 @@ class DiscoverController extends GetxController {
       return;
     }
     await fetchProfessionalConsultantServices();
-  }
-
-  /// Freshness-guarded variant of [fetchRentalServices].
-  Future<void> fetchRentalServicesIfNeeded(
-      {required RentalServiceType rentalServiceType}) async {
-    final sig = 'rental|${rentalServiceType.apiValue}';
-    if (_rentalCache.isFresh(sig, hasData: rentalServices.isNotEmpty)) return;
-    await fetchRentalServices(rentalServiceType: rentalServiceType);
   }
 
   /// fetch Earn service
@@ -2131,234 +2091,6 @@ class DiscoverController extends GetxController {
     OngoingRideStore.clear();
   }
 
-  /// Loads ALL rentals (unpaginated) for the map view.
-  Future<void> fetchAllRentalsForMap({
-    required RentalServiceType rentalServiceType,
-  }) async {
-    staysMapResponse.value = ApiResponse.initial('Initial');
-    final queryParams = <String, dynamic>{
-      ApiKeys.type: rentalServiceType.apiValue,
-      ApiKeys.radius: kmRadius1500,
-      ApiKeys.page: 1,
-      ApiKeys.limit: 1000,
-    };
-    try {
-      final response =
-      await DiscoverRepo().getRentalService(queryParams: queryParams);
-      if (!response.isSuccess) {
-        staysMapResponse.value = ApiResponse.error(response.message ?? 'error');
-        return;
-      }
-      final model = RentalServiceResponse.fromJson(response.response!.data);
-      rentalServicesMapList.assignAll(model.data ?? []);
-      hotelServicesMapList.clear();
-      staysMapResponse.value = ApiResponse.complete(response);
-    } catch (e) {
-      staysMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  /// Loads ALL hotels (unpaginated) for the map view.
-  Future<void> fetchAllHotelsForMap({required String category}) async {
-    staysMapResponse.value = ApiResponse.initial('Initial');
-    final queryParams = <String, dynamic>{
-      "categoryOfBusiness":category,
-      // ApiKeys.category: category,
-      ApiKeys.page: 1,
-      ApiKeys.limit: 1000,
-    };
-    try {
-      final response =
-      await DiscoverRepo().fetchHotelSearchRepo(queryParams: queryParams);
-      if (!response.isSuccess) {
-        staysMapResponse.value = ApiResponse.error(response.message ?? 'error');
-        return;
-      }
-      final model = HotelSearchModelResponse.fromJson(response.response!.data);
-      hotelServicesMapList.assignAll(model.data ?? []);
-      rentalServicesMapList.clear();
-      staysMapResponse.value = ApiResponse.complete(response);
-    } catch (e) {
-      staysMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  Future<void> fetchRentalServices(
-      {required RentalServiceType rentalServiceType,
-        bool isLoadMore = false}) async {
-    try {
-      if (isLoadMore) {
-        log('more rental data -- $hasMoreRentalServiceData');
-        if (isRentalServiceLoadingMore.value || !hasMoreRentalServiceData) {
-          return;
-        }
-        isRentalServiceLoadingMore.value = true;
-      } else {
-        rentalServices.clear();
-        isRentalServiceLoading.value = true;
-        rentalServicePage = 1;
-        hasMoreRentalServiceData = true;
-      }
-
-      Map<String, dynamic> queryParams = {
-        ApiKeys.type: rentalServiceType.apiValue,
-        // ApiKeys.lat: lat,
-        // ApiKeys.lng: lng,
-        ApiKeys.radius: kmRadius1500,
-        ApiKeys.page: rentalServicePage,
-        ApiKeys.limit: limit,
-      };
-
-      final response = await DiscoverRepo().getRentalService(
-        queryParams: queryParams,
-      );
-
-      if (response.isSuccess) {
-        rentalServiceResponse.value = ApiResponse.complete(response);
-
-        final responseModel =
-        RentalServiceResponse.fromJson(response.response!.data);
-
-        final List<RentalServiceData> tempNewItems = responseModel.data ?? [];
-
-        if (tempNewItems.length < limit) {
-          hasMoreRentalServiceData = false;
-        }
-
-        if (isLoadMore) {
-          rentalServices.addAll(tempNewItems);
-        } else {
-          rentalServices.assignAll(tempNewItems);
-          _rentalCache.mark('rental|${rentalServiceType.apiValue}');
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          rentalServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          rentalServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      }
-    } catch (e) {
-      rentalServiceResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-      // commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (isLoadMore) {
-        isRentalServiceLoadingMore.value = false;
-      } else {
-        isRentalServiceLoading.value = false;
-      }
-    }
-  }
-
-  Future<void> fetchHotelServices(
-      {required String category, bool isLoadMore = false}) async {
-    try {
-      if (isLoadMore) {
-        log('more rental data -- $hasMoreRentalServiceData');
-        if (isRentalServiceLoadingMore.value || !hasMoreRentalServiceData) {
-          return;
-        }
-        isRentalServiceLoadingMore.value = true;
-      } else {
-        hotelServices.clear();
-        isRentalServiceLoading.value = true;
-        rentalServicePage = 1;
-        hasMoreRentalServiceData = true;
-      }
-
-      Map<String, dynamic> queryParams = {
-        "categoryOfBusiness":category,
-
-        // ApiKeys.category: category,
-        ApiKeys.page: rentalServicePage,
-        ApiKeys.limit: limit,
-      };
-
-      final response = await DiscoverRepo().fetchHotelSearchRepo(
-        queryParams: queryParams,
-      );
-
-      if (response.isSuccess) {
-        rentalServiceResponse.value = ApiResponse.complete(response);
-
-        final responseModel =
-        HotelSearchModelResponse.fromJson(response.response!.data);
-
-        final List<HotelServiceData> tempNewItems = responseModel.data ?? [];
-
-        if (tempNewItems.length < limit) {
-          hasMoreRentalServiceData = false;
-        }
-
-        if (isLoadMore) {
-          hotelServices.addAll(tempNewItems);
-        } else {
-          hotelServices.assignAll(tempNewItems);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          rentalServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          rentalServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      }
-    } catch (e) {
-      rentalServiceResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (isLoadMore) {
-        isRentalServiceLoadingMore.value = false;
-      } else {
-        isRentalServiceLoading.value = false;
-      }
-    }
-  }
-
-  /// Fetches a single hotel (profile + rooms) by its owner [businessId].
-  ///
-  /// Backs the `https://beapp.in/app/hotel/<businessId>` deep link, which
-  /// opens [HotelDiscoverHomeScreen] — that screen needs a fully-hydrated
-  /// [HotelServiceData], not just an id. Uses the hotel search endpoint
-  /// filtered to the one business (mirroring [fetchProfessionalByUserId]) and
-  /// matches the result client-side so an unfiltered response can't return the
-  /// wrong hotel. Returns null when nothing matches.
-  Future<HotelServiceData?> fetchHotelByBusinessId(String businessId) async {
-    try {
-      final response = await DiscoverRepo().fetchHotelSearchRepo(
-        queryParams: {
-          ApiKeys.businessId: businessId,
-          ApiKeys.page: 1,
-          ApiKeys.limit: 50,
-        },
-      );
-      if (!response.isSuccess) return null;
-      final model = HotelSearchModelResponse.fromJson(response.response!.data);
-      final list = model.data ?? [];
-      if (list.isEmpty) return null;
-      for (final hotel in list) {
-        if (hotel.businessId == businessId ||
-            hotel.profile?.businessId == businessId) {
-          return hotel;
-        }
-      }
-      // Only fall back to the sole result when the endpoint already narrowed
-      // it down — never guess from a multi-item, unfiltered list.
-      return list.length == 1 ? list.first : null;
-    } catch (e) {
-      log('fetchHotelByBusinessId error: $e');
-      return null;
-    }
-  }
 }
 
 class ParcelCategoryModel {
@@ -2389,4 +2121,4 @@ class ParcelCategoryModel {
       'description': description,
     };
   }
-}
+}

@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -7,7 +8,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_booking_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -198,9 +198,8 @@ class HotelBookingSheet {
   static Future<List<HotelBookingRoomOption>> _fetchRoomsForListing(
       HotelBookingListing listing) async {
     try {
-      final controller = DiscoverController.to;
-      final hotel =
-          await controller.fetchHotelByBusinessId(listing.ownerId.trim());
+      final hotel = await DiscoverRepo()
+          .fetchHotelByBusinessId(listing.ownerId.trim());
       if (hotel == null) return const [];
       // fetchHotelByBusinessId already prefers the exact-businessId
       // match, but a multi-hotel owner can still return the wrong
