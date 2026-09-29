@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
@@ -22,7 +21,13 @@ import 'package:BlueEra/core/routes/safe_back.dart';
 
 enum LoadCapacity { KG, TON }
 
+/// The vehicle rental listing form. Registered by VehicleRentalBinding.
 class VehicleRentalServiceController extends GetxController {
+  VehicleRentalServiceController({RentalServiceRepo? repo})
+      : _repo = repo ?? RentalServiceRepo();
+
+  final RentalServiceRepo _repo;
+
   Rx<ApiResponse> addVehicleRentalServiceResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadImagesResponse = ApiResponse.initial('Initial').obs;
@@ -178,7 +183,8 @@ class VehicleRentalServiceController extends GetxController {
     nextStep();
   }
 
-  void validateStepFive() {
+  /// True when every photo section is uploaded, so the listing is complete.
+  bool validateStepFive() {
     for (var entry in vehicleImagesUploadStatus.entries) {
       String sectionId = entry.key;
       bool isUploaded = entry.value;
@@ -186,11 +192,11 @@ class VehicleRentalServiceController extends GetxController {
       if (!isUploaded) {
         String readableName = _vehicleSectionNames[sectionId] ?? "Section Images"; // Fallback name
         commonSnackBar(message: "⚠️ Missing: Please upload $readableName");
-        return;
+        return false;
       }
     }
 
-    Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+    return true;
 
 
     // if (vehicleNumberPlateImages.isEmpty) {
@@ -360,7 +366,7 @@ class VehicleRentalServiceController extends GetxController {
         })
       };
 
-      ResponseModel response = await RentalServiceRepo().addRentalServiceRepo(
+      ResponseModel response = await _repo.addRentalServiceRepo(
         params: params,
       );
 
@@ -430,7 +436,7 @@ class VehicleRentalServiceController extends GetxController {
         })
       };
 
-      ResponseModel response = await RentalServiceRepo().updateRentalServiceRepo(
+      ResponseModel response = await _repo.updateRentalServiceRepo(
         rentalId: rentalId!,
         params: params,
       );
@@ -509,7 +515,7 @@ class VehicleRentalServiceController extends GetxController {
         config.apiKey: imageParts,
       };
 
-      ResponseModel response = await RentalServiceRepo().uploadRentalImagesRepo(
+      ResponseModel response = await _repo.uploadRentalImagesRepo(
         rentalId: rentalId!,
         params: params,
       );

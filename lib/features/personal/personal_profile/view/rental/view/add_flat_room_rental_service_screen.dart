@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/place_details.dart';
@@ -45,10 +46,10 @@ class AddFlatRoomRentalServiceScreen extends StatefulWidget {
 }
 
 class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServiceScreen> {
-  final controller = getOrPut(() => AddFlatRentalServiceController());
+  final controller = Get.find<AddFlatRentalServiceController>();
   final langController = getOrPut(() => LanguageListController(), permanent: true);
-  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
-  final stayImagesController = getOrPut(() => StayImagesController());
+  final multipleImageSectionController = Get.find<CommonMultipleImageSectionController>();
+  final stayImagesController = Get.find<StayImagesController>();
 
   @override
   void initState() {
@@ -58,8 +59,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   @override
   void dispose() {
-    deleteIfRegistered<AddFlatRentalServiceController>();
-    deleteIfRegistered<StayImagesController>();
     super.dispose();
   }
 
@@ -481,7 +480,11 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
             title: controller.isAddFlatRentalServiceLoading.value
                 ? null
                 : AppStrings.postNowButton,
-            onTap: ()=> controller.validateStepFour(stayImagesController),
+            onTap: () {
+              if (controller.validateStepFour(stayImagesController)) {
+                Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+              }
+            },
             radius: 10.0,
             bgColor: AppColors.primaryColor,
             isLoading: controller.isAddFlatRentalServiceLoading.value,

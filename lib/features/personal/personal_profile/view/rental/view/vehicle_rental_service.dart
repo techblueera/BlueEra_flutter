@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
@@ -48,9 +49,9 @@ class VehicleRentalService extends StatefulWidget {
 }
 
 class _VehicleRentalServiceState extends State<VehicleRentalService> {
-  final controller = getOrPut(() => VehicleRentalServiceController());
+  final controller = Get.find<VehicleRentalServiceController>();
   final langController = getOrPut(() => LanguageListController(), permanent: true);
-  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
+  final multipleImageSectionController = Get.find<CommonMultipleImageSectionController>();
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
   final emailVerificationController = getOrPut(() => EmailVerificationController());
   final myDocumentsController = MyDocumentsController.to;
@@ -75,7 +76,6 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
   @override
   void dispose() {
-    deleteIfRegistered<VehicleRentalServiceController>();
     super.dispose();
   }
 
@@ -847,7 +847,11 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
             CustomBtn(
               title: AppStrings.postNowButton,
-              onTap: controller.validateStepFive,
+              onTap: () {
+                if (controller.validateStepFive()) {
+                  Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+                }
+              },
               radius: 10.0,
               bgColor: AppColors.primaryColor,
             )

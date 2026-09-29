@@ -5,9 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/stay_images_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
@@ -16,7 +14,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
-class HomeStayRentalServiceController extends GetxController{
+/// The home-stay rental listing form. Registered by HomeStayRentalBinding.
+class HomeStayRentalServiceController extends GetxController {
+  HomeStayRentalServiceController(
+      {required this.stayImagesController, RentalServiceRepo? repo})
+      : _repo = repo ?? RentalServiceRepo();
+
+  final RentalServiceRepo _repo;
+
   Rx<ApiResponse> addHomeStayRentalServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> generateHomeRentalServiceResponse = ApiResponse.initial('Initial').obs;
 
@@ -100,7 +105,7 @@ class HomeStayRentalServiceController extends GetxController{
     return '';
   }
 
-  final stayImagesController = getOrPut(() => StayImagesController());
+  final StayImagesController stayImagesController;
 
   // Update time controllers when dropdown values change
   void updateCheckInTimeController() {
@@ -162,7 +167,8 @@ class HomeStayRentalServiceController extends GetxController{
 
   }
 
-  void validateStepFour(StayImagesController stayImagesController){
+  /// True when every photo section is uploaded, so the listing is complete.
+  bool validateStepFour(StayImagesController stayImagesController){
 
     for (var entry in stayImagesController.sectionUploadStatus.entries) {
       String sectionId = entry.key;
@@ -171,11 +177,11 @@ class HomeStayRentalServiceController extends GetxController{
       if (!isUploaded) {
         String readableName = stayImagesController.sectionNames[sectionId] ?? "Section Images"; // Fallback name
         commonSnackBar(message: "⚠️ Missing: Please upload $readableName");
-        return;
+        return false;
       }
     }
 
-    Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+    return true;
 
 
   }
@@ -318,7 +324,7 @@ class HomeStayRentalServiceController extends GetxController{
         // if(otherParts.isNotEmpty) ApiKeys.otherImages: otherParts,
       };
 
-      ResponseModel response = await RentalServiceRepo().addRentalServiceRepo(
+      ResponseModel response = await _repo.addRentalServiceRepo(
         params: params,
       );
 
@@ -392,7 +398,7 @@ class HomeStayRentalServiceController extends GetxController{
         if(arrMoreRestriction.isNotEmpty) ApiKeys.additionalRules: jsonEncode(arrMoreRestriction),
       };
 
-      ResponseModel response = await RentalServiceRepo().updateRentalServiceRepo(
+      ResponseModel response = await _repo.updateRentalServiceRepo(
         rentalId: rentalId!,
         params: params,
       );
@@ -442,7 +448,7 @@ class HomeStayRentalServiceController extends GetxController{
         ApiKeys.propertyHighlight: jsonEncode(arrHighlights)
       };
 
-      ResponseModel response = await RentalServiceRepo().generateHomeDescriptionRepo(
+      ResponseModel response = await _repo.generateHomeDescriptionRepo(
         params: params,
       );
 

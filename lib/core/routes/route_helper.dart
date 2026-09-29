@@ -93,6 +93,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/binding/shell_bindin
 import 'package:BlueEra/features/common/jobs/binding/create_job_post_binding.dart';
 import 'package:BlueEra/features/common/map/binding/add_place_binding.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/binding/booking_enquiry_bindings.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/binding/rental_bindings.dart';
 import 'package:BlueEra/features/common/post/binding/message_post_binding.dart';
 import 'package:BlueEra/features/common/post/binding/photo_post_binding.dart';
 import 'package:BlueEra/features/common/post/binding/poll_binding.dart';
@@ -1359,7 +1360,8 @@ class RouteHelper {
         return _getRoute(
             () => AddFlatRoomRentalServiceScreen(),
             settings:
-                RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
+                RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()),
+            binding: AddFlatRentalBinding());
       // case RouteConstant.personalInformationRidingScreen:
       //   return MaterialPageRoute(
       //       builder: (_) => PersonalInformationRidingScreen(
@@ -1391,11 +1393,13 @@ class RouteHelper {
       case RouteConstant.homeStayRentalService:
         return _getRoute(
             () => HomeStayRentalService(),
-            settings: RouteSettings(name: getHomeStayRentalServiceRoute()));
+            settings: RouteSettings(name: getHomeStayRentalServiceRoute()),
+            binding: HomeStayRentalBinding());
       case RouteConstant.vehicleRentalService:
         return _getRoute(
             () => VehicleRentalService(),
-            settings: RouteSettings(name: getVehicleRentalServiceRoute()));
+            settings: RouteSettings(name: getVehicleRentalServiceRoute()),
+            binding: VehicleRentalBinding());
       case RouteConstant.rentalServiceFullDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final RentalServiceData rentalServiceData =

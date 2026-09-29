@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -42,11 +43,11 @@ class HomeStayRentalService extends StatefulWidget {
 }
 
 class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
-  final controller = getOrPut(() => HomeStayRentalServiceController());
+  final controller = Get.find<HomeStayRentalServiceController>();
   final langController = getOrPut(() => LanguageListController(), permanent: true);
-  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
+  final multipleImageSectionController = Get.find<CommonMultipleImageSectionController>();
   final myDocumentController = MyDocumentsController.to;
-  final stayImagesController = getOrPut(() => StayImagesController());
+  final stayImagesController = Get.find<StayImagesController>();
 
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
@@ -62,8 +63,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
   @override
   void dispose() {
-    deleteIfRegistered<HomeStayRentalServiceController>();
-    deleteIfRegistered<StayImagesController>();
     super.dispose();
   }
 
@@ -881,7 +880,11 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
           CustomBtn(
             title:AppStrings.postNowButton,
-            onTap: ()=> controller.validateStepFour(stayImagesController),
+            onTap: () {
+              if (controller.validateStepFour(stayImagesController)) {
+                Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+              }
+            },
             radius: 10.0,
             bgColor: AppColors.primaryColor,
           )
