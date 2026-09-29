@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
@@ -39,7 +38,7 @@ class GenericDocumentWidget extends StatelessWidget {
     super.key,
   });
 
-  final controller = getOrPut(() => MyDocumentsController());
+  final controller = MyDocumentsController.to;
 
   @override
   Widget build(BuildContext context) {

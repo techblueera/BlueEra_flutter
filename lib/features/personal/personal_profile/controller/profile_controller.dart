@@ -49,7 +49,7 @@ class VisitProfileController extends GetxController {
     selectedState.value = state;
   }
 
-  final personalController = Get.put(PersonalCreateProfileController());
+  final personalController = PersonalCreateProfileController.to;
   final personalProfileDetails = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   RxBool isProfileLoading=false.obs;
   Future<void> fetchUserById({required String userId}) async {

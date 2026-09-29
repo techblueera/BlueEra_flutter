@@ -56,7 +56,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   final ViewPersonalDetailsController viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
   final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        PersonalCreateProfileController.to;
   final TextEditingController bioController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isFormValid = false;

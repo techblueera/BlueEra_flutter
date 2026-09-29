@@ -38,6 +38,13 @@ class DocumentMeta {
 }
 
 class MyDocumentsController extends GetxController {
+  /// The signed-in user's documents, registered on first use. Permanent: the
+  /// profile setup, document and rental screens share it; logout deletes it
+  /// (LogoutHelper._resetPersonalProfileControllers).
+  static MyDocumentsController get to => Get.isRegistered<MyDocumentsController>()
+      ? Get.find<MyDocumentsController>()
+      : Get.put(MyDocumentsController(), permanent: true);
+
   Rx<ApiResponse> fetchAllDocumentResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> fetchAllDocumentStatusResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> uploadInitResponse = ApiResponse.initial('Initial').obs;

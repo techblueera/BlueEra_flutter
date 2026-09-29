@@ -18,6 +18,13 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PersonalCreateProfileController extends GetxController {
+  /// The signed-in user's profile editor state, registered on first use.
+  /// Permanent: the Me tabs, profile sheets and profile setup share it; logout
+  /// deletes it (LogoutHelper._resetPersonalProfileControllers).
+  static PersonalCreateProfileController get to => Get.isRegistered<PersonalCreateProfileController>()
+      ? Get.find<PersonalCreateProfileController>()
+      : Get.put(PersonalCreateProfileController(), permanent: true);
+
   ApiResponse updateUserProfileResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> deleteProjectResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteExperienceResponse = ApiResponse.initial('Initial').obs;

@@ -51,7 +51,7 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
   final ctrl = Get.put(SocialHomeController());
 
   final personalCreateProfileController =
-      getOrPut(() => PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
 
   final viewProfileController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);

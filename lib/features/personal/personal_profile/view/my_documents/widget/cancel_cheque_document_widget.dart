@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -19,7 +18,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
   final String documentType;
   CancelChequeDocumentWidget({super.key, required this.documentType});
 
-  final controller = getOrPut(() => MyDocumentsController());
+  final controller = MyDocumentsController.to;
 
   @override
   Widget build(BuildContext context) {

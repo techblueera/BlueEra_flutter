@@ -78,6 +78,9 @@ import 'package:BlueEra/features/me/others/controller/other_service_photo_contro
 import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -310,6 +313,7 @@ class LogoutHelper {
     // running for the previous account's ride.
     _drop(() => deleteIfRegistered<RideBookingController>());
     _resetWalletAndReferralControllers();
+    _resetPersonalProfileControllers();
   }
 
   /// Drops the wallet, coin and referral controllers.
@@ -325,6 +329,18 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<ReferralController>());
     _drop(() => deleteIfRegistered<WalletController>());
     _drop(() => deleteIfRegistered<EarnCoinController>());
+  }
+
+  /// Drops the signed-in user's profile editor, earn profiles and documents.
+  ///
+  /// They are registered permanently (their `to` accessors) because the Me tabs,
+  /// profile sheets and setup screens share them for the whole session, so
+  /// nothing else frees them: without this the next account would see the
+  /// previous one's profession, earn profiles and uploaded documents.
+  static void _resetPersonalProfileControllers() {
+    _drop(() => deleteIfRegistered<PersonalCreateProfileController>());
+    _drop(() => deleteIfRegistered<EarnProfileController>());
+    _drop(() => deleteIfRegistered<MyDocumentsController>());
   }
 
   /// Drops the "other service" business-profile controllers.

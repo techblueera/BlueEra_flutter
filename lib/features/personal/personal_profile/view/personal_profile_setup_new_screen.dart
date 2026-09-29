@@ -117,9 +117,9 @@ class _PersonalProfileSetupNewScreenState
     extends State<PersonalProfileSetupNewScreen> with TickerProviderStateMixin {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final personalCreateProfileController =
-      getOrPut(() => PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
   final bookingTabController = getOrPut(() => BookingController());
-  final myDocumentsController = getOrPut(() => MyDocumentsController());
+  final myDocumentsController = MyDocumentsController.to;
   final introVideoController = getOrPut(() => IntroductionVideoController());
 
   final youtubeController = TextEditingController();
@@ -637,7 +637,7 @@ class _PersonalProfileSetupNewScreenState
   void _showCategoryBottomSheet() {
     final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
     final authController = getOrPut(() => AuthController());
-    final personalController = getOrPut(()=> PersonalCreateProfileController());
+    final personalController = PersonalCreateProfileController.to;
 
     final user = controller.personalProfileDetails.value.user;
     IndividualProfileTypeModel _selectedProfileType =

@@ -46,7 +46,7 @@ class EditProfileBottomSheet extends StatefulWidget {
 
 class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
+  final _personalCtrl = PersonalCreateProfileController.to;
   final _viewCtrl = getOrPut(
     () => ViewPersonalDetailsController(),
     permanent: true,

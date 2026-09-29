@@ -69,7 +69,7 @@ class ProfessionalsMainScreen extends StatefulWidget {
 class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   final _ctrl = Get.put(AiProfessionalsController());
-  final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
+  final _personalCtrl = PersonalCreateProfileController.to;
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   late final TabController _tabController;

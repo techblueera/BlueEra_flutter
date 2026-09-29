@@ -45,7 +45,7 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
   final controller = getOrPut(() => HomeStayRentalServiceController());
   final langController = getOrPut(() => LanguageListController(), permanent: true);
   final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
-  final myDocumentController = getOrPut(() => MyDocumentsController());
+  final myDocumentController = MyDocumentsController.to;
   final stayImagesController = getOrPut(() => StayImagesController());
 
   RxString currentAddress = ''.obs;

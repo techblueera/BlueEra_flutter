@@ -44,7 +44,7 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
   @override
   void initState() {
     super.initState();
-    earnProfileController = getOrPut(() => EarnProfileController());
+    earnProfileController = EarnProfileController.to;
     earnServiceController = getOrPut(() => EarnServiceController());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       earnServiceController.fetchOwnProducts();

@@ -31,7 +31,7 @@ class EarnStoreCards extends StatefulWidget {
 
 class _EarnStoreCardsState extends State<EarnStoreCards> {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
-  final _earnProfileCtrl = getOrPut(() => EarnProfileController());
+  final _earnProfileCtrl = EarnProfileController.to;
   final _earnServiceCtrl = getOrPut(() => EarnServiceController());
 
   // The three earn flavours surfaced in the Store tab, in display order.

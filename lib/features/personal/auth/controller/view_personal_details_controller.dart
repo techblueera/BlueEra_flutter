@@ -849,7 +849,7 @@ class ViewPersonalDetailsController extends GetxController
       return;
     }
 
-    final personalController = Get.put(PersonalCreateProfileController());
+    final personalController = PersonalCreateProfileController.to;
 
     // 1. Hydrate from cache immediately so the UI isn't blank while
     //    the silent network refresh below is in flight. The repo call
@@ -1359,7 +1359,7 @@ class ViewPersonalDetailsController extends GetxController
   void showBioUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        PersonalCreateProfileController.to;
     final ViewPersonalDetailsController viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
     final TextEditingController bioController = TextEditingController();
@@ -1453,7 +1453,7 @@ class ViewPersonalDetailsController extends GetxController
   void showEducationUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        PersonalCreateProfileController.to;
     final viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
 

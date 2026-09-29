@@ -94,7 +94,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
     registerMeTabBackHandler(_tabController);
     // Register the personal-profile controller up front so the Overview tab's
     // identity card can drive cover/avatar edits from a shared instance.
-    getOrPut(() => PersonalCreateProfileController());
+    PersonalCreateProfileController.to;
     _viewCtrl.UserFollowersAndPostsCount(userId);
     // Load per-tab data lazily on first activation instead of all up front.
     _tabController.addListener(_onTabChanged);

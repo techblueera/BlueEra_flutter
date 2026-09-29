@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
@@ -17,7 +16,7 @@ class ViewDocumentWidget extends StatelessWidget {
 
   ViewDocumentWidget({super.key, required this.document});
 
-  final controller = getOrPut(() => MyDocumentsController());
+  final controller = MyDocumentsController.to;
 
   @override
   Widget build(BuildContext context) {

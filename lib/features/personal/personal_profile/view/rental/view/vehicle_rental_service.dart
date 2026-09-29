@@ -53,7 +53,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
   final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
   final emailVerificationController = getOrPut(() => EmailVerificationController());
-  final myDocumentsController = getOrPut(() => MyDocumentsController());
+  final myDocumentsController = MyDocumentsController.to;
 
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
 

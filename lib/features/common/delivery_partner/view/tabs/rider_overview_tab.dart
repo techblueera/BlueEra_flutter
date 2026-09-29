@@ -59,7 +59,7 @@ class RiderOverviewTab extends StatelessWidget {
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   PersonalCreateProfileController get _personalCtrl =>
-      getOrPut(() => PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
 
   @override
   Widget build(BuildContext context) {
