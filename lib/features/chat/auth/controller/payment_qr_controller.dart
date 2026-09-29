@@ -26,6 +26,11 @@ import 'package:get/get.dart';
 /// Image uploads (QR image, screenshot) reuse the existing chat S3 presigned
 /// flow via [ChatViewRepo].
 class PaymentQrController extends GetxController {
+  /// One instance for the session, whichever screen asks first; logout drops it.
+  static PaymentQrController get to => Get.isRegistered<PaymentQrController>()
+      ? Get.find<PaymentQrController>()
+      : Get.put(PaymentQrController(), permanent: true);
+
   final PaymentQrRepo _repo = PaymentQrRepo();
 
   // ── My QRs (owner side) ──────────────────────────────────────────────────

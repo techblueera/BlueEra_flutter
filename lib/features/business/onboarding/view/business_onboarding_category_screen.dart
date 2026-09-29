@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
@@ -21,8 +20,7 @@ class BusinessOnboardingCategoryScreen extends StatefulWidget {
 
 class _BusinessOnboardingCategoryScreenState
     extends State<BusinessOnboardingCategoryScreen> {
-  final controller =
-      getOrPut(() => BusinessOnboardingController(), permanent: true);
+  final controller = BusinessOnboardingController.to;
 
   @override
   void initState() {

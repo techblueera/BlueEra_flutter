@@ -13,6 +13,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PortfolioProfessionalsController extends GetxController {
+  /// One instance for the session, whichever screen asks first; logout drops it.
+  static PortfolioProfessionalsController get to => Get.isRegistered<PortfolioProfessionalsController>()
+      ? Get.find<PortfolioProfessionalsController>()
+      : Get.put(PortfolioProfessionalsController(), permanent: true);
+
   final ProfessionalsRepo _repo = ProfessionalsRepo();
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();

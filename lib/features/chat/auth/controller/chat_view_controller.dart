@@ -1094,9 +1094,7 @@ class ChatViewController extends GetxController {
       // the PaymentQrController so the "Payments received" tab refreshes and an
       // incoming payment card is injected into the open conversation.
       chatSocket.listenEvent(ChatEmitEvents.paymentReceived, (data) {
-        final controller = Get.isRegistered<PaymentQrController>()
-            ? Get.find<PaymentQrController>()
-            : Get.put(PaymentQrController(), permanent: true);
+        final controller = PaymentQrController.to;
         controller.handlePaymentReceived(data);
       });
 
@@ -2082,15 +2080,11 @@ class ChatViewController extends GetxController {
       // Payment resolved by the payee — tell the PAYER. Without this the
       // customer's card sits on "waiting for the shop" forever.
       chatSocket.listenEvent(ChatEmitEvents.paymentVerified, (data) {
-        final controller = Get.isRegistered<PaymentQrController>()
-            ? Get.find<PaymentQrController>()
-            : Get.put(PaymentQrController(), permanent: true);
+        final controller = PaymentQrController.to;
         controller.handlePaymentResolved(data, verified: true);
       });
       chatSocket.listenEvent(ChatEmitEvents.paymentRejected, (data) {
-        final controller = Get.isRegistered<PaymentQrController>()
-            ? Get.find<PaymentQrController>()
-            : Get.put(PaymentQrController(), permanent: true);
+        final controller = PaymentQrController.to;
         controller.handlePaymentResolved(data, verified: false);
       });
 

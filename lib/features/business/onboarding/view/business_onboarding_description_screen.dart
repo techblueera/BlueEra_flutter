@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
 import 'package:BlueEra/features/business/onboarding/widget/business_onboarding_progress_bar.dart';
@@ -13,7 +12,7 @@ import 'package:get/get.dart';
 class BusinessOnboardingDescriptionScreen extends StatelessWidget {
   BusinessOnboardingDescriptionScreen({super.key});
 
-  final controller = getOrPut(() => BusinessOnboardingController());
+  final controller = BusinessOnboardingController.to;
 
   @override
   Widget build(BuildContext context) {

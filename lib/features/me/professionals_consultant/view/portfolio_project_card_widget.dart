@@ -35,8 +35,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
       : super(key: key);
 
   // final portfolioController = Get.find<PortfolioProfessionalsController>();
-  final portfolioController =
-      getOrPut(() => PortfolioProfessionalsController(), permanent: true);
+  final portfolioController = PortfolioProfessionalsController.to;
   String? formattedDate;
 
   @override

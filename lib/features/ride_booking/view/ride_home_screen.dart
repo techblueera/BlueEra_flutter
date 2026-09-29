@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
@@ -123,7 +122,7 @@ class _RideHomeScreenState extends State<RideHomeScreen>
     // — after which tapping the mini-map threw "RideBookingController not
     // found". State is cleared by resetTrip() at the end of a ride, not by
     // disposal, so nothing leaks between bookings.
-    controller = getOrPut(() => RideBookingController(), permanent: true);
+    controller = RideBookingController.to;
     // Not for this screen any more — the fare list two screens on names its
     // rows from the catalogue, and it is cached for the app run, so fetching
     // it here means it has landed by the time that screen opens.

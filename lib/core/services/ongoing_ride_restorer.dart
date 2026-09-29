@@ -39,7 +39,7 @@ class OngoingRideRestorer {
     if (snap[OngoingRideStore.flowKey] != OngoingRideStore.flowRideBooking) {
       return false;
     }
-    return getOrPut(() => RideBookingController()).restoreOngoingRide();
+    return RideBookingController.to.restoreOngoingRide();
   }
 
   /// Restore the snapshot if there is one and nothing is being tracked yet.

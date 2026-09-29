@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
@@ -17,7 +16,7 @@ import 'package:get/get.dart';
 class BusinessOnboardingPhotoScreen extends StatelessWidget {
   BusinessOnboardingPhotoScreen({super.key});
 
-  final controller = getOrPut(() => BusinessOnboardingController());
+  final controller = BusinessOnboardingController.to;
 
   @override
   Widget build(BuildContext context) {

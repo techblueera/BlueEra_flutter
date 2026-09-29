@@ -2,7 +2,6 @@ import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -85,8 +84,7 @@ class _OrderPaymentSheet extends StatefulWidget {
 }
 
 class _OrderPaymentSheetState extends State<_OrderPaymentSheet> {
-  final PaymentQrController _qrController =
-      getOrPut(() => PaymentQrController(), permanent: true);
+  final PaymentQrController _qrController = PaymentQrController.to;
 
   final TextEditingController _utr = TextEditingController();
   final TextEditingController _amount = TextEditingController();
