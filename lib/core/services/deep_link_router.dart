@@ -831,7 +831,7 @@ print("type==== ${type}");
         // `service` opens the screen already hydrated; if the fetch returns
         // null we still hand over `userId` so the screen self-fetches and
         // shows its own loader/empty state.
-        final controller = getOrPut(() => DiscoverController());
+        final controller = DiscoverController.to;
         final ServiceData? service =
             await controller.getEarnServiceByUserId(id);
         Get.to(() => SelfEmployeeViewDiscoverScreen(

@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
@@ -39,7 +38,7 @@ class HealthCareListingScreen extends StatefulWidget {
 }
 
 class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
-  final controller = getOrPut(() => DiscoverController());
+  final controller = DiscoverController.to;
   late List<OnboardingCategoryModel> _professionalConsultantCategories;
   int _locationVersion = 0;
 

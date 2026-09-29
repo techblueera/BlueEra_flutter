@@ -84,6 +84,22 @@ enum DiscoverFilter {
 }
 
 class DiscoverController extends GetxController {
+  /// The session's instance, registered on first use. Permanent: an ongoing
+  /// fare-call ride or multi-shop order lives here and must outlast whichever
+  /// booking screen started it (the ongoing-ride chip and card read it from
+  /// home); logout deletes it.
+  static DiscoverController get to => Get.isRegistered<DiscoverController>()
+      ? Get.find<DiscoverController>()
+      : Get.put(DiscoverController(), permanent: true);
+
+  @override
+  void onClose() {
+    // Only reached on logout; stop the polls so they don't outlive it.
+    stopRideStartedFallbackPoll();
+    stopMultiShopBroadcastPoll();
+    super.onClose();
+  }
+
   var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
 
   var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;

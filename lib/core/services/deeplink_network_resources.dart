@@ -116,7 +116,7 @@ class DeepLinkNetworkResources {
     // HotelDiscoverHomeScreen does `Get.find<ViewBusinessDetailsController>()`
     // in initState — make sure it exists on a cold-start deep link.
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-    final discover = getOrPut(() => DiscoverController());
+    final discover = DiscoverController.to;
 
     Get.dialog(
       const Center(child: CircularProgressIndicator()),

@@ -1458,7 +1458,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       }
 
       // Seed the transport flow: pickup = shop, drop = chosen address.
-      final discoverController = getOrPut(() => DiscoverController());
+      final discoverController = DiscoverController.to;
       discoverController.selectedFromLat?.value = pickupLat;
       discoverController.selectedFromLong?.value = pickupLng;
       discoverController.selectedFromAddress?.value = pickupAddress;

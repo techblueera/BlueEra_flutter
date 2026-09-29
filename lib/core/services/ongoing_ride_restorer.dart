@@ -89,7 +89,7 @@ class OngoingRideRestorer {
       );
 
       // 2) Re-seed DiscoverController so opening the card resumes live tracking.
-      final dc = getOrPut(() => DiscoverController());
+      final dc = DiscoverController.to;
       final riderId = (snap['riderId'] ?? '').toString();
       if (riderId.isNotEmpty) dc.fareCallAcceptedRiderId.value = riderId;
       dc.fareCallAcceptedRiderInfo.value = {

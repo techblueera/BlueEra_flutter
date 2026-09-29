@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
@@ -99,7 +98,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
     if (enquiryId.isEmpty) return;
 
     setState(() => _isUpdating = true);
-    final controller = getOrPut(() => DiscoverController());
+    final controller = DiscoverController.to;
     final ok = await controller.updateServiceEnquiryStatus(
       enquiryId: enquiryId,
       status: status,

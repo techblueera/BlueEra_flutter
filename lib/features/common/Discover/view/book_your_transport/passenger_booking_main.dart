@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -30,7 +29,7 @@ class PassengerBookingMain extends StatefulWidget {
 }
 
 class _PassengerBookingMainState extends State<PassengerBookingMain> {
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
 
   List<TransportCategoryDetailsModel> get inCityVehicleList => [
         TransportCategoryDetailsModel(
@@ -601,7 +600,7 @@ class RiderCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final discoverController = getOrPut(() => DiscoverController());
+    final discoverController = DiscoverController.to;
     final bool isSelected = discoverController.selectedRiders
         .any((r) => r.riderId == rider.riderId);
 

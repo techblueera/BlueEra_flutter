@@ -198,7 +198,7 @@ class HotelBookingSheet {
   static Future<List<HotelBookingRoomOption>> _fetchRoomsForListing(
       HotelBookingListing listing) async {
     try {
-      final controller = getOrPut(() => DiscoverController());
+      final controller = DiscoverController.to;
       final hotel =
           await controller.fetchHotelByBusinessId(listing.ownerId.trim());
       if (hotel == null) return const [];

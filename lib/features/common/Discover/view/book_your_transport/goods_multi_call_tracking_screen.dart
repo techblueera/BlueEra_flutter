@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
@@ -50,7 +49,7 @@ class GoodsMultiCallTrackingScreen extends StatefulWidget {
 class _GoodsMultiCallTrackingScreenState
     extends State<GoodsMultiCallTrackingScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
   late final CallController _callController;
 
   late AnimationController _pulseController;

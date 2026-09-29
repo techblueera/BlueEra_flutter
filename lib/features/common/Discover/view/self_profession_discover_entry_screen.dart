@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -44,7 +43,7 @@ class SelfProfessionDiscoverEntryScreen extends StatefulWidget {
 
 class _SelfProfessionDiscoverEntryScreenState
     extends State<SelfProfessionDiscoverEntryScreen> {
-  final _controller = getOrPut(() => DiscoverController());
+  final _controller = DiscoverController.to;
 
   GoogleMapController? _mapController;
 

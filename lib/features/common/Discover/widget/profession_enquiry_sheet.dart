@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -65,7 +64,7 @@ class ProfessionEnquirySheet {
   ) async {
     if (userId.isEmpty) return;
 
-    final controller = getOrPut(() => DiscoverController());
+    final controller = DiscoverController.to;
     final ok = await controller.submitServiceEnquiry(
       providerId: userId,
       selections: selections,
@@ -133,7 +132,7 @@ class _ProfessionEnquireFormState extends State<_ProfessionEnquireForm> {
   }
 
   Future<void> _loadOptions() async {
-    final ctrl = getOrPut(() => DiscoverController());
+    final ctrl = DiscoverController.to;
     final fetched =
         await ctrl.fetchConsultantEnquiryOptions(widget.professionSlug);
     if (!mounted) return;

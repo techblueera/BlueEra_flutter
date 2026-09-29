@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
@@ -142,7 +141,7 @@ class ProfessionConsultantDiscoverScreenV2 extends StatefulWidget {
 
 class _ProfessionConsultantDiscoverScreenV2State
     extends State<ProfessionConsultantDiscoverScreenV2> {
-  final controller = getOrPut(() => DiscoverController());
+  final controller = DiscoverController.to;
 
   /// Custom pin for the backdrop map — rendered once, reused for every marker.
   BitmapDescriptor? _markerIcon;

@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
@@ -70,7 +69,7 @@ typedef _VehicleOption = ({String key, String name, String asset, String blurb})
 
 class _GoodsMultiOrderBookingMainState
     extends State<GoodsMultiOrderBookingMain> {
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
   final chatViewController = Get.find<ChatViewController>();
 
   /// Conversation ids the customer has ticked.

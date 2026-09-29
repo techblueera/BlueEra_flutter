@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/goods_multi_call_tracking_screen.dart';
@@ -33,7 +32,7 @@ class GoodsMultiBroadcastSearchingScreen extends StatefulWidget {
 class _GoodsMultiBroadcastSearchingScreenState
     extends State<GoodsMultiBroadcastSearchingScreen>
     with SingleTickerProviderStateMixin {
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
 
   late final AnimationController _pulseController;
   late final Worker _acceptedWorker;

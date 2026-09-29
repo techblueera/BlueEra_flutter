@@ -52,7 +52,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   static const String _recentSearchesKey = 'recent_transport_searches';
 
   final authController = getOrPut(() => AuthController());
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
 
   GoogleMapController? mapController;
   Set<Polyline> _polylines = {};

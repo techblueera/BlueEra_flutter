@@ -5,7 +5,6 @@ import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
@@ -152,7 +151,7 @@ class SelfProfessionDiscoverScreenV2 extends StatefulWidget {
 
 class _SelfProfessionDiscoverScreenV2State
     extends State<SelfProfessionDiscoverScreenV2> {
-  final controller = getOrPut(() => DiscoverController());
+  final controller = DiscoverController.to;
   final String serviceSubType = 'selfWork';
   final String earnServiceType = AppConstants.service;
 

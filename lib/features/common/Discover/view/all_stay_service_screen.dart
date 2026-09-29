@@ -71,7 +71,7 @@ class AllStayServiceScreen extends StatefulWidget {
 }
 
 class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
-  final controller = getOrPut(() => DiscoverController());
+  final controller = DiscoverController.to;
   ScrollController scrollController = ScrollController();
   late List<OnboardingCategoryModel> _stayCategories;
   late String _category;

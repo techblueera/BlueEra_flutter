@@ -82,6 +82,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -313,6 +314,9 @@ class LogoutHelper {
     // Its onClose stops the ride-status polls, which would otherwise keep
     // running for the previous account's ride.
     _drop(() => deleteIfRegistered<RideBookingController>());
+    // Holds any ongoing fare-call ride / multi-shop order; its onClose stops
+    // the polls.
+    _drop(() => deleteIfRegistered<DiscoverController>());
     _resetWalletAndReferralControllers();
     _resetPersonalProfileControllers();
   }

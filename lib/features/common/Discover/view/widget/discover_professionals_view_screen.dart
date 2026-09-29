@@ -59,9 +59,7 @@ class _DiscoverProfessionalsViewScreenState extends State<DiscoverProfessionalsV
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
-    final controller = Get.isRegistered<DiscoverController>()
-        ? Get.find<DiscoverController>()
-        : Get.put(DiscoverController());
+    final controller = DiscoverController.to;
     final result = await controller.getProfessionalByUserId(widget.userId!);
     if (!mounted) return;
     setState(() {

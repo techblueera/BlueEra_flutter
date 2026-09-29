@@ -1419,7 +1419,7 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
         return;
       }
 
-      final discoverController = getOrPut(() => DiscoverController());
+      final discoverController = DiscoverController.to;
       discoverController.selectedFromLat?.value = pickupLat;
       discoverController.selectedFromLong?.value = pickupLng;
       discoverController.selectedFromAddress?.value = pickupAddress;

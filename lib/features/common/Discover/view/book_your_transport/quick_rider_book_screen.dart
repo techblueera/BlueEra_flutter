@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -35,7 +34,7 @@ class QuickRiderBookScreen extends StatefulWidget {
 }
 
 class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
-  final _discoverController = getOrPut(() => DiscoverController());
+  final _discoverController = DiscoverController.to;
   final TextEditingController _searchController = TextEditingController();
 
   GoogleMapController? _mapController;
