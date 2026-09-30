@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
+import 'package:BlueEra/features/common/Discover/service/favourite_location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -115,20 +115,17 @@ class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
     }
     setState(() => _favoriteSavingTag = tag);
     try {
-      final res = await FavoriteLocationRepo().addFavoriteLocation(
+      await FavouriteLocationService().add(
         address: address,
         latitude: _pickedLatLng!.latitude,
         longitude: _pickedLatLng!.longitude,
         tag: tag,
       );
       if (!mounted) return;
-      if (res.isSuccess) {
-        commonSnackBar(message: 'Saved to ${_labelFor(tag)}');
-      } else {
-        commonSnackBar(
-          message: res.message ?? 'Could not save favourite',
-        );
-      }
+      commonSnackBar(message: 'Saved to ${_labelFor(tag)}');
+    } on FavouriteSaveError catch (e) {
+      if (!mounted) return;
+      commonSnackBar(message: e.message ?? 'Could not save favourite');
     } catch (e) {
       if (!mounted) return;
       commonSnackBar(message: 'Could not save favourite');

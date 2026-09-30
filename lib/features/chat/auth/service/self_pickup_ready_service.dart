@@ -1,17 +1,19 @@
 import 'dart:developer';
 
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 
 /// What a self-pickup order card is selling, which decides the service that
 /// marks it ready.
-enum SelfPickupOrderKind { food, homeMade, tiffin, product, medical }
+enum SelfPickupOrderKind { grocery, food, homeMade, tiffin, product, medical }
 
 /// Marks a self-pickup order ready for the seller, on the service that owns
 /// that kind of order:
 ///
+/// * grocery — `grocery-service`
 /// * food — `food-service` (restaurant orders)
 /// * home-made food — `PUT earn-service/homeFoodOrders/{orderId}/ready`
 /// * tiffin — `PUT earn-service/tiffinOrders/{orderId}/ready`
@@ -19,15 +21,18 @@ enum SelfPickupOrderKind { food, homeMade, tiffin, product, medical }
 /// * medical — `medical-service` (pharmacy orders)
 class SelfPickupReadyService {
   SelfPickupReadyService({
+    GroceryRepo? groceryRepo,
     FoodRepo? foodRepo,
     EarnProfileRepo? earnRepo,
     ProductRepo? productRepo,
     MedicalRepo? medicalRepo,
-  })  : _foodRepo = foodRepo ?? FoodRepo(),
+  })  : _groceryRepo = groceryRepo ?? GroceryRepo(),
+        _foodRepo = foodRepo ?? FoodRepo(),
         _earnRepo = earnRepo ?? EarnProfileRepo(),
         _productRepo = productRepo ?? ProductRepo(),
         _medicalRepo = medicalRepo ?? MedicalRepo();
 
+  final GroceryRepo _groceryRepo;
   final FoodRepo _foodRepo;
   final EarnProfileRepo _earnRepo;
   final ProductRepo _productRepo;
@@ -38,6 +43,8 @@ class SelfPickupReadyService {
   Future<String?> markReady(SelfPickupOrderKind kind, String orderId) async {
     try {
       final response = switch (kind) {
+        SelfPickupOrderKind.grocery =>
+          await _groceryRepo.markSelfPickupOrderReadyRepo(orderId: orderId),
         SelfPickupOrderKind.food =>
           await _foodRepo.markFoodOrderReadyRepo(orderId: orderId),
         SelfPickupOrderKind.homeMade =>

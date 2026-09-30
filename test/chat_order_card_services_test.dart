@@ -4,6 +4,7 @@ import 'package:BlueEra/features/chat/auth/service/rider_association_service.dar
 import 'package:BlueEra/features/chat/auth/service/self_pickup_ready_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
@@ -21,6 +22,15 @@ ResponseModel _res(int status) => ResponseModel(
 
 /// Every mark-ready call lands here, tagged with the service it went to.
 final List<String> _calls = [];
+
+class _Grocery extends GroceryRepo {
+  @override
+  Future<ResponseModel> markSelfPickupOrderReadyRepo(
+      {required String orderId}) async {
+    _calls.add('grocery:$orderId');
+    return _res(200);
+  }
+}
 
 class _Food extends FoodRepo {
   @override
@@ -91,6 +101,7 @@ void main() {
   test('each kind of self-pickup order is marked ready on its own service',
       () async {
     final service = SelfPickupReadyService(
+      groceryRepo: _Grocery(),
       foodRepo: _Food(),
       earnRepo: _Earn(),
       productRepo: _Product(),
@@ -102,6 +113,7 @@ void main() {
     }
 
     expect(_calls, [
+      'grocery:o1',
       'food:o1',
       'homeMade:o1',
       'tiffin:o1',

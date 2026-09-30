@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/business/auth/service/profile_rating_service.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/full_screen_qr_view.dart';
@@ -328,10 +328,8 @@ class _RideCompletedRatingDialogState extends State<RideCompletedRatingDialog> {
 
     setState(() => _sending = true);
     try {
-      await BusinessProfileRepo().submitRatingToPersonal(
-        userId,
-        {'rating': _rating, 'comment': _reviewController.text.trim()},
-      );
+      await ProfileRatingService().ratePerson(userId,
+          stars: _rating, comment: _reviewController.text);
     } finally {
       if (mounted) {
         setState(() => _sending = false);

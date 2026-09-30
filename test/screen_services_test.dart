@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/business/auth/service/profile_rating_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/service/customer_identity_service.dart';
 import 'package:BlueEra/features/common/reel/service/video_actions.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
@@ -85,6 +86,28 @@ class _FakeBusinessRepo extends BusinessProfileRepo {
           'sub_category_details': {'name': 'Bakery'},
         },
       });
+}
+
+/// Records ratings and answers with [status].
+class _FakeRatingRepo extends BusinessProfileRepo {
+  _FakeRatingRepo(this.status);
+
+  final int status;
+  final List<String> sent = [];
+
+  @override
+  Future<ResponseModel> submitRatingToBusinessAccount(
+      String businessId, Map<String, dynamic> params) async {
+    sent.add('business:$businessId:${params['rating']}:${params['comment']}');
+    return _res(status, {'message': 'Already rated'});
+  }
+
+  @override
+  Future<ResponseModel> submitRatingToPersonal(
+      String userId, Map<String, dynamic> params) async {
+    sent.add('person:$userId:${params['rating']}');
+    return _res(status, {'message': 'Already rated'});
+  }
 }
 
 class _FakePropertyRepo extends PropertyRepo {
@@ -187,6 +210,25 @@ void main() {
           await VideoActions(userRepo: refusing)
               .setFollowing('a1', follow: true),
           isFalse);
+    });
+  });
+
+  group('ProfileRatingService', () {
+    test('rates a business and a person, trimming the comment', () async {
+      final repo = _FakeRatingRepo(200);
+      final ratings = ProfileRatingService(repo: repo);
+
+      expect(await ratings.rateBusiness('b1', stars: 5, comment: '  Lovely  '),
+          isNull);
+      expect(await ratings.ratePerson('u1', stars: 4), isTrue);
+      expect(repo.sent, ['business:b1:5:Lovely', 'person:u1:4']);
+    });
+
+    test('a refusal carries the server message', () async {
+      final ratings = ProfileRatingService(repo: _FakeRatingRepo(409));
+
+      expect(await ratings.rateBusiness('b1', stars: 3), 'Already rated');
+      expect(await ratings.ratePerson('u1', stars: 3), isFalse);
     });
   });
 

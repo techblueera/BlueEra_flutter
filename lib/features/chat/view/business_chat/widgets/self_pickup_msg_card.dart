@@ -25,7 +25,7 @@ import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
-import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
+import 'package:BlueEra/features/chat/auth/service/self_pickup_ready_service.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -965,32 +965,19 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
 
     setState(() => _isMarkingReady = true);
 
-    try {
-      final response =
-          await GroceryRepo().markSelfPickupOrderReadyRepo(orderId: orderId);
-
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
-        return;
-      }
-
-      // Update local state
+    final error = await SelfPickupReadyService()
+        .markReady(SelfPickupOrderKind.grocery, orderId);
+    if (error == null) {
       widget.message.metadata?.orderStatus = true;
       widget.message.metadata?.selfPickupOrder?.isReady = true;
-      if (!mounted) return;
-      setState(() {});
-
-      commonSnackBar(message: 'Order marked as ready for pickup');
-      log('Self-pickup order $orderId marked as ready');
-    } catch (e) {
-      log('Error marking order ready: $e');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (!mounted) return;
-      setState(() => _isMarkingReady = false);
     }
+    if (!mounted) return;
+    setState(() => _isMarkingReady = false);
+
+    commonSnackBar(
+        message: error == null
+            ? 'Order marked as ready for pickup'
+            : (error.isNotEmpty ? error : AppStrings.somethingWentWrong));
   }
 
   @override
