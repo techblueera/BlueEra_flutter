@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
 import 'package:BlueEra/features/common/joining_bounce/view/widget/scratch_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/wallet/repo/joining_bounce_repo.dart';
+import 'package:BlueEra/features/common/joining_bounce/service/joining_bonus_claim_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -32,7 +32,6 @@ class ClaimBonusDialog extends StatefulWidget {
 }
 
 class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
-  final JoiningBounceRepo _repo = JoiningBounceRepo();
   bool _claiming = false;
 
   /// True once the user has scratched enough of the card to reveal the reward.
@@ -56,18 +55,12 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
     }
     setState(() => _claiming = true);
     try {
-      // POST /joining-bounce/createclaim { tag_id, account_type? }.
-      // account_type is optional (resolved from the JWT) — sent when known.
-      final res = await _repo.createClaim(
+      final result = await JoiningBonusClaimService().claim(
         tagId: tagId,
         accountType: widget.bounce.accountType,
       );
-      if (res.isSuccess) {
-        final serverMsg = res.message?.toString();
-        commonSnackBar(
-            message: (serverMsg != null && serverMsg.isNotEmpty)
-                ? serverMsg
-                : 'Joining bonus activated 🎉');
+      if (result.ok) {
+        commonSnackBar(message: result.message ?? 'Joining bonus activated 🎉');
         // Close THIS dialog SYNCHRONOUSLY before navigating. maybePop() defers
         // the pop (it awaits willPop as a microtask), so the wallet would get
         // pushed on top of the still-present dialog — backing out of the wallet
@@ -77,7 +70,7 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
         Get.to(() => const WalletScreen());
       } else {
         commonSnackBar(
-            message: res.message ?? 'Could not claim the bonus right now.');
+            message: result.message ?? 'Could not claim the bonus right now.');
       }
     } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);

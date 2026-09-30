@@ -1,9 +1,8 @@
-import 'package:BlueEra/core/api/model/gst_verify_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/auth/service/gst_verify_service.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -87,25 +86,20 @@ class _AccountPlanGstSheetState extends State<_AccountPlanGstSheet> {
     final gstin = _gstController.text.trim().toUpperCase();
     setState(() => _verifying = true);
     try {
-      final res = await AuthRepo().getUserVerifyGstRepo(gstNumber: gstin);
+      final result = await GstVerifyService().verify(gstin);
       if (!mounted) return;
 
-      if (!res.isSuccess) {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
-        return;
-      }
-      final model = GstVerifyModel.fromJson(res.response?.data);
-      if (model.isVerified != true) {
+      if (!result.verified) {
         commonSnackBar(
-          message: res.message ?? AppStrings.pleaseEnterValidGstNumber.tr,
+          message: result.message ??
+              (result.failed
+                  ? AppStrings.somethingWentWrong.tr
+                  : AppStrings.pleaseEnterValidGstNumber.tr),
         );
         return;
       }
-      // Prefer the GSTIN the verifier echoed back over the typed one — same
-      // number, but normalised by whoever actually holds the record.
-      Navigator.of(context).pop(model.data?.gstin?.trim().isNotEmpty == true
-          ? model.data!.gstin!.trim().toUpperCase()
-          : gstin);
+      // The GSTIN the verifier echoed back, else the typed one.
+      Navigator.of(context).pop(result.gstin);
     } finally {
       if (mounted) setState(() => _verifying = false);
     }
