@@ -42,6 +42,20 @@ class SchoolController extends GetxController {
 
 
 
+  /// Works out whether this user owns a school, looking their school id up
+  /// once when none is stored on the device yet.
+  Future<void> resolveOwnSchool() async {
+    if (schoolIDGlobal.isEmpty) {
+      final response = await SchoolRepo().getSchoolByUserIDRepo();
+      if (response.isSuccess) {
+        final String? schoolID = response.getNested(['data', 0, '_id']);
+        await setSchoolID(schoolID ?? '');
+      }
+    }
+    await getSchoolID();
+    hasSchool.value = schoolIDGlobal.isNotEmpty;
+  }
+
   Future<void> createSchoolController(
       {required Map<String, dynamic>? reqData}) async {
     // Logic for AI generation goes here
