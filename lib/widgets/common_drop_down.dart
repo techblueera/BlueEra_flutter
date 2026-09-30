@@ -205,7 +205,7 @@ class _CustomDropdownOverlayInternalState<T> extends State<_CommonDropdownIntern
                   Expanded(
                     child: widget.selectedValue != null ?
                     CustomText(
-                      widget.displayValue(widget.selectedValue!),
+                      widget.displayValue(widget.selectedValue as T),
                       fontSize: SizeConfig.large,
                       color: AppColors.black,
                       fontWeight: FontWeight.w400

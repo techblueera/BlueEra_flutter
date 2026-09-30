@@ -1481,7 +1481,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       }
     } else {
       final List<XFile> pickedImages = await picker.pickMultiImage();
-      if (pickedImages != null && pickedImages.isNotEmpty) {
+      if (pickedImages.isNotEmpty) {
         files.addAll(pickedImages.map((xfile) => File(xfile.path)));
       }
     }

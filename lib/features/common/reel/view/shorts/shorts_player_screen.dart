@@ -155,11 +155,13 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     /* Pause every cached controller first, then dispose them — pausing up
        front means no audio can leak out of a controller while the rest of the
        teardown runs. */
-    _videoCache.values.forEach((e) => e.controller?.pause());
-    _videoCache.values.forEach((e) {
+    for (var e in _videoCache.values) {
+      e.controller?.pause();
+    }
+    for (var e in _videoCache.values) {
       e.controller?.dispose();
       e.controller = null;
-    });
+    }
     _videoCache.clear();
 
     _pageController.dispose();
@@ -295,14 +297,14 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
     /* dispose far away */
     final toRemove = <int>{};
-    _videoCache.keys.forEach((i) {
+    for (var i in _videoCache.keys) {
       if (i < left || i > right) toRemove.add(i);
-    });
+    }
 
-    toRemove.forEach((i) {
+    for (var i in toRemove) {
       _videoCache[i]?.controller?.dispose();
       _videoCache.remove(i);
-    });
+    }
 
     /* create missing — always cover the whole [left..right] window so the
        current page and its immediate neighbours are ready to play. The

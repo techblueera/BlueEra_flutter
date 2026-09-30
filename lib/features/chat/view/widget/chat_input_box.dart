@@ -1691,7 +1691,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       }
     } else {
       final List<XFile> pickedImages = await picker.pickMultiImage();
-      if (pickedImages != null && pickedImages.isNotEmpty) {
+      if (pickedImages.isNotEmpty) {
         files.addAll(pickedImages.map((xfile) => File(xfile.path)));
       }
     }

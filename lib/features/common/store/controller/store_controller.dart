@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/api/model/store_counts_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -858,7 +859,7 @@ class StoreController extends GetxController{
       if(providerType!=null) queryParams[ApiKeys.ownerType] = providerType.title;
       if(productCategory!=null) queryParams[ApiKeys.key] = productCategory;
 
-      final response;
+      final ResponseModel response;
       if(query != null){
         response = await StoreRepo().productSearchFilterRepo(
             queryParams: queryParams

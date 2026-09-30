@@ -478,9 +478,9 @@ Future<void> _handleBackgroundNotificationResponse(
   if (actionId.startsWith('open_chat_')) {
     final chat = ChatViewController.personalAiChatModule;
     Get.to(() => AiChatScreen(
-          profileImage: chat?.sender?.profileImage,
-          name: chat?.sender?.name,
-          type: chat?.sender?.accountType,
+          profileImage: chat.sender?.profileImage,
+          name: chat.sender?.name,
+          type: chat.sender?.accountType,
         ));
     return;
   }
@@ -2257,9 +2257,9 @@ class AppNotificationHandler {
     if (actionId.startsWith('open_chat_')) {
       final chat = ChatViewController.personalAiChatModule;
       Get.to(() => AiChatScreen(
-            profileImage: chat?.sender?.profileImage,
-            name: chat?.sender?.name,
-            type: chat?.sender?.accountType,
+            profileImage: chat.sender?.profileImage,
+            name: chat.sender?.name,
+            type: chat.sender?.accountType,
           ));
       return;
     }
@@ -3839,9 +3839,9 @@ class AppNotificationHandler {
       case 'send_nightly_greeting':
         final chat = ChatViewController.personalAiChatModule;
         Get.to(() => AiChatScreen(
-              profileImage: chat?.sender?.profileImage,
-              name: chat?.sender?.name,
-              type: chat?.sender?.accountType,
+              profileImage: chat.sender?.profileImage,
+              name: chat.sender?.name,
+              type: chat.sender?.accountType,
             ));
         break;
 

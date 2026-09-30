@@ -135,14 +135,12 @@ class JourneyUpdatePlanningController extends GetxController {
     }
 
     final List<XFile> images = await _picker.pickMultiImage();
-    if (images != null) {
-      for (var image in images) {
-        if (selectedPhotos.length < maxPhotos) {
-          selectedPhotos.add(image.path);
-          selectedPhotoFiles.add(File(image.path));
-        } else {
-          break;
-        }
+    for (var image in images) {
+      if (selectedPhotos.length < maxPhotos) {
+        selectedPhotos.add(image.path);
+        selectedPhotoFiles.add(File(image.path));
+      } else {
+        break;
       }
     }
   }

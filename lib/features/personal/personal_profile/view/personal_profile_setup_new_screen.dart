@@ -2607,7 +2607,7 @@ class _PersonalProfileSetupNewScreenState
                 ? Obx(() {
                     AvailabilityData data =
                         bookingTabController.availabilityDetails.value!;
-                    final selectedType;
+                    final BookingType selectedType;
                     final bt = data.bookingType?.toLowerCase();
                     if (bt == 'online') {
                       selectedType = BookingType.online;
@@ -2622,7 +2622,7 @@ class _PersonalProfileSetupNewScreenState
                     final minFee = data.feeDetails?.minFee?.toString() ?? '';
                     final maxFee = data.feeDetails?.maxFee?.toString() ?? '';
                     final feeType = data.feeDetails?.feeType?.toString() ?? '';
-                    final selectedTimeSlot;
+                    final String selectedTimeSlot;
                     if (data.durationInMinutes?.toString().isNotEmpty ??
                         false) {
                       final candidate = '${data.durationInMinutes} Min';

@@ -101,7 +101,7 @@ class PhotoPostController extends GetxController {
 
     final List<XFile> images = await _picker.pickMultiImage();
 
-    if (images == null || images.isEmpty) return false;
+    if (images.isEmpty) return false;
 
     int totalImage = selectedPhotos.length + images.length;
     log('total images--> $totalImage');

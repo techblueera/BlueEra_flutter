@@ -37,7 +37,7 @@ class PlaceList {
       category: List<String>.from(json['category'] ?? []),
       visitingHours: (json['visitingHours'] as List?)
           ?.whereType<Map<String, dynamic>>()
-          .map((e) => VisitingHours.fromJson(e as Map<String, dynamic>))
+          .map((e) => VisitingHours.fromJson(e))
           .toList() ??
           [],
       coordinates: Coordinates.fromJson(json['coordinates'] ?? {}),
