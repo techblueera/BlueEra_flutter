@@ -3311,6 +3311,36 @@ class ChatViewController extends GetxController {
     });
   }
 
+  /// Sends the document at [filePath] as a `document` chat message to every
+  /// conversation in [selectedChatList] (the forward screen's picks), then
+  /// refreshes the chat list.
+  ///
+  /// Posts straight through the repo rather than [sendMessage], so the file is
+  /// delivered to the recipients without being optimistically appended to the
+  /// chat it was forwarded from. A fresh MultipartFile is built per recipient
+  /// because its byte stream is consumed once per send.
+  Future<void> forwardDocumentToSelected(String filePath) async {
+    final fileName = filePath.split('/').last;
+    final repo = ChatViewRepo();
+    for (final chat in selectedChatList) {
+      final recipientId = chat?.sender?.id ?? '';
+      final convId = chat?.conversationId ?? '';
+      if (recipientId.isEmpty && convId.isEmpty) continue;
+
+      final multipartFile =
+          await dio.MultipartFile.fromFile(filePath, filename: fileName);
+      await repo.sendMessageToUser({
+        ApiKeys.conversation_id: convId,
+        ApiKeys.other_user_id: recipientId,
+        ApiKeys.message: '',
+        ApiKeys.message_type: 'document',
+        ApiKeys.files: [multipartFile],
+      });
+    }
+    emitEvent(ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.personal_Chat_Type});
+  }
+
   void emitEvent(String event, dynamic data, [String? conversationId]) async {
     if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "").isNotEmpty &&

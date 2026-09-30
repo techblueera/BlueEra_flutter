@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/chat/auth/service/order_support_service.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -158,10 +158,7 @@ class _CustomerCareSheetState extends State<_CustomerCareSheet> {
 
     setState(() => _submitting = true);
     try {
-      // ChatViewRepo, not the ride repo: `order-support` is a CHAT-service
-      // route (`chat-service/support/order-support`). See the guide's base-URL
-      // warning — the same path under rider-service is a 404.
-      final response = await ChatViewRepo().openOrderSupportApi(
+      final thread = await OrderSupportService().open(
         orderId: orderId,
         reason: _kComplaintReasons[_selected!].label,
         note: _note.text,
@@ -169,21 +166,16 @@ class _CustomerCareSheetState extends State<_CustomerCareSheet> {
         ride: widget.ride,
       );
 
-      final body = response.response?.data;
-      final map = body is Map ? Map<String, dynamic>.from(body) : null;
-      final conversationId = (map?['conversation_id'] ?? '').toString();
-
-      if (!response.isSuccess || conversationId.isEmpty) {
-        // Covers the documented 500 while `RIDE_TRACK_TEAM_USER_ID` is still
-        // unset on the chat service: the thread genuinely does not exist, so
-        // there is nothing to navigate to.
+      if (thread == null) {
+        // No thread to navigate to (see [OrderSupportService.open]).
         commonSnackBar(
           message: 'Could not open support chat. Please try again.',
         );
         return;
       }
 
-      final displayName = (map?['display_name'] as String?)?.trim();
+      final conversationId = thread.conversationId;
+      final displayName = thread.displayName;
 
       if (!mounted) return;
       // Close the sheet only now — the thread exists, so there is somewhere to
