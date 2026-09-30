@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
+import 'helpers/english_translations.dart';
+
 DoctorDiscoverSummary _summary(Map<String, dynamic> overrides) {
   return DoctorDiscoverSummary.fromJson({
     '_id': 'b1',
@@ -50,6 +52,8 @@ Future<void> _pump(WidgetTester tester, DoctorDiscoverSummary doctor) async {
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     GetMaterialApp(
+      translationsKeys: englishTranslations(),
+      locale: const Locale('en'),
       home: Builder(builder: (context) {
         SizeConfig.init(context);
         return Scaffold(
@@ -76,12 +80,25 @@ void main() {
     await _pump(tester, _summary({}));
     expect(find.text('Dr. Umesh Gupta'), findsOneWidget);
     expect(find.text('10 Years Experience'), findsOneWidget);
-    expect(find.text('+3 More'), findsOneWidget);
+    // The services panel lists the extra specialization and the languages —
+    // six cells, so nothing overflows into a "+N more services" link.
+    expect(find.text('Cardiologist'), findsOneWidget);
+    expect(find.text('Tamil'), findsOneWidget);
+    expect(find.textContaining('more services'), findsNothing);
     expect(find.text('Book Now'), findsOneWidget);
+  });
+
+  // The availability tests below are skipped: the strip is switched off
+  // (DoctorDiscoverCard `_showAvailability`). They cover it for when it is
+  // switched back on — flip `skip` then.
+  const availabilityHidden = true;
+
+  testWidgets('shows today\'s window', (tester) async {
+    await _pump(tester, _summary({}));
     // Today's window is a RichText (three coloured spans), so it needs a
     // predicate finder rather than find.text.
     expect(_richTextContaining(tester, 'Monday: 9:00 AM – 6:00 PM'), isTrue);
-  });
+  }, skip: availabilityHidden);
 
   testWidgets('hides the fee block when consultationFee is null',
       (tester) async {
@@ -106,8 +123,15 @@ void main() {
         'timing': null,
       }),
     );
-    expect(find.text('Timing not set'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(find.text('Dr. Umesh Gupta'), findsOneWidget);
+    expect(find.text('Book Now'), findsOneWidget);
   });
+
+  testWidgets('a listing with no timing says so', (tester) async {
+    await _pump(tester, _summary({'timing': null}));
+    expect(find.text('Timing not set'), findsOneWidget);
+  }, skip: availabilityHidden);
 
   testWidgets('expands the weekly schedule on chevron tap', (tester) async {
     await _pump(tester, _summary({}));
@@ -116,7 +140,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sunday'), findsOneWidget);
     expect(find.text('Closed'), findsOneWidget);
-  });
+  }, skip: availabilityHidden);
 
   testWidgets('closed today shows the closed state', (tester) async {
     await _pump(
@@ -131,5 +155,5 @@ void main() {
       }),
     );
     expect(find.text('Closed today'), findsOneWidget);
-  });
+  }, skip: availabilityHidden);
 }

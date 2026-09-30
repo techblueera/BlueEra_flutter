@@ -14,7 +14,6 @@ const _orderCards = [
 
 const _riderCards = [
   'lib/features/chat/view/business_chat/widgets/rider_details_msg_card.dart',
-  'lib/features/chat/view/business_chat/widgets/rider_live_location_msg_card.dart',
 ];
 
 void main() {
