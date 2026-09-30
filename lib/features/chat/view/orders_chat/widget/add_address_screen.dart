@@ -187,7 +187,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   Obx(() {
                     return Switch(
                       value: orderController.isDefault.value,
-                      activeColor: Colors.blue,
+                      activeThumbColor: Colors.blue,
                       onChanged: (val) {
                         setState(() {
                           orderController.isDefault.value = val;

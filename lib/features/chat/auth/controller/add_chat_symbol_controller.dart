@@ -357,7 +357,7 @@ class AddChatSymbolController extends GetxController {
         if (selectedSymbolPostType.value == SymbolPostType.text ||
             selectedSymbolPostType.value == SymbolPostType.link)
           ApiKeys.backgroundColor:
-              "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
+              "#${selectedBgColor.value.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
         if (selectedSymbolPostType.value == SymbolPostType.text)
           ApiKeys.fontFamily: selectedFontFamily.value,
         if (selectedSymbolPostType.value == SymbolPostType.text)

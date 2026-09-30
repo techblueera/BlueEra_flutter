@@ -368,7 +368,7 @@ class _ApplicationCardState extends State<ApplicationCard> {
             svgPath,
             width: SizeConfig.size20,
             height: SizeConfig.size20,
-            color: AppColors.black30,
+            colorFilter: ColorFilter.mode(AppColors.black30, BlendMode.srcIn),
           ),
           SizedBox(width: SizeConfig.size10),
           Expanded(

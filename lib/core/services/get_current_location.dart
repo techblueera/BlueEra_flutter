@@ -30,7 +30,7 @@ Future<Position?> getCurrentLocation() async {
     return null;
   }
 Position currentLocation=await Geolocator.getCurrentPosition(
-    desiredAccuracy: LocationAccuracy.high);
+    locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
   globalLat=currentLocation.latitude.toString();
   globalLong=currentLocation.longitude.toString();
   // globalCurrentAddress=

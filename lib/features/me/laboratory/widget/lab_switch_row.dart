@@ -38,7 +38,7 @@ class LabSwitchRow extends StatelessWidget {
                   value.value = val;
                   onChanged?.call();
                 },
-                activeColor: AppColors.primaryColor,
+                activeThumbColor: AppColors.primaryColor,
               ),
             ),
           ),

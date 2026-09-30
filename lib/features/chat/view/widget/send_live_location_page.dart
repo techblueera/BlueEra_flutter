@@ -40,7 +40,7 @@ class _SendLocationPageState extends State<SendLocationPage> {
     final permission = await PermissionQueue.request(Permission.location);
     if (permission.isGranted) {
       Position pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
       if (!mounted) return;
       setState(() {
         _currentPosition = LatLng(pos.latitude, pos.longitude);

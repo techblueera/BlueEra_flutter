@@ -441,8 +441,8 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                       child: Padding(
                                         padding: const EdgeInsets.only(bottom: 3.0),
                                         child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
-                                            .chat_box_smile, color: AppColors
-                                            .chat_input_icon_color,),
+                                            .chat_box_smile, colorFilter: ColorFilter.mode(AppColors
+                                            .chat_input_icon_color, BlendMode.srcIn),),
                                       ),
                                     ),
                                   ),
@@ -541,7 +541,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                         AppIconAssets.chat_pick_media,
                                         height: 22,
                                         width: 22,
-                                        color: AppColors.chat_input_icon_color,
+                                        colorFilter: ColorFilter.mode(AppColors.chat_input_icon_color, BlendMode.srcIn),
                                       ),
                                     ),
                                   ),
@@ -669,7 +669,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                                 onLongPressEnd: (_) {
                                   // stopRecording();
                                 },
-                                child: SvgPicture.asset(AppIconAssets.chat_mic_icon,color: Colors.black,),
+                                child: SvgPicture.asset(AppIconAssets.chat_mic_icon,colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),),
                               ),
                             ),
                           ),
@@ -1135,7 +1135,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       value: allowMultiple,
-                      activeColor: AppColors.primaryColor,
+                      activeThumbColor: AppColors.primaryColor,
                       onChanged: (v) => setSheet(() => allowMultiple = v),
                       title: CustomText('Allow multiple answers',
                           fontSize: 14),

@@ -71,7 +71,7 @@ class _GroupReactionInfoWidgetState extends State<GroupReactionInfoWidget> {
   Widget _iconText(String userId,String conversationId,String icon, String count,BuildContext context,ChatThemeController chatThemeController,[bool? isLiked]) {
     return Row(
       children: [
-        (isLiked!=null&&isLiked==true&&icon==AppIconAssets.chat_smile)?Icon(Icons.favorite,color:chatThemeController.myMessageBgColor.value ,size: 20,):(icon==AppIconAssets.chat_smile)?Icon(Icons.favorite_border,color:chatThemeController.myMessageBgColor.value ,size: 20,):SvgPicture.asset(icon,color: chatThemeController.myMessageBgColor.value,),
+        (isLiked!=null&&isLiked==true&&icon==AppIconAssets.chat_smile)?Icon(Icons.favorite,color:chatThemeController.myMessageBgColor.value ,size: 20,):(icon==AppIconAssets.chat_smile)?Icon(Icons.favorite_border,color:chatThemeController.myMessageBgColor.value ,size: 20,):SvgPicture.asset(icon,colorFilter: ColorFilter.mode(chatThemeController.myMessageBgColor.value, BlendMode.srcIn),),
         SizedBox(width: 1),
         CustomText(
           "${count}",

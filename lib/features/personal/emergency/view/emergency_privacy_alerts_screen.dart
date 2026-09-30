@@ -40,7 +40,7 @@ class _EmergencyPrivacyAlertsScreenState
               child: Switch(
                 value: rx.value,
                 onChanged: (v) => rx.value = v,
-                activeColor: AppColors.primaryColor,
+                activeThumbColor: AppColors.primaryColor,
               ),
             ),
           ),

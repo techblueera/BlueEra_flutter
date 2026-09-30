@@ -331,7 +331,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                           isExpired ? null : () => _openRideTracking(),
                       icon: SvgPicture.asset(
                         AppIconAssets.location_new,
-                        color: actionColor,
+                        colorFilter: ColorFilter.mode(actionColor, BlendMode.srcIn),
                       ),
                       label: CustomText(
                         AppStrings.trackOrder,

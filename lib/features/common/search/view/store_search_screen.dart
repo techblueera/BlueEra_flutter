@@ -129,7 +129,7 @@ class _StoreSearchScreenState extends State<StoreSearchScreen> {
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
               decoration: BoxDecoration(
                 color: AppColors.white,
-                border: Border.all(color: AppColors.secondaryTextColor.withOpacity(0.2)),
+                border: Border.all(color: AppColors.secondaryTextColor.withValues(alpha: 0.2)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(

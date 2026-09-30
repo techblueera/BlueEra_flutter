@@ -136,7 +136,7 @@ class RidePrimaryButton extends StatelessWidget {
       height: 54,
       width: double.infinity,
       child: Material(
-        color: active ? RideStyle.action : RideStyle.action.withOpacity(0.45),
+        color: active ? RideStyle.action : RideStyle.action.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(28),
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
@@ -187,7 +187,7 @@ class RideOutlineButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: color.withOpacity(0.55)),
+          side: BorderSide(color: color.withValues(alpha: 0.55)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),

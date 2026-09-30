@@ -523,7 +523,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
               child: Switch(
                 value: value,
                 onChanged: onChanged,
-                activeColor: AppColors.primaryColor,
+                activeThumbColor: AppColors.primaryColor,
               ),
             ),
           ],

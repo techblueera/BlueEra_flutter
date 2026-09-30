@@ -309,7 +309,7 @@ class DiscoverController extends GetxController {
         }
       }
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       final pincode = await getPostCodeFromCoordinates(
         position.latitude,

@@ -113,7 +113,7 @@ class _TutorialVideoCardState extends State<TutorialVideoCard> {
 
   void _initVideo() {
     final url = widget.videoItem.videoUrls?.first.url ?? '';
-    _controller = VideoPlayerController.network(url)
+    _controller = VideoPlayerController.networkUrl(Uri.parse(url))
       ..initialize().then((_) {
         if (!mounted) return;
         setState(() => _initialized = true);
