@@ -1,5 +1,5 @@
 import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -40,6 +40,7 @@ class SearchPlaceList extends StatefulWidget {
 }
 
 class _SearchPlaceListState extends State<SearchPlaceList> {
+  final _places = PlaceLookupService();
   bool isLoading = false;
   bool isGettingCurrentLocation = false; // New state for current location loading
   String? errorMessage;
@@ -107,37 +108,18 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
     });
 
     try {
-      final responseModel =
-      await PlaceRepo().autoCompleteSearch(query: widget.query);
-
-      if (responseModel.statusCode == 200) {
-        final predictionsJson =
-            responseModel.getExtraData('predictions') as List? ?? const [];
-        final results = PlacePrediction.fromList(predictionsJson);
-        // Predictions render straight away; nothing is resolved here. This used
-        // to call Place Details for EVERY prediction to fill in lat/lng and a
-        // distance label — one billed lookup per row, per search — when the user
-        // only ever opens one of them. [_selectPrediction] resolves that one.
-        // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
-        if (!mounted) return;
-        setState(() {
-          isLoading = false;
-          predictions = results;
-        });
-      } else {
-        setState(() {
-          // `getExtraData`, not `.data[...]`: the Places envelope carries
-          // `predictions` and `error_message` at the TOP level, while the
-          // `data` getter looks up `body['data']` first. There is no such key,
-          // so the old form indexed null and threw
-          // `The method '[]' was called on null` — this error branch could
-          // only ever crash instead of showing the message it was reading.
-          errorMessage =
-              responseModel.getExtraData('error_message') ??
-                  'Something went wrong';
-          isLoading = false;
-        });
-      }
+      // Predictions render straight away; nothing is resolved here. This used
+      // to call Place Details for EVERY prediction to fill in lat/lng and a
+      // distance label — one billed lookup per row, per search — when the user
+      // only ever opens one of them. [_selectPrediction] resolves that one.
+      // See docs/GOOGLE_MAPS_COST_GUIDE.md §3.1.
+      final result = await _places.searchDetailed(widget.query);
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+        predictions = result.predictions;
+        errorMessage = result.error;
+      });
     } catch (e) {
       if(!mounted) return;
       setState(() {
@@ -157,7 +139,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   Future<void> _selectPrediction(PlacePrediction item) async {
     if (_resolvingPlaceId != null) return; // ignore a second tap mid-lookup
     setState(() => _resolvingPlaceId = item.placeId);
-    final resolved = await PlaceRepo().resolvePlace(item.placeId);
+    final resolved = await _places.resolve(item.placeId);
     if (!mounted) return;
     setState(() => _resolvingPlaceId = null);
     if (resolved == null) {
