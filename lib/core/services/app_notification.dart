@@ -2014,13 +2014,13 @@ class AppNotificationHandler {
           apns = await _waitForApnsToken(timeout: const Duration(seconds: 3));
         }
         if (apns == null || apns.isEmpty) {
-          return cached();
+          return await cached();
         }
       }
 
       final liveToken = await firebaseMessaging.getToken();
       if (liveToken == null || liveToken.isEmpty) {
-        return cached();
+        return await cached();
       }
 
       final previous = await cached();

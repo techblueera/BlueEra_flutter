@@ -12,11 +12,11 @@ class NewDatePicker extends StatelessWidget {
   final Function(int?)? onDayChanged;
   final Function(int?)? onMonthChanged;
   final Function(int?) onYearChanged;
-  bool? isMonth;
-  bool? isYear;
-  bool? isDate;
-  bool? isFutureYear;
-  bool? isAgeValidation15;
+  final bool? isMonth;
+  final bool? isYear;
+  final bool? isDate;
+  final bool? isFutureYear;
+  final bool? isAgeValidation15;
 
   // Optional constraints populated by API
   final List<int>? allowedDays;

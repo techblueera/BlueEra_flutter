@@ -26,7 +26,7 @@ class ResumeJobSectionCard extends StatelessWidget {
     this.itemsDeleteCallback,
   });
 
-  ProfilePicController profilePicController = Get.find<ProfilePicController>();
+  final ProfilePicController profilePicController = Get.find<ProfilePicController>();
 
   @override
   Widget build(BuildContext context) {

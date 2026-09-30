@@ -24,7 +24,7 @@ class ImageViewScreen extends StatefulWidget {
   final List<String> imageUrls;
   final int initialIndex;
   final String appBarTitle;
-  Post? postData;
+  final Post? postData;
 
   ImageViewScreen({
     super.key,
