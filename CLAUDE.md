@@ -95,7 +95,7 @@ A plain `MaterialPageRoute` never frees the controllers registered under it. Onl
 ```dart
 ResponseModel(statusCode: 200, response: Response(requestOptions: RequestOptions(), statusCode: 200, data: {...}))
 ```
-Import dio with `show RequestOptions, Response` and get with `hide Response`. Call `Get.reset` in `setUp`/`tearDown`, and `Hive.init(Directory.systemTemp.createTempSync().path)` in `setUpAll` for anything that opens a box.
+Import dio with `show RequestOptions, Response` and get with `hide Response`. Call `Get.reset` in `setUp`/`tearDown`, and `Hive.init(Directory.systemTemp.createTempSync().path)` in `setUpAll` for anything that opens a box. Widget tests that check visible text should pass `translationsKeys: englishTranslations()` and `locale: const Locale('en')` (from `test/helpers/english_translations.dart`) to their `GetMaterialApp`. `AppStrings` values are translation keys, so without them a widget renders "bookNow" instead of "Book Now".
 
 ## Key Services & Integrations
 

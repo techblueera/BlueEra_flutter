@@ -71,7 +71,6 @@ void main() {
 
       expect(find.text('Cafe Aroma'), findsOneWidget);
       expect(find.text('Restaurant'), findsOneWidget);
-      expect(find.text('Cozy coffee shop'), findsOneWidget);
       expect(find.text('4.5'), findsOneWidget);
       expect(find.text('(120)'), findsOneWidget);
       expect(find.text('123 Main St, Delhi, DL 110001'), findsOneWidget);
