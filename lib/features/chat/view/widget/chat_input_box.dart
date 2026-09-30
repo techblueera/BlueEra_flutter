@@ -943,7 +943,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                 minLines: 1,
                                 maxLines: 5,
                                 onChanged: (value) {
-                                  if (!value.isEmpty) {
+                                  if (value.isNotEmpty) {
                                     chatViewController.isTextFieldEmpty.value =
                                     true;
                                     // Emit typing indicator (debounced)
@@ -1689,7 +1689,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         files.add(File(pickedVideo.path));
       }
     } else {
-      final List<XFile>? pickedImages = await picker.pickMultiImage();
+      final List<XFile> pickedImages = await picker.pickMultiImage();
       if (pickedImages != null && pickedImages.isNotEmpty) {
         files.addAll(pickedImages.map((xfile) => File(xfile.path)));
       }

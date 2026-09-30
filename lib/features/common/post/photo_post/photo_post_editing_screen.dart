@@ -388,7 +388,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
 
   void addPhotos() async {
     final SafeImagePicker _picker = SafeImagePicker();
-    final List<XFile>? images = await _picker.pickMultiImage();
+    final List<XFile> images = await _picker.pickMultiImage();
     if (images == null || images.isEmpty) return;
 
     int totalImage = selectedPhotos.length + images.length;

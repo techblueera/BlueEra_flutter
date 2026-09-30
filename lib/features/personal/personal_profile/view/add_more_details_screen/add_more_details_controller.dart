@@ -20,10 +20,6 @@ class AddMoreDetailsController extends GetxController {
   // Loading State
   RxBool isLoading = false.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   @override
   void onClose() {

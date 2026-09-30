@@ -475,7 +475,7 @@ class Sender {
     id = json['_id'] ?? json['id'];
     name = json['name'];
     gender = json['gender'];
-    contactNo = json['contact_no']==null?json['contact']:json['contact_no'];
+    contactNo = json['contact_no'] ?? json['contact'];
     profession = json['profession'];
     designation = json['designation'];
     profileImage = json['profile_image'];

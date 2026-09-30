@@ -202,7 +202,7 @@ class FoodUploadController extends GetxController {
         ApiKeys.images: imageByPart,
       };
 
-      final ResponseModel responseModel = await FoodAiRepo().aiFoodGenerateRepo(params: reqParm); ;
+      final ResponseModel responseModel = await FoodAiRepo().aiFoodGenerateRepo(params: reqParm);
 
       if (responseModel.isSuccess) {
         foodAiResponseModel.value =

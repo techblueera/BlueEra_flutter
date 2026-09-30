@@ -806,7 +806,7 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
     for (final p in _ctrl.mapProperties) {
       final coords = p.location?.coordinates;
       if (coords == null || coords.isEmpty) continue;
-      final lng = coords.length > 0 ? coords[0] : 0.0;
+      final lng = coords.isNotEmpty ? coords[0] : 0.0;
       final lat = coords.length > 1 ? coords[1] : 0.0;
       if (lat == 0 && lng == 0) continue;
       markers.add(

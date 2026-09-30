@@ -98,7 +98,7 @@ class PhotoPostController extends GetxController {
     //   return;
     // }
 
-    final List<XFile>? images = await _picker.pickMultiImage();
+    final List<XFile> images = await _picker.pickMultiImage();
 
     if (images == null || images.isEmpty) return false;
 

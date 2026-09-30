@@ -16,9 +16,7 @@ class AiChatHistoryMessageModel {
       role: json["role"] ?? "",
       content: json["content"] ?? "",
       id: json["_id"],
-      timestamp: json["timestamp"] != null
-          ? json["timestamp"].toString()
-          : null,
+      timestamp: json["timestamp"]?.toString(),
     );
   }
 

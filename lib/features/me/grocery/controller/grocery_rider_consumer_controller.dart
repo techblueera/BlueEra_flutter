@@ -587,7 +587,7 @@ class GroceryRiderConsumerController extends GetxController{
   }
 
   Future<void> groceryRiderStreamApi() async {
-    stream = await groceryRiderOrderStream();
+    stream = groceryRiderOrderStream();
     subscription = stream.listen((event) {
       log('Event received: $event'); // Good for debugging
 

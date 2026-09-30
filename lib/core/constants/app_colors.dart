@@ -119,7 +119,7 @@ class AppColors {
   static const green4F = Color(0xff6DAE4F);
   static const redB4 = Color(0xFFB40000);
   static const green00 = Color(0xFF008000);
-  static const borderBox = Color(0xFF999999BF);
+  static const borderBox = Color(0xff999999bf);
   static const blackMite = Color(0x991C1C1C);
   static const redBE = Color(0xFFF9BEBE);
   static const symbolBorderBlue = Color(0xFF0183FC);

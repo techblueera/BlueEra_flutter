@@ -508,7 +508,7 @@ class AutomotiveProductController extends GetxController{
   }
 
   bool _validate(ProviderType providerType) {
-    if(step1Images.length < 1) {
+    if(step1Images.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseTakeMinimumOneProductImage.tr);
       return false;
     }

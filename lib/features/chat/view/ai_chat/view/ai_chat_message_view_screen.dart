@@ -221,7 +221,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
                                       minLines: 1,
                                       maxLines: 5,
                                       onChanged: (value) {
-                                        if (!value.isEmpty) {
+                                        if (value.isNotEmpty) {
                                           chatViewController.isTextFieldEmpty
                                               .value =
                                           true;

@@ -11,10 +11,6 @@ class SocialContactUsController extends GetxController {
   var isLoading = true.obs;
   var contactUsData = Rxn<SocialContactUsResModel>();
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   fetchHomeData() async {
     try {

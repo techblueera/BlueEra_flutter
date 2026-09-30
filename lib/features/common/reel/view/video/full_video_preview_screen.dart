@@ -74,7 +74,7 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
       })
       ..setLooping(true)
       ..setVolume(1.0)
-      ..play();;
+      ..play();
   }
 
   void _getVideoDuration() {

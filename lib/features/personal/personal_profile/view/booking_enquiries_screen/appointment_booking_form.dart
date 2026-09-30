@@ -289,7 +289,7 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
                                   Expanded(
                                     child: CommonDropdown<String>(
                                       items: availableSlots,
-                                      selectedValue: _selectedFromTime ?? null,
+                                      selectedValue: _selectedFromTime,
                                       hintText: "Select Time Slot",
                                       displayValue: (value) => value,
                                       onChanged: (value) {

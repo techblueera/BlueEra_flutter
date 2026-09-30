@@ -117,7 +117,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
         bottomNavigationBar: Obx(() {
           final canPost = controller.itTextOrLinkPost()
               ? true
-              : controller.imagesList.length >= 1;
+              : controller.imagesList.isNotEmpty;
           return SafeArea(
             child: Container(
               margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),

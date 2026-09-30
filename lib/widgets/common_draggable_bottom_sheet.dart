@@ -36,7 +36,7 @@ class CommonDraggableBottomSheet extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: borderRadius,
-            boxShadow: boxShadow ?? null
+            boxShadow: boxShadow
           ),
           padding: padding ?? EdgeInsets.only(top: SizeConfig.size15),
           child: builder(scrollController),

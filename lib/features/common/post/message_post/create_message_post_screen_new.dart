@@ -67,9 +67,9 @@ class _CreateMessagePostScreenNewState
                 top: SizeConfig.size5),
             child: CustomBtn(
                 isValidate: (msgController.postText.value.isNotEmpty &&
-                    (msgController.imagesList.length >= 1)),
+                    (msgController.imagesList.isNotEmpty)),
                 onTap: (msgController.postText.value.isNotEmpty &&
-                        (msgController.imagesList.length >= 1))
+                        (msgController.imagesList.isNotEmpty))
                     ? () async {
                         await Future.delayed(Duration(milliseconds: 200));
                         final input = msgController.postText.value.trim();
@@ -82,7 +82,7 @@ class _CreateMessagePostScreenNewState
                           return commonSnackBar(message: AppStrings.lekhaMin30);
                         }
 
-                        if (msgController.imagesList.length < 1) {
+                        if (msgController.imagesList.isEmpty) {
                           commonSnackBar(message: AppStrings.atleastOnePhoto);
                           return;
                         }

@@ -124,7 +124,7 @@ class ConsumerTiffinItem {
       startTime: json['tiffinTiming']?['start'] ?? '',
       endTime: json['tiffinTiming']?['end'] ?? '',
       isActive: json['isActive'] ?? false,
-      lng: coords != null && coords.length > 0
+      lng: coords != null && coords.isNotEmpty
           ? (coords[0] as num?)?.toDouble()
           : null,
       lat: coords != null && coords.length > 1

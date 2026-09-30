@@ -249,27 +249,27 @@ class ChatViewController extends GetxController {
       "account_type": AppConstants.askConsultingTalk_Chat_Type,
     }
   };
-  static final ChatList? personalAiChatModule =
+  static final ChatList personalAiChatModule =
       ChatList.fromJson(aiChatListModel);
-  static final ChatList? businessAiChatModule =
+  static final ChatList businessAiChatModule =
       ChatList.fromJson(businessAiChatListModel);
-  static final ChatList? aiChatListSearchModule =
+  static final ChatList aiChatListSearchModule =
       ChatList.fromJson(aiChatSearch);
-  static final ChatList? inventoryAiChatListSearchModule =
+  static final ChatList inventoryAiChatListSearchModule =
       ChatList.fromJson(inventoryAiSearch);
-  static final ChatList? foodAiChatListSearchModule =
+  static final ChatList foodAiChatListSearchModule =
       ChatList.fromJson(foodAiSearch);
-  static final ChatList? serviceAiChatListSearchModule =
+  static final ChatList serviceAiChatListSearchModule =
       ChatList.fromJson(serviceAiSearch);
-  static final ChatList? healthCareAiChatListSearchModule =
+  static final ChatList healthCareAiChatListSearchModule =
       ChatList.fromJson(healthCareAiSearch);
-  static final ChatList? educationAiChatListSearchModule =
+  static final ChatList educationAiChatListSearchModule =
       ChatList.fromJson(educationAiSearch);
-  static final ChatList? homeServiceAiChatListSearchModule =
+  static final ChatList homeServiceAiChatListSearchModule =
       ChatList.fromJson(homeServiceAiSearch);
-  static final ChatList? travelAndStayAiChatListSearchModule =
+  static final ChatList travelAndStayAiChatListSearchModule =
       ChatList.fromJson(travelAndStayAiSearch);
-  static final ChatList? consultingTalkAiChatListSearchModule =
+  static final ChatList consultingTalkAiChatListSearchModule =
       ChatList.fromJson(consultingTalkAiSearch);
 
   /// Synthetic row for the pinned "BlueEra" system chat that surfaces broadcast
@@ -287,7 +287,7 @@ class ChatViewController extends GetxController {
       "account_type": AppConstants.personal_Chat_Type,
     }
   };
-  static final ChatList? blueEraNotificationModule =
+  static final ChatList blueEraNotificationModule =
       ChatList.fromJson(blueEraNotificationChatModel);
 
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
@@ -1310,9 +1310,7 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.newRiderOtpReceived, (data) async {
         if (data is! Map || data['message'] == null) return;
         final message = Messages.fromJson(data['message']);
-        if (message.myMessage == null) {
-          message.myMessage = userId == message.senderId;
-        }
+        message.myMessage ??= userId == message.senderId;
         // Only append when the user is viewing this conversation; otherwise the
         // card flows in on the next history load.
         final openConvId = userOpenConversationId.value;
@@ -4426,7 +4424,6 @@ class ChatViewController extends GetxController {
           dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
 
       getGroupMembersResponse.value = ApiResponse.complete(members);
-      ;
     } else {
       commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong);

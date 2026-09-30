@@ -102,7 +102,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
                     border: isSelected
                         ? null
                         : Border.all(color: unselectedBorder),
-                    boxShadow: boxShadow ?? null
+                    boxShadow: boxShadow
                   ),
                   child: Row(
                     children: [

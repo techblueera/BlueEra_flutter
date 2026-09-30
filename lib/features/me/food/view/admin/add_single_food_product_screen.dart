@@ -76,7 +76,7 @@ class _AddSingleFoodProductScreenState extends State<AddSingleFoodProductScreen>
             child: CustomText(
                 AppStrings.foodFetchDataFailed.tr
             ),
-          );;
+          );
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(

@@ -225,7 +225,7 @@ class ChannelController extends GetxController{
   Future<void> reportChannel({required String channelId, required String reason}) async {
     try {
       Map<String, dynamic> params = {ApiKeys.reason : reason};
-      ResponseModel response = await ChannelRepo().channelReport(channelId: channelId, params: params);;
+      ResponseModel response = await ChannelRepo().channelReport(channelId: channelId, params: params);
 
       if (response.isSuccess) {
         ReportChannelResponse = ApiResponse.complete(response);

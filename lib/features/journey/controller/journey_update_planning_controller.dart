@@ -134,7 +134,7 @@ class JourneyUpdatePlanningController extends GetxController {
       return;
     }
 
-    final List<XFile>? images = await _picker.pickMultiImage();
+    final List<XFile> images = await _picker.pickMultiImage();
     if (images != null) {
       for (var image in images) {
         if (selectedPhotos.length < maxPhotos) {
@@ -293,7 +293,7 @@ class JourneyUpdatePlanningController extends GetxController {
       logs("ERROR ${e.toString()}");
       travelEndResponse.value = ApiResponse.error('error');
     }
-    return null;
+    return;
   }
 
   ///GET JOURNEY DETAILS...
@@ -343,6 +343,6 @@ class JourneyUpdatePlanningController extends GetxController {
       logs("ERROR ${e.toString()}");
       journeyDetailsResponse.value = ApiResponse.error('error');
     }
-    return null;
+    return;
   }
 }

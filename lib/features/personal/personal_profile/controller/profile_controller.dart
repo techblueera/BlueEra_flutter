@@ -41,10 +41,6 @@ class VisitProfileController extends GetxController {
   RxString partnerType = ''.obs;
   RxString selectedState = "Andhra Pradesh".obs;
   RxBool enquiryBtnLoading=false.obs;
-  @override
-  void onInit() {
-    super.onInit();
-  }
   void selectState(String state) {
     selectedState.value = state;
   }

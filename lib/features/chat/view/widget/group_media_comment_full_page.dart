@@ -105,9 +105,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
 
                 if (!mounted) return;
                 setState(() {
-                  if(like==null){
-                    like=widget.message.is_liked;
-                  }
+                  like ??= widget.message.is_liked;
                   if(like??false){
                     like_count=like_count!-1;
                   }else{

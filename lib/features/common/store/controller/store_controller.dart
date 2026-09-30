@@ -319,17 +319,6 @@ class StoreController extends GetxController{
   // RxBool isBannerVisible = false.obs;
   RxBool isBannerVisible = true.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // scrollController.addListener(() {
-    //   if (scrollController.offset > 300) {
-    //     isBannerVisible.value = true;
-    //   } else {
-    //     isBannerVisible.value = false;
-    //   }
-    // });
-  }
 
   @override
   void onClose() {

@@ -142,8 +142,7 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                           }
                           UserApplications? userData =
                               appliedController
-                                      .appliedJobListing[row.contentIndex] ??
-                                  null;
+                                      .appliedJobListing[row.contentIndex];
                           return JobApplicationCard(
                             jobPostImage: userData?.jobId?.jobPostImage ?? "",
                             jobTitle: userData?.jobId?.jobTitle ?? "",

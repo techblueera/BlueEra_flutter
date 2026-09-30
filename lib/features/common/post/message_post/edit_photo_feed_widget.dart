@@ -33,7 +33,7 @@ class PhotoListingWidget extends StatelessWidget {
               onTap: () {
                 final msgController = Get.find<MessagePostController>();
 
-                if (msgController.imagesList.length < 1) {
+                if (msgController.imagesList.isEmpty) {
                   commonSnackBar(
                       message: "At least 1 photo or video is required");
                   return;

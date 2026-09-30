@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -510,7 +510,7 @@ class UserMedicalController extends GetxController{
   }
 
   Future<void> groceryRiderStreamApi() async {
-      stream = await medicalRiderOrderStream();
+      stream = medicalRiderOrderStream();
       subscription = stream.listen((event) {
         log('Event received: $event'); // Good for debugging
 

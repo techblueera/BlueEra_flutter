@@ -160,7 +160,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
 
       // Compute in isolate
       List<Map<String, String>> formattedContacts =
-          await formatContactsInIsolate(rawContacts);
+          formatContactsInIsolate(rawContacts);
       // await compute(formatContactsInIsolate, rawContacts);
 
       chatViewController.uploadContacts(formattedContacts);
