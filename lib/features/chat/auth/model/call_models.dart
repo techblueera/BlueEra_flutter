@@ -195,14 +195,27 @@ class IceServerConfig {
 
   IceServerConfig({required this.iceServers});
 
+  /// Used when the backend sent no usable ICE servers (an empty list, or none
+  /// at all): public STUN only, which is at least enough on the same network.
+  static const Map<String, dynamic> stunOnly = {
+    'iceServers': [
+      {'urls': 'stun:stun.l.google.com:19302'}
+    ],
+  };
+
   factory IceServerConfig.fromJson(Map<String, dynamic> json) {
     final servers = json['iceServers'] as List? ?? [];
     return IceServerConfig(
-      iceServers: servers.map((s) => IceServer.fromJson(s)).toList(),
+      iceServers: servers
+          .whereType<Map>()
+          .map((s) => IceServer.fromJson(Map<String, dynamic>.from(s)))
+          .where((s) => s.urls.isNotEmpty)
+          .toList(),
     );
   }
 
   Map<String, dynamic> toWebRTCConfig() {
+    if (iceServers.isEmpty) return stunOnly;
     return {
       'iceServers': iceServers.map((s) => s.toMap()).toList(),
     };
@@ -210,18 +223,50 @@ class IceServerConfig {
 }
 
 class IceServer {
-  final String urls;
+  /// Every URL for this server. The call service may send `urls` as one
+  /// string or as a list (both are valid WebRTC).
+  final List<String> urls;
   final String? username;
   final String? credential;
 
-  IceServer({required this.urls, this.username, this.credential});
+  IceServer({required Object urls, this.username, this.credential})
+      : urls = withTransportVariants(_asList(urls));
 
   factory IceServer.fromJson(Map<String, dynamic> json) {
     return IceServer(
-      urls: json['urls'] ?? '',
-      username: json['username'],
-      credential: json['credential'],
+      urls: json['urls'] ?? json['url'] ?? const <String>[],
+      username: json['username']?.toString(),
+      credential: json['credential']?.toString(),
     );
+  }
+
+  static List<String> _asList(Object urls) {
+    if (urls is String) return urls.trim().isEmpty ? [] : [urls.trim()];
+    if (urls is List) {
+      return urls
+          .map((u) => u.toString().trim())
+          .where((u) => u.isNotEmpty)
+          .toList();
+    }
+    return [];
+  }
+
+  /// A `turn:` URL with no `transport=` is tried over UDP only, and some
+  /// mobile networks block UDP. For each such URL the backend sent, this also
+  /// offers the same server over TCP — hosts and ports still come only from
+  /// the backend.
+  static List<String> withTransportVariants(List<String> urls) {
+    final out = <String>[];
+    for (final url in urls) {
+      if (url.startsWith('turn:') && !url.contains('transport=')) {
+        final sep = url.contains('?') ? '&' : '?';
+        out.add('$url${sep}transport=udp');
+        out.add('$url${sep}transport=tcp');
+      } else {
+        out.add(url);
+      }
+    }
+    return out.toSet().toList();
   }
 
   Map<String, dynamic> toMap() {

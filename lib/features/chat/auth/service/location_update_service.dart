@@ -42,14 +42,33 @@ class LiveLocationService {
   /// How often a live provider publishes their position.
   static const Duration _interval = Duration(seconds: 30);
 
-  /// A failed publish is retried inside the same tick rather than waiting a
-  /// whole interval — a dropped ping on a flaky connection is the common case,
-  /// and the map-service closes a provider after 5 minutes of silence.
-  static const Duration _retryDelay = Duration(seconds: 5);
-  static const int _maxRetries = 2;
+  /// A failed publish is retried with exponential backoff: 5s, 10s, 20s ...
+  /// capped at 5 minutes, then back to every [_interval] once one succeeds.
+  /// The first retries still land well inside the map-service's 5-minute
+  /// silence window, but a server that keeps failing isn't hit every few
+  /// seconds by every live device. A 401/403 is not retried at all — the
+  /// session is gone and only a new login fixes it (see [_tick]).
+  static const Duration _backoffStart = Duration(seconds: 5);
+  static const Duration _backoffMax = Duration(minutes: 5);
 
   Timer? _timer;
   bool _isRunning = false;
+
+  /// Consecutive failed heartbeats; drives the backoff.
+  int _failures = 0;
+
+  /// While set, periodic ticks are skipped until this time.
+  DateTime? _nextAttemptAt;
+
+  /// A one-off early retry, for backoffs shorter than [_interval].
+  Timer? _retryTimer;
+
+  @visibleForTesting
+  static Duration backoffFor(int failures) {
+    final shift = (failures - 1).clamp(0, 16);
+    final delay = _backoffStart * (1 << shift);
+    return delay > _backoffMax ? _backoffMax : delay;
+  }
 
   /// True once the rider has been told location is unusable, so the warning is
   /// shown once per live session instead of on every tick.
@@ -130,6 +149,10 @@ class LiveLocationService {
   void stop() {
     _timer?.cancel();
     _timer = null;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _failures = 0;
+    _nextAttemptAt = null;
     _isRunning = false;
     SocketKeepAliveService.setRiderLiveHold(false);
     _stopNativeKillModePinger();
@@ -345,15 +368,20 @@ class LiveLocationService {
   ///
   /// Returns `true` when the server accepted the ping. [RideLocationPublisher]
   /// relies on this so it can resend the last coordinate on failure.
-  Future<bool> publishLocation(double lat, double lng) async {
-    if (userId.isEmpty) return false;
+  Future<bool> publishLocation(double lat, double lng) async =>
+      (await _publish(lat, lng)).ok;
+
+  /// Publishes one position. [status] is the HTTP status, or null when the
+  /// request never got an answer.
+  Future<({bool ok, int? status})> _publish(double lat, double lng) async {
+    if (userId.isEmpty) return (ok: false, status: null);
     try {
       final response = await MapServiceRepo()
           .publishProviderLocationRepo(lat: lat, lng: lng);
-      return response.isSuccess;
+      return (ok: response.isSuccess, status: response.statusCode);
     } catch (_) {
       // Best-effort — a dropped ping is corrected by the next heartbeat/tick.
-      return false;
+      return (ok: false, status: null);
     }
   }
 
@@ -374,6 +402,8 @@ class LiveLocationService {
       return;
     }
     if (_tickInFlight) return;
+    final wait = _nextAttemptAt;
+    if (wait != null && DateTime.now().isBefore(wait)) return; // backing off
     _tickInFlight = true;
     try {
       final position = await _currentPosition();
@@ -383,13 +413,29 @@ class LiveLocationService {
         await _ensureLocationUsable();
         return;
       }
+      if (!_isRunning) return;
 
-      for (var attempt = 0; attempt <= _maxRetries; attempt++) {
-        if (!_isRunning) return;
-        final sent =
-            await publishLocation(position.latitude, position.longitude);
-        if (sent) return;
-        if (attempt < _maxRetries) await Future.delayed(_retryDelay);
+      final result = await _publish(position.latitude, position.longitude);
+      if (result.ok) {
+        _failures = 0;
+        _nextAttemptAt = null;
+        return;
+      }
+      if (result.status == 401 || result.status == 403) {
+        // The session is gone (after the server move, sessions missing from
+        // the new DB get 401). Retrying can never succeed and only floods the
+        // API; stop until the rider logs in and goes live again.
+        stop();
+        return;
+      }
+      _failures++;
+      final backoff = backoffFor(_failures);
+      _nextAttemptAt = DateTime.now().add(backoff);
+      if (backoff < _interval) {
+        _retryTimer?.cancel();
+        _retryTimer = Timer(backoff, () {
+          if (_isRunning) unawaited(_tick());
+        });
       }
     } finally {
       _tickInFlight = false;

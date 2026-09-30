@@ -74,7 +74,11 @@ class LanguageListController extends GetxController {
         final cached = languageBox.get(_availableLanguagesKey);
         if (cached is List && cached.isNotEmpty) {
           languages.value =
-              cached.map((json) => LanguageModel.fromJson(json)).toList();
+              cached
+              .whereType<Map>()
+              // Hive hands maps back as Map<dynamic, dynamic>.
+              .map((json) => LanguageModel.fromJson(Map<String, dynamic>.from(json)))
+              .toList();
           return;
         }
       }

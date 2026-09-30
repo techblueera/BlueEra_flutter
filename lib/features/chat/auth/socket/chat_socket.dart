@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
@@ -21,9 +22,12 @@ class ChatSocketService {
   bool _isConnected = false;
   bool _isConnecting = false;
 
-  // Exponential backoff for reconnection
+  // Exponential backoff for reconnection: 1s, 2s, 4s ... capped at 30s, with
+  // no attempt limit — Cloudflare may close idle or long-lived sockets, and a
+  // chat that silently stops reconnecting after a few tries is worse than a
+  // cheap retry every 30s.
   int _reconnectAttempts = 0;
-  static const int _maxReconnectAttempts = 5;
+  static const Duration _reconnectDelayMax = Duration(seconds: 30);
   Timer? _reconnectTimer;
 
   // Buffered listeners registered before socket was connected
@@ -100,6 +104,8 @@ class ChatSocketService {
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setPath('/socket')
+            .setReconnectionDelay(1000)
+            .setReconnectionDelayMax(30000)
             .enableForceNew()
             .setAuth({
               'token': '$authTokenGlobal',
@@ -233,16 +239,17 @@ print("SOCKET ERROR catch ${e}");
 
   // ─── Reconnect ─────────────────────────────────────────────────────────────
 
-  /// Exponential backoff reconnect: 2s, 4s, 8s, 16s, 32s then stops.
+  /// Exponential backoff reconnect: 1s, 2s, 4s ... then every 30s until it
+  /// connects. Each attempt builds a fresh socket with the current token, so a
+  /// reconnect re-authenticates; [onConnect] re-registers listeners and
+  /// re-joins rooms. Stops when there is no session (after logout / a 401).
   void _scheduleReconnect() {
     if (_socket == null) return;
     if (_isConnected) return;
-    if (_reconnectAttempts >= _maxReconnectAttempts) {
-      return;
-    }
+    if ((authTokenGlobal ?? '').isEmpty) return;
 
     _reconnectTimer?.cancel();
-    final delay = Duration(seconds: 2 << _reconnectAttempts); // 2, 4, 8, 16, 32
+    final delay = reconnectDelayFor(_reconnectAttempts);
     _reconnectAttempts++;
 
 
@@ -251,6 +258,12 @@ print("SOCKET ERROR catch ${e}");
         connectToSocket();
       }
     });
+  }
+
+  @visibleForTesting
+  static Duration reconnectDelayFor(int attempt) {
+    final delay = Duration(seconds: 1 << attempt.clamp(0, 5));
+    return delay > _reconnectDelayMax ? _reconnectDelayMax : delay;
   }
 
   /// Force an immediate reconnect — called from AppLifecycleHandler on resume.

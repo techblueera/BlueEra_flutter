@@ -27,6 +27,9 @@ import 'package:BlueEra/core/language_localization_service/language_service_app.
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart' show WidgetsBinding;
+import 'package:BlueEra/features/common/delivery_partner/service/rider_auto_golive_scheduler.dart';
+import 'package:BlueEra/features/personal/personal_profile/service/self_work_auto_golive_scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart' as getxObj;
 import 'package:path_provider/path_provider.dart';
@@ -36,15 +39,44 @@ import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 class AuthManager {
   static bool isLoggingOut = false;
 
+  /// The token whose session a 401 already ended, so the requests that were
+  /// still in flight with it — each coming back 401 — don't run the whole
+  /// logout and navigation again (after the server move, sessions missing from
+  /// the new DB produced hundreds of these per device).
+  static String? _endedToken;
+
+  /// True for a 401 on a request sent with the session [handleLogout] already
+  /// ended, or with no token after it. A 401 for a NEW session still logs out.
+  static bool isStraggler(Response<dynamic>? response) {
+    if (response == null || _endedToken == null) return false;
+    final header =
+        response.requestOptions.headers[ApiKeys.authorization]?.toString() ??
+            '';
+    final sent = header.replaceFirst('Bearer ', '').trim();
+    return sent.isEmpty || sent == _endedToken;
+  }
+
   static Future<void> handleLogout(Response<dynamic>? response) async {
-    if (isLoggingOut) return;
+    if (isLoggingOut || isStraggler(response)) return;
     isLoggingOut = true;
+    _endedToken = authTokenGlobal ?? '';
 
     try {
       // Clear the in-memory token first so any request already queued in
       // the interceptor stops re-using the dead credential and producing
       // more 401s.
       authTokenGlobal = '';
+
+      // Stop everything that keeps calling the API on a timer: the location
+      // publisher (Dart + the native killed-state pinger) and the auto
+      // go-live schedulers. They would otherwise keep sending with no
+      // session until the app is killed.
+      try {
+        RiderAutoGoLiveScheduler().stop();
+      } catch (_) {}
+      try {
+        SelfWorkAutoGoLiveScheduler().stop();
+      } catch (_) {}
 
       try {
         deleteIfRegistered<ChatViewController>();
@@ -82,6 +114,13 @@ class AuthManager {
       // re-entrancy flag so a future session that hits 401 can log out again.
       try {
         getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+      } catch (_) {}
+      // Same second phase as the user-initiated logout: once the login screen
+      // is up, drop the account's controllers — which also closes the rider
+      // orders SSE stream and any other per-session connection they own.
+      try {
+        await WidgetsBinding.instance.endOfFrame;
+        LogoutHelper.resetAccountControllers();
       } catch (_) {}
       isLoggingOut = false;
     }
@@ -620,7 +659,32 @@ class ApiBaseHelper {
         formData.fields.add(MapEntry(name, value.toString()));
       }
     });
+    checkUploadSize(formData);
     return formData;
+  }
+
+  /// The largest multipart body we send to our API. The front door
+  /// (Cloudflare) rejects request bodies over 100 MB with a 413; this leaves
+  /// room for the multipart framing. Files this large should go through a
+  /// presigned S3 URL instead, which never passes the front door.
+  static const int maxUploadBytes = 95 * 1024 * 1024;
+
+  /// Refuses a multipart body over [maxUploadBytes] before it is sent, with a
+  /// message the user can act on — instead of uploading it all and getting an
+  /// opaque 413 back.
+  static void checkUploadSize(FormData formData) {
+    final int size;
+    try {
+      size = formData.length;
+    } catch (_) {
+      return; // a file of unknown length — let the server decide
+    }
+    if (size > maxUploadBytes) {
+      throw BadRequestException(
+        'This file is too large to upload. Please choose one under '
+        '${maxUploadBytes ~/ (1024 * 1024)} MB.',
+      );
+    }
   }
 
   ///POST...
