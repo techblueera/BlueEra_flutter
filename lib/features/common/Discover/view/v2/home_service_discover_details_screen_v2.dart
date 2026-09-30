@@ -15,7 +15,7 @@ import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.da
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
+import 'package:BlueEra/features/common/Discover/service/public_profile_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -50,7 +50,6 @@ class _HomeServiceDiscoverDetailsScreenV2State
 
   GetServiceModel get service => widget.service;
 
-  final _repo = EarnProfileRepo();
   EarnProfileModel? _store;
   bool _loadingStore = true;
 
@@ -87,18 +86,10 @@ class _HomeServiceDiscoverDetailsScreenV2State
       setState(() => _loadingStore = false);
       return;
     }
-    try {
-      final res = await _repo.fetchEarnProfileByUserId(
-        userId: _userId,
-        queryParams: const {'profileType': _profileType},
-      );
-      final body = res.response?.data;
-      // The by-userId endpoint returns a SINGLE object: { success, data: {…} }.
-      if (res.isSuccess && body is Map && body['data'] is Map) {
-        _store = EarnProfileModel.fromJson(
-            Map<String, dynamic>.from(body['data'] as Map));
-      }
-    } catch (_) {/* swallow — store-only sections simply hide */}
+    // Null leaves the store-only sections hidden.
+    _store = await PublicProfileService()
+            .earnProfile(_userId, profileType: _profileType) ??
+        _store;
     if (mounted) setState(() => _loadingStore = false);
   }
 

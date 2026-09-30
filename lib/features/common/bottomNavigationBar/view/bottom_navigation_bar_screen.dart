@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -44,8 +43,7 @@ import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
 import 'package:BlueEra/features/common/inactivity/widget/inactivity_warning_banner.dart';
-import 'package:BlueEra/features/common/reel/models/channel_model.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/reel/service/own_channel_service.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/content_creator/content_creator_main.dart';
@@ -806,26 +804,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Future<void> _initializeIndividualUser() async {
     await Future.delayed(Duration(seconds: 2));
-
-    if (channelId.isNotEmpty) return;
-
-    final channelModel = await getChannelDetails();
-    if (channelModel?.data == null) return;
-
-    final data = channelModel!.data;
-    channelId = data.id;
-    channelName = data.name;
-    channelOwner = data.username;
-    // channelOwner = data.ownership.claimedBy;
-
-    await Future.wait([
-      SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.channel_Id, channelId),
-      SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.channelName, channelName),
-      SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.channelOwner, channelOwner),
-    ]);
+    await OwnChannelService().rememberOwnChannel(userId);
   }
 
   void _initializeSocketConnections() {
@@ -1152,21 +1131,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  // GET CHANNEL DETAILS...
-  Future<ChannelModel?> getChannelDetails() async {
-    try {
-      ResponseModel response =
-          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
-
-      if (response.statusCode == 200) {
-        return ChannelModel.fromJson(response.response?.data);
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
-    }
-  }
 
   @override
   void dispose() {

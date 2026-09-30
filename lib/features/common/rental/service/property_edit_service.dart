@@ -40,6 +40,13 @@ class PropertyEditService {
     );
   }
 
+  /// Deletes property [id]. Null on success, else the server's message (''
+  /// when it gave none).
+  Future<String?> delete(String id) async {
+    final res = await _repo.deleteProperty(id);
+    return res.isSuccess ? null : (res.message?.toString() ?? '');
+  }
+
   Future<PropertyEditResult> _writeThenReread(
       String id, Future<ResponseModel> Function() write) async {
     final response = await write();

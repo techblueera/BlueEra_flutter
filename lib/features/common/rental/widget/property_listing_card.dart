@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
-import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
+import 'package:BlueEra/features/common/rental/service/property_edit_service.dart';
 import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -736,14 +736,16 @@ class PropertyListingCard extends StatelessWidget {
       barrierDismissible: false,
     );
     try {
-      final repo = PropertyRepo();
-      final response = await repo.deleteProperty(property.id!);
+      final error = await PropertyEditService().delete(property.id!);
       safeBack();
-      if (response.isSuccess) {
+      if (error == null) {
         commonSnackBar(message: AppStrings.propertyDeletedSuccessfully.tr);
         onDeleted?.call();
       } else {
-        commonSnackBar(message: response.message ?? AppStrings.failedToDeleteProperty.tr);
+        commonSnackBar(
+            message: error.isNotEmpty
+                ? error
+                : AppStrings.failedToDeleteProperty.tr);
       }
     } catch (_) {
       safeBack();
