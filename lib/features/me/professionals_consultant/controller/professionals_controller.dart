@@ -5,6 +5,7 @@ import 'package:BlueEra/features/me/professionals_consultant/model/professionals
 import 'package:BlueEra/features/me/professionals_consultant/repo/professionals_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ProfessionalsController extends GetxController {
   // Observables
@@ -98,7 +99,7 @@ class ProfessionalsController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-      print("Request Body: $body");
+      debugLog("Request Body: $body");
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

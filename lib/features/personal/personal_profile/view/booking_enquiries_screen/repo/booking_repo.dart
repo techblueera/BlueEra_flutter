@@ -2,13 +2,14 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 import '../../../../../../core/api/apiService/base_service.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 final String getUserByIdUrl = "user-service/user/getUserById";
 
 class BookingRepo extends BaseService{
 
   Future<ResponseModel> postAppointment({Map<String, dynamic>? bodyRequest}) async {
-    print("databody$bodyRequest");
+    debugLog("databody$bodyRequest");
     final response = await ApiBaseHelper().postHTTP(
       bookings,
       params: bodyRequest,
@@ -20,7 +21,7 @@ class BookingRepo extends BaseService{
     return response;
   }
   Future<ResponseModel> postEnquiry({Map<String, dynamic>? bodyRequest}) async {
-    print("databody$bodyRequest");
+    debugLog("databody$bodyRequest");
     final response = await ApiBaseHelper().postHTTP(
       Inquiries,
       params: bodyRequest,

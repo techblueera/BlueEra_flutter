@@ -16,6 +16,7 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/common_drop_down.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class CreateJobPostStep2 extends StatefulWidget {
   CreateJobPostStep2({super.key});
@@ -105,7 +106,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
         _selectedGender = null;
       }
     } catch (e) {
-      print('Error initializing data from API: $e');
+      debugLog('Error initializing data from API: $e');
       // Set default values on error
       controller.selectedLanguages.clear();
       controller.selectedLanguages.add('English');

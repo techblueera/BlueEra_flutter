@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/debug_log.dart';
 class GetJobDetailsByIdModel {
   String? message;
   Job? job;
@@ -89,7 +90,7 @@ class Job {
           ? new Compensation.fromJson(json['compensation'])
           : null;
     } catch (e) {
-      print("Error parsing compensation: $e");
+      debugLog("Error parsing compensation: $e");
       compensation = null;
     }
     
@@ -98,7 +99,7 @@ class Job {
           ? new InterviewDetails.fromJson(json['interviewDetails'])
           : null;
     } catch (e) {
-      print("Error parsing interviewDetails: $e");
+      debugLog("Error parsing interviewDetails: $e");
       interviewDetails = null;
     }
     
@@ -122,7 +123,7 @@ class Job {
           ? new Location.fromJson(json['location'])
           : null;
     } catch (e) {
-      print("Error parsing location: $e");
+      debugLog("Error parsing location: $e");
       location = null;
     }
     
@@ -148,12 +149,12 @@ class Job {
           try {
             customQuestions!.add(new CustomQuestions.fromJson(v));
           } catch (e) {
-            print("Error parsing custom question: $e");
+            debugLog("Error parsing custom question: $e");
             // Skip this question if it fails to parse
           }
         });
       } catch (e) {
-        print("Error parsing customQuestions array: $e");
+        debugLog("Error parsing customQuestions array: $e");
         customQuestions = null;
       }
     }

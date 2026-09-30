@@ -31,6 +31,7 @@ import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/group_details_model.dart';
 import 'component_widgets.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class GroupChatInputBar extends StatefulWidget {
   const GroupChatInputBar(
@@ -101,7 +102,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       if(newValue){
         _isEmojiVisible=false;
       }
-      print("Keyboard is now: ${isKeyboardVisible ? 'OPEN' : 'CLOSED'}");
+      debugLog("Keyboard is now: ${isKeyboardVisible ? 'OPEN' : 'CLOSED'}");
     }
   }
   Future<bool> _requestMicrophonePermission() async {
@@ -139,9 +140,9 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
         recordedFilePath = path;
       });
 
-      print("Recording started: $path");
+      debugLog("Recording started: $path");
     } catch (e) {
-      print("Failed to start recorder: $e");
+      debugLog("Failed to start recorder: $e");
     }
   }
 
@@ -156,7 +157,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       setState(() {
         isReadyToSend = true;
       });
-      print("Recording locked");
+      debugLog("Recording locked");
     } else if (dx < -100) {
       cancelRecording();
     }
@@ -170,9 +171,9 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
         isRecording = false;
         isPaused = false;
       });
-      print("Recording stopped. File saved at: $path");
+      debugLog("Recording stopped. File saved at: $path");
     } catch (e) {
-      print("Error stopping recorder: $e");
+      debugLog("Error stopping recorder: $e");
     }
   }
 
@@ -183,9 +184,9 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       setState(() {
         isPaused = true;
       });
-      print("Recording paused");
+      debugLog("Recording paused");
     } catch (e) {
-      print("Error pausing recorder: $e");
+      debugLog("Error pausing recorder: $e");
     }
   }
 
@@ -196,9 +197,9 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       setState(() {
         isPaused = false;
       });
-      print("Recording resumed");
+      debugLog("Recording resumed");
     } catch (e) {
-      print("Error resuming recorder: $e");
+      debugLog("Error resuming recorder: $e");
     }
   }
 
@@ -212,7 +213,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
         }
       }
     } catch (e) {
-      print("Error canceling recording: $e");
+      debugLog("Error canceling recording: $e");
     }
 
     if (!mounted) return;
@@ -222,7 +223,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
       isPaused = false;
       recordedFilePath = null;
     });
-    print("Recording canceled");
+    debugLog("Recording canceled");
   }
 
   @override

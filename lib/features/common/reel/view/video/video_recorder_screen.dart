@@ -16,6 +16,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VideoReelRecorderScreen extends StatefulWidget {
     final PostVia? postVia;
@@ -164,7 +165,7 @@ class _VideoReelRecorderScreenState extends State<VideoReelRecorderScreen> with 
     Future<void> _goToPreview() async {
       if (_videoFile != null) {
         final safePath = await prepareVideoFile(File(_videoFile!.path));
-        print("Recording path: $safePath");
+        debugLog("Recording path: $safePath");
         // Copying the recording off the camera's temp path is an await, and
         // the recorder can be closed while it runs.
         if (!mounted) return;

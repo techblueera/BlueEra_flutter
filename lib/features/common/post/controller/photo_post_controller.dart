@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum SymbolDuration { hours24, days7 }
 
@@ -128,7 +129,7 @@ class PhotoPostController extends GetxController {
         final reductionPercent =
             (reductionBytes / originalSize * 100).toStringAsFixed(2);
 
-        print(
+        debugLog(
           "✅ Image compressed successfully: "
           "${_formatBytes(originalSize)} → ${_formatBytes(newSize)} "
           "(${reductionPercent}% reduced)",

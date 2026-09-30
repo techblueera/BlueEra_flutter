@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotivePrivacyConditionController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -49,7 +50,7 @@ class AutomotivePrivacyConditionController extends GetxController {
         // Handle error
       }
     } catch (e) {
-      print("Error fetching blogs: $e");
+      debugLog("Error fetching blogs: $e");
     } finally {
       isLoading.value = false;
     }

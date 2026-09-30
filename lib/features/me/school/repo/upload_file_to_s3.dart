@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 
 // Using a typedef makes the code cleaner and prevents type mismatch errors
@@ -41,7 +42,7 @@ class S3UploadService {
           file: file,
           fileType: mimeType,
           preSignedUrl: preSignedUrl,
-          onProgress: (sent) => print("Uploading: $sent"),
+          onProgress: (sent) => debugLog("Uploading: $sent"),
         );
 
         if (s3Response?.isSuccess ?? false) {

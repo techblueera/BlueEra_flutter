@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/ott/model/ott_channel_video_res_model.da
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChannelFeedController extends GetxController {
   var channelDataList = <ChannelFeedData>[].obs;
@@ -154,7 +155,7 @@ class ChannelFeedController extends GetxController {
       // 🔹 3. Rollback if API fails
       unJoinChannelDataList[index] =
           current.copyWith(isFollowing: previousValue);
-      print('Follow/Unfollow API failed: $e');
+      debugLog('Follow/Unfollow API failed: $e');
     }
   }
 

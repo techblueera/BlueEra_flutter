@@ -27,6 +27,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AppConstants {
   static const String rupeeSymbol = '\u20B9';
@@ -1302,7 +1303,7 @@ void trackPostView(String postID) {
           PostRepo().postByViewCountIDApi(id: postID);
         }
       } catch (e) {
-        print("Failed to track view: $e");
+        debugLog("Failed to track view: $e");
       }
     });
   }

@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotiveNewsController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -63,7 +64,7 @@ class AutomotiveNewsController extends GetxController {
         // Handle error
       }
     } catch (e) {
-      print("Error fetching blogs: $e");
+      debugLog("Error fetching blogs: $e");
     } finally {
       isLoading.value = false;
     }

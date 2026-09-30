@@ -21,6 +21,7 @@ import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// The deep-linked video player: its lists of videos and the actions on them.
 /// Owned by the player's route. Feed cards call [VideoActions] instead.
@@ -104,7 +105,7 @@ class VideoController extends GetxController {
         if (page == 1) {
           final cachedVideos = await HomeCacheService().getCachedVideos();
           if (cachedVideos != null && cachedVideos.isNotEmpty) {
-            print('📱 Showing cached videos: ${cachedVideos.length} items');
+            debugLog('📱 Showing cached videos: ${cachedVideos.length} items');
             videoFeedPosts.value = cachedVideos;
             isLoading.value = false;
             
@@ -118,7 +119,7 @@ class VideoController extends GetxController {
             });
             return;
           } else {
-            print('📱 No cached videos found, fetching from API...');
+            debugLog('📱 No cached videos found, fetching from API...');
           }
         }
       }
@@ -153,7 +154,7 @@ class VideoController extends GetxController {
             // Cache videos
             if (videoFeedItem.isNotEmpty) {
               await HomeCacheService().cacheVideos(videoFeedItem);
-              print('💾 Cached ${videoFeedItem.length} videos');
+              debugLog('💾 Cached ${videoFeedItem.length} videos');
             }
           }else{
             videoFeedPosts.addAll(videoFeedItem);
@@ -197,7 +198,7 @@ class VideoController extends GetxController {
       }
     } catch (e) {
       // Silently fail for background fetch
-      print('Background video fetch failed: $e');
+      debugLog('Background video fetch failed: $e');
     }
   }
 

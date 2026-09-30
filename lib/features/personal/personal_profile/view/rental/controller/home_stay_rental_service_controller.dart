@@ -13,6 +13,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/sh
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// The home-stay rental listing form. Registered by HomeStayRentalBinding.
 class HomeStayRentalServiceController extends GetxController {
@@ -331,7 +332,7 @@ class HomeStayRentalServiceController extends GetxController {
       if (response.isSuccess) {
         addHomeStayRentalServiceResponse.value = ApiResponse.complete(response);
         rentalId = response.getNested(['data', '_id']);
-        print('rental id-- $rentalId');
+        debugLog('rental id-- $rentalId');
 
         // await setEarnServiceOptData(true);
         nextStep();

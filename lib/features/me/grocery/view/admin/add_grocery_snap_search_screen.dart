@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AddGrocerySnapSearchScreen extends StatefulWidget {
   const AddGrocerySnapSearchScreen({super.key});
@@ -86,7 +87,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
         }
 
         final bool canSubmit = controller.canSubmitProducts;
-        print('can submit-- $canSubmit');
+        debugLog('can submit-- $canSubmit');
 
         final int productCount = controller.selectedProductVariants.keys.length;
         final variantCount = controller.selectedProductVariants.values.fold(0, (sum, list) => sum + list.length);

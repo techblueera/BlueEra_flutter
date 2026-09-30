@@ -33,6 +33,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -468,7 +469,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ));
 
     } catch (e) {
-      print("Video share failed: $e");
+      debugLog("Video share failed: $e");
     } finally {
       _isVideoSharing = false; // Reset flag
     }
@@ -684,7 +685,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       createProfileScreen();
       return;
     }
-    print("sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
+    debugLog("sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
     if(videoController.videoFeedItem?.channel?.id!=null){
       Navigator.pushNamed(
           context,

@@ -41,6 +41,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 import '../model/sub_category_root_category_response.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AddProductViaAiRequest {
   final String? productName;
@@ -595,7 +596,7 @@ class ProductController extends GetxController{
         generateAiProductContentResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print('stack trace-- $s');
+      debugLog('stack trace-- $s');
       generateAiProductContentResponse.value = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
     }
@@ -791,7 +792,7 @@ class ProductController extends GetxController{
         createProductResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print('stack trace-- $s');
+      debugLog('stack trace-- $s');
       createProductResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -1014,7 +1015,7 @@ class ProductController extends GetxController{
   void navigateToInventorySectionAfterAddProduct() {
 
     Get.until((route) {
-      print("🔍 Scanning route → ${route.settings.name}");
+      debugLog("🔍 Scanning route → ${route.settings.name}");
 
       // STOP when this route matches
       if(route.settings.name == RouteHelper.getProductScreenRoute()) return route.settings.name == RouteHelper.getProductScreenRoute();
@@ -1563,12 +1564,12 @@ class ProductController extends GetxController{
         singleProductData.value = singleProductModel.data;
         singleProductDetailsResponse.value = ApiResponse.complete(response);
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         singleProductData.value = null;
         singleProductDetailsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       singleProductData.value = null;
       singleProductDetailsResponse.value = ApiResponse.error('error');
     } finally {

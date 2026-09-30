@@ -27,6 +27,7 @@ import '../model/mybooking_model.dart';
 import '../model/availability_model.dart';
 import '../repo/booking_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum LocationMode { current, search }
 
@@ -483,10 +484,10 @@ class BookingController extends GetxController {
             BookingResponse.fromJson(response.response!.data);
         bookings.value = bookingResponse.data;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -502,10 +503,10 @@ class BookingController extends GetxController {
             EnquiryResponse.fromJson(response.response!.data);
         enquiry.value = bookingResponse.data;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -566,11 +567,11 @@ class BookingController extends GetxController {
             ReceivedBookingList.fromJson(response.response!.data);
         receivedbookingList.value = bookingResponse.data;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         receivedbookingList.clear();
       }
     } catch (e) {
-      print("Error in getReceivedBookingList: $e");
+      debugLog("Error in getReceivedBookingList: $e");
       receivedbookingList.clear();
     } finally {
       isLoading.value = false;
@@ -588,10 +589,10 @@ class BookingController extends GetxController {
             ReceivedEnquiryList.fromJson(response.response!.data);
         receivedenquiryList.value = bookingResponse.data;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
       receivedenquiryList.clear();
     } finally {
       isLoading.value = false;

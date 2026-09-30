@@ -38,6 +38,7 @@ import 'package:BlueEra/widgets/update_contact_number.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VehicleRentalService extends StatefulWidget {
   const VehicleRentalService({super.key});
@@ -175,10 +176,10 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                               // The dialog returns the verified new number, or null when cancelled.
                               if (result != null) {
                                 //  OTP successfully verified
-                                print("OTP verification successful");
+                                debugLog("OTP verification successful");
                               } else {
                                 // Either cancelled or verification failed
-                                print("OTP verification failed or cancelled");
+                                debugLog("OTP verification failed or cancelled");
                               }
 
                             },
@@ -287,7 +288,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                               title: AppStrings.homeLocation,
                               hintText: AppStrings.egLucknowGomtiNagar,
                               onSelected: (placeId, lat, lng, address) async {
-                                print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                                debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                                 controller.locationCtrl.text = address;
                                 controller.currentAddress.value = address;
                                 controller.latitude = lat;
@@ -683,7 +684,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       title: AppStrings.pickupLocation,
                       hintText: AppStrings.egSubhasPalliGomtiNagar,
                       onSelected: (placeId, lat, lng, address) async {
-                        print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                        debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                         controller.pickUpLocationCtrl.text = address;
                         controller.pickUpLocationAddress.value = address;
                         controller.pickUpLocationLatitude = lat;

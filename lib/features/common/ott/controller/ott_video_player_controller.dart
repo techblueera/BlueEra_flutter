@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class OttVideoPlayerController extends GetxController {
   late VideoPlayerController videoController;
@@ -206,7 +207,7 @@ Future<List<HlsTrack>> parseHlsMasterPlaylist(String masterUrl) async {
     tracks.sort((a, b) => a.bandwidth.compareTo(b.bandwidth));
     return tracks;
   } catch (e) {
-    print("Error parsing HLS: $e");
+    debugLog("Error parsing HLS: $e");
     return [];
   }
 }

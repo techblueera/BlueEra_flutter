@@ -4,6 +4,7 @@ import 'package:BlueEra/features/personal/resume/controller/profile_pic_controll
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PublicationsController extends GetxController {
   final ResumeRepo _repo = ResumeRepo();
@@ -71,7 +72,7 @@ class PublicationsController extends GetxController {
         yearController.text = _safeParseInt(publishedDate['year']).toString();
       }
     } catch (e) {
-      print("Error in fillFormForEdit: $e");
+      debugLog("Error in fillFormForEdit: $e");
       clearForm();
     }
   }
@@ -125,7 +126,7 @@ class PublicationsController extends GetxController {
                 AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print("ERROR in addPublicationApi: $e");
+      debugLog("ERROR in addPublicationApi: $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
@@ -169,7 +170,7 @@ class PublicationsController extends GetxController {
         commonSnackBar(message: response.data?['message'] ??AppStrings.publicationUpdateFailed);
       }
     } catch (e) {
-      print("Update error: $e");
+      debugLog("Update error: $e");
       commonSnackBar(message: AppStrings.publicationUpdateFailed);
     } finally {
       isLoading.value = false;
@@ -196,7 +197,7 @@ class PublicationsController extends GetxController {
                 AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print("ERROR in deletePublicationApi: $e");
+      debugLog("ERROR in deletePublicationApi: $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;

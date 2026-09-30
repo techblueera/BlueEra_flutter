@@ -47,6 +47,7 @@ import '../../personal_profile/view/widget/ai_suggestion_field.dart';
 import '../../personal_profile/view/widget/introduction_video_widget.dart';
 import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
 import '../repo/personal_profile_repo.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class _ProfileFieldStatus {
   final int id; // unique identifier
@@ -1191,7 +1192,7 @@ class ViewPersonalDetailsController extends GetxController
     } catch (e) {
       getFollowerViewCountResponse.value = ApiResponse.error();
 
-      print('Error fetching counts: $e');
+      debugLog('Error fetching counts: $e');
       // commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {}
   }

@@ -35,6 +35,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PersonalAccountNewScreen extends StatefulWidget {
   final String accountType;
@@ -137,7 +138,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   @override
   void initState() {
     super.initState();
-    print("AccountType: ${widget.accountType} | "
+    debugLog("AccountType: ${widget.accountType} | "
         "Profile Type: ${widget.profileType.tagId} | "
         "Profession Tag Id : ${widget.professionTagId} | "
         "Profession: ${widget.profession} ");

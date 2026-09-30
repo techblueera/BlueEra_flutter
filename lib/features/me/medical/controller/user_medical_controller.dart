@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/medical_product_model.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class UserMedicalController extends GetxController{
   Rx<ApiResponse> userMedicalCategoryResponse =
@@ -534,9 +535,9 @@ class UserMedicalController extends GetxController{
         // }
 
       }, onError: (error) {
-        print('âŒ Stream error: $error');
+        debugLog('âŒ Stream error: $error');
       }, onDone: () {
-        print('â„¹ï¸ Stream closed');
+        debugLog('â„¹ï¸ Stream closed');
       });
   }
 

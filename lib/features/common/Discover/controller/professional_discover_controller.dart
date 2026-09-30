@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:get/get.dart';
 import 'service_enquiry_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Discover's earn-service and professional/consultant listings: the paged
 /// lists and their unpaginated map lists, sort filter, the location picked on
@@ -284,7 +285,7 @@ class ProfessionalDiscoverController extends GetxController {
         }
       }
     } catch (e, s) {
-      print('stack trace --> $s');
+      debugLog('stack trace --> $s');
       selfProfessionServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -443,7 +444,7 @@ class ProfessionalDiscoverController extends GetxController {
         }
       }
     } catch (e, s) {
-      print('stack trace --> $s');
+      debugLog('stack trace --> $s');
       profConProfessionServiceResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {

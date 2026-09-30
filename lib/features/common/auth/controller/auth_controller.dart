@@ -47,6 +47,7 @@ import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AuthController extends GetxController {
   final Rx<ApiResponse> mobileNoOtpSendResponse =
@@ -1337,7 +1338,7 @@ class AuthController extends GetxController {
       // A parse that throws leaves the list empty exactly like a failed
       // request, so it is reported exactly like one.
       individualFieldsError.value = AppStrings.globalSearchSomethingWentWrong;
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isIndividualFieldLoading.value = false;
     }

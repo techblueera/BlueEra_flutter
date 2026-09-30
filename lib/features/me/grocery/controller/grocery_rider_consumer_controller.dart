@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class GroceryRiderConsumerController extends GetxController{
   Rx<ApiResponse> fetchNestedGroceryCategoryResponse =
@@ -610,9 +611,9 @@ class GroceryRiderConsumerController extends GetxController{
       //   _handleStatusUpdate(event);
       // }
     }, onError: (error) {
-      print('❌ Stream error: $error');
+      debugLog('❌ Stream error: $error');
     }, onDone: () {
-      print('ℹ️ Stream closed');
+      debugLog('ℹ️ Stream closed');
     });
   }
 

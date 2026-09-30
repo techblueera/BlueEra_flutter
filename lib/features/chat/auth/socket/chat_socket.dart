@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/services/pending_message_drainer.dart';
 import '../../../../environment_config.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChatSocketService {
   static final ChatSocketService _instance = ChatSocketService._internal();
@@ -178,7 +179,7 @@ class ChatSocketService {
 
     } catch (e) {
       _isConnecting = false;
-print("SOCKET ERROR catch ${e}");
+debugLog("SOCKET ERROR catch ${e}");
       rethrow;
     }
   }

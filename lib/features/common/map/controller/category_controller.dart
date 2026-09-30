@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/map/repo/add_place_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class CategoryController extends GetxController {
   final TextEditingController searchController = TextEditingController();
@@ -51,7 +52,7 @@ class CategoryController extends GetxController {
             message: response.message ?? 'Failed to load categories');
       }
     } catch (e) {
-      print('Error fetching categories: $e');
+      debugLog('Error fetching categories: $e');
       isLoading.value = false;
       commonSnackBar(message: 'Error loading categories');
     }

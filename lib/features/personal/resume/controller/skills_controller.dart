@@ -6,6 +6,7 @@ import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class SkillsController extends GetxController {
   final ResumeRepo _repo = ResumeRepo();
@@ -30,7 +31,7 @@ class SkillsController extends GetxController {
       final resumeData = Get.find<ProfilePicController>().getResumeData.value;
       setSkillsFromModel(resumeData.skills);
     } catch (e) {
-      print('Error seeding SkillsController from resume data: $e');
+      debugLog('Error seeding SkillsController from resume data: $e');
     }
   }
 

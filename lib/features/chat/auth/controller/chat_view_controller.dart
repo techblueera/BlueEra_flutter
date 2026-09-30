@@ -72,6 +72,7 @@ import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'payment_qr_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChatViewController extends GetxController {
   /// The session's chat controller, registered on first use. Permanent: it
@@ -799,9 +800,9 @@ class ChatViewController extends GetxController {
       }
     } catch (e, stackTrace) {
       // 🔴 Log the Error and Stack Trace
-      print("❌ Error in _parseDataByType for type: $type");
-      print("Error: $e");
-      print("Stack Trace: $stackTrace");
+      debugLog("❌ Error in _parseDataByType for type: $type");
+      debugLog("Error: $e");
+      debugLog("Stack Trace: $stackTrace");
 
       // Recommended: Rethrow the error so the UI knows something failed
       rethrow;

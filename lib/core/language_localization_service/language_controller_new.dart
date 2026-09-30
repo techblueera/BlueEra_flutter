@@ -15,6 +15,7 @@ import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class LanguageControllerNew extends GetxController {
   static const String _boxName = 'translations';
@@ -119,7 +120,7 @@ class LanguageControllerNew extends GetxController {
         );
       }).toList();
     } catch (e) {
-      print('⚠️ loadLanguages failed: $e');
+      debugLog('⚠️ loadLanguages failed: $e');
       selectedLang.value = _fallbackLang;
     }
   }

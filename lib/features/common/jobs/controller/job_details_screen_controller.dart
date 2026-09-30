@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 // ignore: unused_import
 import 'create_job_post_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JobDetailsScreenController extends GetxController{
 
@@ -44,7 +45,7 @@ class JobDetailsScreenController extends GetxController{
 
   Future<void> fetchJobDetails(String jobId) async {// Prevent multiple simultaneous calls
     if (isLoading.value) {
-      print("Already loading job details, skipping...");
+      debugLog("Already loading job details, skipping...");
       return;
     }
 
@@ -73,7 +74,7 @@ class JobDetailsScreenController extends GetxController{
       // Ensure we're still mounted before updating state
       if (Get.isRegistered<JobDetailsScreenController>()) {
         isLoading.value = false;
-        print("Loading state set to false");
+        debugLog("Loading state set to false");
       }
     }
   }
@@ -118,7 +119,7 @@ class JobDetailsScreenController extends GetxController{
       // Ensure we're still mounted before updating state
       if (Get.isRegistered<JobDetailsScreenController>()) {
         isLoading.value = false;
-        print("Loading state set to false");
+        debugLog("Loading state set to false");
       }
     }
   }

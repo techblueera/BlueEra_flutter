@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 // ignore: must_be_immutable
 class CommonProfileImage extends StatefulWidget {
@@ -108,9 +109,9 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
     try {
     String? myImg =
           await PhotoPickerService.pickSinglePhoto(context, titleOfDialog);
-      print('image path myImg -> ${myImg}');
+      debugLog('image path myImg -> ${myImg}');
       widget.imagePath=myImg;
-      print('image path-> ${widget.imagePath}');
+      debugLog('image path-> ${widget.imagePath}');
       if (widget.imagePath?.isNotEmpty ?? false) {
         ///SET IMAGE PATH...
         widget.onImageUpdate(widget.imagePath ?? "");

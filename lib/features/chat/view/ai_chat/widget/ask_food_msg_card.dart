@@ -12,6 +12,7 @@ import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_box_shadow.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AskFoodMsgCard extends StatelessWidget {
   final FoodAskAiModel response;
@@ -24,7 +25,7 @@ class AskFoodMsgCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final arrFoodData = response.data?.foodData ?? [];
-    print('total food data -- ${arrFoodData.length}');
+    debugLog('total food data -- ${arrFoodData.length}');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

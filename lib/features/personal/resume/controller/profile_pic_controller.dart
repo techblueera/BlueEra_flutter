@@ -27,6 +27,7 @@ import 'package:BlueEra/features/personal/resume/controller/skills_controller.da
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ProfilePicController extends GetxController {
   var isLoading = false.obs;
@@ -90,7 +91,7 @@ class ProfilePicController extends GetxController {
         getSelfResumeResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      print("Error fetching resume: $e");
+      debugLog("Error fetching resume: $e");
       getSelfResumeResponse.value = ApiResponse.error('error');
     }
   }
@@ -196,7 +197,7 @@ class ProfilePicController extends GetxController {
         bioController.educationList.clear();
       }
     } catch (e) {
-      print('Error updating controllers with resume data: $e');
+      debugLog('Error updating controllers with resume data: $e');
     }
   }
 
@@ -230,7 +231,7 @@ class ProfilePicController extends GetxController {
         }
       }
     } catch (e) {
-      print('Error updating QualificationController: $e');
+      debugLog('Error updating QualificationController: $e');
     }
   }
 
@@ -242,7 +243,7 @@ class ProfilePicController extends GetxController {
       final salaryController = Get.find<SalaryController>();
       salaryController.setSalaryDetails(model.salaryDetails);
     } catch (e) {
-      print("Error updating SalaryController: $e");
+      debugLog("Error updating SalaryController: $e");
     }
   }
 
@@ -254,7 +255,7 @@ class ProfilePicController extends GetxController {
       final currentJobController = Get.find<CurrentJobController>();
       currentJobController.setCurrentJobFromModel(data.currentJob);
     } catch (e) {
-      print("Error updating CurrentJobController: $e");
+      debugLog("Error updating CurrentJobController: $e");
     }
   }
 
@@ -265,7 +266,7 @@ class ProfilePicController extends GetxController {
       final educationController = Get.find<EducationController>();
       educationController.setEducationListFromModel(model.education);
     } catch (e) {
-      print("Error updating EducationController: $e");
+      debugLog("Error updating EducationController: $e");
     }
   }
 
@@ -278,7 +279,7 @@ class ProfilePicController extends GetxController {
       fullTimeExperienceController
           .setExperienceListFromModel(data.fullTimeExperience);
     } catch (e) {
-      print("Error updating FullTimeExperienceController: $e");
+      debugLog("Error updating FullTimeExperienceController: $e");
     }
   }
 
@@ -290,7 +291,7 @@ class ProfilePicController extends GetxController {
       partTimeExperienceController
           .setExperienceListFromModel(data.partTimeExperience);
     } catch (e) {
-      print("Error updating PartTimeExperienceController: $e");
+      debugLog("Error updating PartTimeExperienceController: $e");
     }
   }
 
@@ -301,7 +302,7 @@ class ProfilePicController extends GetxController {
       final skillsController = Get.find<SkillsController>();
       skillsController.setSkillsFromModel(data.skills);
     } catch (e) {
-      print('Error updating SkillsController: $e');
+      debugLog('Error updating SkillsController: $e');
     }
   }
 
@@ -334,7 +335,7 @@ class ProfilePicController extends GetxController {
             (speakList.isEmpty && writeList.isEmpty);
       }
     } catch (e) {
-      print('Error updating LanguagesController: $e');
+      debugLog('Error updating LanguagesController: $e');
     }
   }
 
@@ -348,7 +349,7 @@ class ProfilePicController extends GetxController {
       // Optionally update TextEditingController text:
       careerController.careerObjectiveController.text = objective;
     } catch (e) {
-      print('Error updating Career Objective: $e');
+      debugLog('Error updating Career Objective: $e');
     }
   }
 
@@ -369,7 +370,7 @@ class ProfilePicController extends GetxController {
       // Run validation or other updates if necessary
       portfolioController.validateForm();
     } catch (e) {
-      print('Error updating PortfolioController: $e');
+      debugLog('Error updating PortfolioController: $e');
     }
   }
 
@@ -412,7 +413,7 @@ class ProfilePicController extends GetxController {
         awardsController.awards.clear();
       }
     } catch (e) {
-      print('Error updating AwardsController: $e');
+      debugLog('Error updating AwardsController: $e');
     }
   }
 
@@ -497,7 +498,7 @@ class ProfilePicController extends GetxController {
         achievementsController.achievementsList.clear();
       }
     } catch (e) {
-      print('Error updating AchievementsController: $e');
+      debugLog('Error updating AchievementsController: $e');
     }
   }
 
@@ -588,7 +589,7 @@ class ProfilePicController extends GetxController {
         certificationsController.certificationsList.clear();
       }
     } catch (e) {
-      print('Error updating CertificationsController: $e');
+      debugLog('Error updating CertificationsController: $e');
     }
   }
 
@@ -627,7 +628,7 @@ class ProfilePicController extends GetxController {
         publicationsController.publications.clear();
       }
     } catch (e) {
-      print('Error updating PublicationsController: $e');
+      debugLog('Error updating PublicationsController: $e');
     }
   }
 
@@ -653,7 +654,7 @@ class ProfilePicController extends GetxController {
       }
       hobbiesController.validateForm();
     } catch (e) {
-      print('Error updating HobbiesController: $e');
+      debugLog('Error updating HobbiesController: $e');
     }
   }
 
@@ -708,7 +709,7 @@ class ProfilePicController extends GetxController {
         additionalInfoController.additionalInfoList.clear();
       }
     } catch (e) {
-      print('Error updating AdditionalInfoController: $e');
+      debugLog('Error updating AdditionalInfoController: $e');
     }
   }
 
@@ -759,7 +760,7 @@ class ProfilePicController extends GetxController {
         ngoController.entityList.clear();
       }
     } catch (e) {
-      print('Error updating NgoOrgsController: $e');
+      debugLog('Error updating NgoOrgsController: $e');
     }
   }
 
@@ -808,7 +809,7 @@ class ProfilePicController extends GetxController {
         patentController.entityList.clear();
       }
     } catch (e) {
-      print('Error updating PatentsController: $e');
+      debugLog('Error updating PatentsController: $e');
     }
   }
 }

@@ -27,6 +27,7 @@ import '../model/symbol_interaction_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../repo/symbol_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum PostVisibility { public, private, custom }
 
@@ -200,7 +201,7 @@ class AddChatSymbolController extends GetxController {
     final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: path));
 
     if (trimmedPath != null) {
-      print("✅ Trimmed Video Path: $trimmedPath");
+      debugLog("✅ Trimmed Video Path: $trimmedPath");
       choosePostType(SymbolPostType.video);
       await setVideoFile(File(trimmedPath));
     }

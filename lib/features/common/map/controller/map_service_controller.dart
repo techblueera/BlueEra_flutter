@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/map/model/food_service_model_response.da
 import 'package:BlueEra/features/common/map/model/rental_service_model.dart';
 import 'package:BlueEra/features/common/map/repo/map_service_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class MapServiceController extends GetxController {
   var homeServiceResponse = ApiResponse.initial('Initial').obs;
@@ -177,7 +178,7 @@ class MapServiceController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      print('stack trace --> $s');
+      debugLog('stack trace --> $s');
       homeServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -258,7 +259,7 @@ class MapServiceController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      print('stack trace --> $s');
+      debugLog('stack trace --> $s');
       rentalServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -370,7 +371,7 @@ class MapServiceController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      print('error--> $s');
+      debugLog('error--> $s');
       foodServiceResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

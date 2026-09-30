@@ -16,6 +16,7 @@ import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PersonalCreateProfileController extends GetxController {
   /// The signed-in user's profile editor state, registered on first use.
@@ -199,7 +200,7 @@ class PersonalCreateProfileController extends GetxController {
 
     try {
       updateBtnLoading.value = true;
-      print("Params being sent to API: $params");
+      debugLog("Params being sent to API: $params");
       ResponseModel responseModel =
           await PersonalProfileRepo().updateUser(formData: params, showProgress: showProgress);
 

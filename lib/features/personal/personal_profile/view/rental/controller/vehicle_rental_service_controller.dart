@@ -18,6 +18,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum LoadCapacity { KG, TON }
 
@@ -373,7 +374,7 @@ class VehicleRentalServiceController extends GetxController {
       if (response.isSuccess) {
         addVehicleRentalServiceResponse.value = ApiResponse.complete(response);
         rentalId = response.getNested(['data', '_id']);
-        print('rental id-- $rentalId');
+        debugLog('rental id-- $rentalId');
 
         // await setEarnServiceOptData(true);
         nextStep();

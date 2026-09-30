@@ -25,6 +25,7 @@ import 'package:sms_autofill/sms_autofill.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class OtpPageScreen extends StatefulWidget {
   const OtpPageScreen({super.key, this.mobileNumber});
@@ -103,10 +104,10 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   Future<void> _printAppSignature() async {
     try {
       final signature = await SmsAutoFill().getAppSignature;
-      print("📲 App Signature (send to backend): $signature");
+      debugLog("📲 App Signature (send to backend): $signature");
     } catch (e) {
       debugPrint("Error getting app signature: $e");
-      print("Error getting app signature: $e");
+      debugLog("Error getting app signature: $e");
     }
   }
 

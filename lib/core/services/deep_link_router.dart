@@ -41,6 +41,7 @@ import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Routes an incoming deeplink / QR URL to the screen it names.
 ///
@@ -173,7 +174,7 @@ class DeepLinkRouter {
       }
 
       final segments = uri.pathSegments; // e.g., [app, post, 123]
-      print("segments==== ${segments}");
+      debugLog("segments==== ${segments}");
 
       // Education (school) share/QR links carry an extra `education` segment:
       //   https://beapp.in/app/business/education/<id>
@@ -420,7 +421,7 @@ class DeepLinkRouter {
     else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | product | profile | …
         final id = segments[2];
-print("type==== ${type}");
+debugLog("type==== ${type}");
 
         // `chat/new` is the one id slot that is NOT an ObjectId.
         //
@@ -628,7 +629,7 @@ print("type==== ${type}");
         }
       }
     } on Exception catch (e) {
-      print(e.toString());
+      debugLog(e.toString());
     }
   }
 

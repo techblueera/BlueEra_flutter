@@ -25,6 +25,7 @@ import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
 import 'rider_location_poll_controller.dart';
 import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class DiscoverController extends GetxController {
   /// The session's instance, registered on first use. Permanent: an ongoing
@@ -280,7 +281,7 @@ class DiscoverController extends GetxController {
       }
       return null;
     } catch (e) {
-      print("Post code from coordinates error: $e");
+      debugLog("Post code from coordinates error: $e");
       return null;
     }
   }
@@ -317,7 +318,7 @@ class DiscoverController extends GetxController {
       );
       return pincode ?? '';
     } catch (e) {
-      print("Current location post code error: $e");
+      debugLog("Current location post code error: $e");
       return '';
     }
   }
@@ -752,7 +753,7 @@ class DiscoverController extends GetxController {
     final socket = ChatSocketService();
 
     socket.listenEvent('ride:broadcast:searching', (data) {
-      print('[BROADCAST] ride:broadcast:searching → $data');
+      debugLog('[BROADCAST] ride:broadcast:searching → $data');
       // Fan out FIRST. `ChatSocketService.listenEvent` replaces any existing
       // handler for an event name, so an order card cannot register its own
       // `ride:broadcast:*` listener without silently killing this one. These
@@ -780,7 +781,7 @@ class DiscoverController extends GetxController {
     // poll hydrates the real one, and a placeholder would be what the tracking
     // card renders if the full payload never lands.
     socket.listenEvent('ride:broadcast:accepted', (data) {
-      print('[BROADCAST] ride:broadcast:accepted → $data');
+      debugLog('[BROADCAST] ride:broadcast:accepted → $data');
       OrderBroadcastController.instance.onAccepted(data);
       if (_isStaleFareCallEvent(data)) return;
       final riderId = (data is Map ? data['riderId'] : null)?.toString() ?? '';
@@ -792,7 +793,7 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:broadcast:exhausted', (data) {
-      print('[BROADCAST] ride:broadcast:exhausted → $data');
+      debugLog('[BROADCAST] ride:broadcast:exhausted → $data');
       OrderBroadcastController.instance.onExhausted(data);
       if (_isStaleFareCallEvent(data)) return;
       _markMultiShopBroadcastExhausted();
@@ -1202,7 +1203,7 @@ class DiscoverController extends GetxController {
     if (evOrderId.isEmpty || currentOrderId.isEmpty) return false;
     final stale = evOrderId != currentOrderId;
     if (stale) {
-      print('[FARE_CALL_QUEUE] ⚠️ dropping stale event for order $evOrderId '
+      debugLog('[FARE_CALL_QUEUE] ⚠️ dropping stale event for order $evOrderId '
           '(active order is $currentOrderId)');
     }
     return stale;
@@ -1213,7 +1214,7 @@ class DiscoverController extends GetxController {
     final socket = ChatSocketService();
 
     socket.listenEvent('ride:queue:calling', (data) {
-      print('[FARE_CALL_QUEUE] ride:queue:calling → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:queue:calling → $data');
       // A broadcast order is a silent wave race — there is no rider-by-rider
       // WebRTC call to join. Auto-joining one here would open a call room for
       // a ride the customer never dialled.
@@ -1238,13 +1239,13 @@ class DiscoverController extends GetxController {
         iceServers = [];
       }
 
-      print(
+      debugLog(
           '[FARE_CALL_DEBUG] ride:queue:calling → callId=$callId, roomId=$roomId, riderId=$riderId, iceServers count=${iceServers.length}');
-      print('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
+      debugLog('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
 
       if (callId.isNotEmpty && roomId.isNotEmpty && riderId.isNotEmpty) {
         final callController = CallController.instance;
-        print(
+        debugLog(
             '[FARE_CALL_DEBUG] ride:queue:calling → CallController current status=${callController.callStatus.value}');
         callController.joinFareCallAsCustomer(
           fareCallId: callId,
@@ -1254,13 +1255,13 @@ class DiscoverController extends GetxController {
           iceServers: iceServers,
         );
       } else {
-        print(
+        debugLog(
             '[FARE_CALL_DEBUG] ride:queue:calling → ⚠️ MISSING DATA: callId=$callId, roomId=$roomId, riderId=$riderId — cannot join call!');
       }
     });
 
     socket.listenEvent('ride:queue:accepted', (data) {
-      print('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
       // Stale-order guard: a delayed accepted event from a PREVIOUS order
       // (cancelled mid-queue, then rebooked) must not touch the current
       // ride's state — most critically the OTPs. Overwriting the new order's
@@ -1309,14 +1310,14 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:queue:exhausted', (data) {
-      print('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
       isFareCallInProgress.value = false;
       fareCallAcceptedRiderInfo.value = null;
       commonSnackBar(message: 'No riders available. Please try again.');
     });
 
     socket.listenEvent('ride:started', (data) {
-      print('[FARE_CALL_QUEUE] ride:started → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:started → $data');
       // Stale-order guard: a delayed started event for a previous order must
       // not flip the CURRENT ride to "started" (which hides the pickup OTP
       // card before the rider ever verified it).
@@ -1327,7 +1328,7 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:completed', (data) {
-      print('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
+      debugLog('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
       // Stale-order guard — see ride:started above.
       if (_isStaleFareCallEvent(data)) return;
       isFareCallRideCompleted.value = true;
@@ -1424,7 +1425,7 @@ class DiscoverController extends GetxController {
               fareCallDeliveryOtp.value = deliveryOtp;
               fareCallOtpOrderId = orderId;
             }
-            print('[FARE_CALL_QUEUE] ride-started detected via status poll '
+            debugLog('[FARE_CALL_QUEUE] ride-started detected via status poll '
                 '(status=$status) → isFareCallRideStarted=true');
           }
           // Keep polling — we still need to catch completion.
@@ -1448,7 +1449,7 @@ class DiscoverController extends GetxController {
       Get.find<RideNavigationOverlayController>().clearRideData();
     }
     OngoingRideStore.clear();
-    print('[FARE_CALL_QUEUE] ride-completed detected via status poll → '
+    debugLog('[FARE_CALL_QUEUE] ride-completed detected via status poll → '
         'isFareCallRideCompleted=true');
   }
 

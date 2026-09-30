@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:hive/hive.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class HomeCacheService {
   static const String _postsCacheBox = 'home_posts_cache';
@@ -71,7 +72,7 @@ class HomeCacheService {
       );
       await _updateLastFetchTime();
     } catch (e) {
-      print('Error caching $key: $e');
+      debugLog('Error caching $key: $e');
     }
   }
 
@@ -221,9 +222,9 @@ class HomeCacheService {
       await getCachedPosts();
       await getCachedVideos();
       await getCachedShorts();
-      print('Cache preloaded successfully');
+      debugLog('Cache preloaded successfully');
     } catch (e) {
-      print('Error preloading cache: $e');
+      debugLog('Error preloading cache: $e');
     }
   }
 }

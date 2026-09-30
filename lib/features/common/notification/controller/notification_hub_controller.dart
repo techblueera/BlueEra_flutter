@@ -6,6 +6,7 @@ import 'package:BlueEra/features/common/notification/model/notification_model.da
 import 'package:BlueEra/features/common/notification/notification_repo.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Drives the notification hub (NotificationScreen): syncs pages from the
 /// server into [NotificationCacheService], filters the cached stream by tab and
@@ -145,7 +146,7 @@ class NotificationHubController extends GetxController {
     } catch (e) {
       // Keep whatever is cached — offline / transient failures degrade to the
       // last known list rather than an empty screen.
-      print("Notification sync error: $e");
+      debugLog("Notification sync error: $e");
     } finally {
       isSyncing.value = false;
     }
@@ -172,7 +173,7 @@ class NotificationHubController extends GetxController {
         );
       }
     } catch (e) {
-      print("Notification load-more error: $e");
+      debugLog("Notification load-more error: $e");
     } finally {
       isLoadingMore.value = false;
     }

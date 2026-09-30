@@ -18,6 +18,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/app_constant.dart';
 import '../repo/user_repo.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VisitProfileController extends GetxController {
   var userProfileResponse = ApiResponse.initial('Initial').obs;
@@ -58,7 +59,7 @@ class VisitProfileController extends GetxController {
         //   print("useralldata:${ userData.value}");
         isFollow.value = userData.value?.isFollowing ?? false;
         followerCount.value = userData.value?.followersCount ?? 0;
-        print("useralldata:${userData.value}");
+        debugLog("useralldata:${userData.value}");
 
         ///SET SKILL...
         personalController.skillsList.clear();
@@ -69,7 +70,7 @@ class VisitProfileController extends GetxController {
         personalProfileDetails.overView.value =
             userData.value?.user?.objective ?? "";
 
-        print("useralldata:${personalProfileDetails}");
+        debugLog("useralldata:${personalProfileDetails}");
         userProfileResponse.value = ApiResponse.complete(response);
       } else {
         userProfileResponse.value =

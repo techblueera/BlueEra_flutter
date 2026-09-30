@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JobPostStep4Controller extends GetxController {
   var confirmAvailability = true.obs;
@@ -75,7 +76,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
       }
       setState(() {});
     } catch (e) {
-      print('Error initializing data from API: $e');
+      debugLog('Error initializing data from API: $e');
       // Set default values on error
     }
   }

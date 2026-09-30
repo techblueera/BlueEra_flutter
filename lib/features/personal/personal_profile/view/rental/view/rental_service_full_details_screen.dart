@@ -283,7 +283,7 @@ class RentalServiceFullDetailsScreen extends StatelessWidget {
     if (highlights.isEmpty) return const SizedBox();
 
     if (kDebugMode) {
-      highlights.forEach(print);
+      highlights.forEach(debugPrint);
     }
 
     return CustomFormCard(

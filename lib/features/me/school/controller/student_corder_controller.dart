@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class StudentCornerController extends GetxController {
   Rx<ApiResponse> getStudentCornerResponse = ApiResponse.initial('Initial').obs;
@@ -83,10 +84,10 @@ class StudentCornerController extends GetxController {
         downloadsList.assignAll(studentCornerResModel.data?.downloads ?? []);
         getStudentCornerResponse.value =
             ApiResponse.complete(studentCornerResModel);
-        print("Existing ID found: ${studentCornerId.value}");
+        debugLog("Existing ID found: ${studentCornerId.value}");
       } else {
         // 2. Success is false: Hit the POST API to create it
-        print("Section not found. Creating new section...");
+        debugLog("Section not found. Creating new section...");
         await _createNewSection();
       }
     } catch (e) {
@@ -101,7 +102,7 @@ class StudentCornerController extends GetxController {
     if (postResponse.response?.data != null &&
         postResponse.getExtraData('success') == true) {
       studentCornerId.value = postResponse.getNested(['data', '_id']);
-      print("New ID created and stored: ${studentCornerId.value}");
+      debugLog("New ID created and stored: ${studentCornerId.value}");
     } else {
       commonSnackBar(message: "Could not create student corner section");
     }

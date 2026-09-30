@@ -12,6 +12,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rent
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// The flat / room rental listing form. Registered by AddFlatRentalBinding.
 class AddFlatRentalServiceController extends GetxController {
@@ -103,7 +104,7 @@ class AddFlatRentalServiceController extends GetxController {
     super.onInit();
 
     ever(currentStep, (step) {
-      print('Current Step Changed: $step');
+      debugLog('Current Step Changed: $step');
       // You can trigger animations, validations, or scroll resets here.
     });
 
@@ -259,7 +260,7 @@ class AddFlatRentalServiceController extends GetxController {
         if (response.isSuccess) {
           addFlatRentalServiceResponse.value = ApiResponse.complete(response);
           rentalId = response.getNested(['data', '_id']);
-          print('rental id-- $rentalId');
+          debugLog('rental id-- $rentalId');
 
           // await setEarnServiceOptData(true);
 

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/debug_log.dart';
 class LanguageModel {
   final String name;
   final String code;
@@ -14,8 +15,8 @@ class LanguageModel {
         code: json['languageCode']?.toString() ?? '',
       );
     } catch (e) {
-      print('Error in LanguageModel.fromJson: $e');
-      print('JSON data: $json');
+      debugLog('Error in LanguageModel.fromJson: $e');
+      debugLog('JSON data: $json');
       rethrow;
     }
   }

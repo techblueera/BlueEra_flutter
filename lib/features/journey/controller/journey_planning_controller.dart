@@ -9,6 +9,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JourneyPlanningController extends GetxController {
   // Text controllers for input fields
@@ -116,10 +117,10 @@ class JourneyPlanningController extends GetxController {
     List<String> myPlaceList = [];
     for (int i = 0; i < stoppages.length; i++) {
       myPlaceList.clear();
-      print(
+      debugLog(
           'Stoppage ${i + 1}: ${stoppages[i].city.text}=====${stoppages[i].lat},${stoppages[i].long}');
       for (int j = 0; j < stoppages[i].attractions.length; j++) {
-        print('  Attraction ${j + 1}: ${stoppages[i].attractions[j].text}');
+        debugLog('  Attraction ${j + 1}: ${stoppages[i].attractions[j].text}');
         myPlaceList.add(stoppages[i].attractions[j].text);
       }
 

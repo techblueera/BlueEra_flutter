@@ -25,6 +25,7 @@ import 'package:BlueEra/widgets/custom_success_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class FeedController extends GetxController {
   /// The session's feed, registered on first use. Permanent: the home feed,
@@ -204,13 +205,13 @@ class FeedController extends GetxController {
       required bool refresh,
       String? id,
       String? query}) async {
-    print('🔄 Enhanced cache fetch - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+    debugLog('🔄 Enhanced cache fetch - page: $page, type: $type, isInitialLoad: $isInitialLoad');
 
     // For initial load, try to get cached data first
     if (isInitialLoad && page == 1 && !refresh) {
       final cachedPosts = await HomeCacheService().getCachedPosts();
       if (cachedPosts != null && cachedPosts.isNotEmpty) {
-        print('📱 Showing cached posts: ${cachedPosts.length} items');
+        debugLog('📱 Showing cached posts: ${cachedPosts.length} items');
 
         // Initialize enhanced pagination with cached data
         _cachedPosts[type] = List.from(cachedPosts);
@@ -220,7 +221,7 @@ class FeedController extends GetxController {
         targetList.value = cachedPosts.take(displayLimit).toList();
         isLoading.value = false;
 
-        print('📦 Enhanced cache: Cached ${_cachedPosts[type]!.length}, Displaying ${targetList.length}');
+        debugLog('📦 Enhanced cache: Cached ${_cachedPosts[type]!.length}, Displaying ${targetList.length}');
 
         // Fetch fresh data in background and enhance pagination
         _fetchEnhancedDataInBackground(
@@ -233,7 +234,7 @@ class FeedController extends GetxController {
             query: query);
         return;
       } else {
-        print('📱 No cached posts found, fetching from API...');
+        debugLog('📱 No cached posts found, fetching from API...');
       }
     }
 
@@ -260,7 +261,7 @@ class FeedController extends GetxController {
       String? id,
       String? query}) async {
     try {
-      print('🔄 Starting enhanced background fetch for fresh data...');
+      debugLog('🔄 Starting enhanced background fetch for fresh data...');
 
       final Map<String, dynamic> queryParams = {
         ApiKeys.page: page,
@@ -282,7 +283,7 @@ class FeedController extends GetxController {
       if (response.isSuccess) {
         final postResponse = PostResponse.fromJson(response.response?.data);
         if (postResponse.data.isNotEmpty) {
-          print('✅ Enhanced background fetch successful: ${postResponse.data.length} items');
+          debugLog('✅ Enhanced background fetch successful: ${postResponse.data.length} items');
 
           // Update enhanced cache with fresh data
           _cachedPosts[type] = List.from(postResponse.data);
@@ -290,7 +291,7 @@ class FeedController extends GetxController {
 
           // Update cache service with first 20 posts
           await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
-          print('💾 Updated cache service with first ${displayLimit} posts');
+          debugLog('💾 Updated cache service with first ${displayLimit} posts');
 
           // Update the UI with fresh data (first 20 posts)
           targetList.value = postResponse.data.take(displayLimit).toList();
@@ -302,18 +303,18 @@ class FeedController extends GetxController {
               postResponse.data.where((e) => !e.isReel).length;
           if (fetchedPostCount < initialFetchLimit) {
             isTargetHasMoreData.value = false;
-            print('📄 No more data from server after background fetch');
+            debugLog('📄 No more data from server after background fetch');
           } else {
             isTargetHasMoreData.value = true;
             onPageIncrement();
-            print('📄 More data available, page incremented');
+            debugLog('📄 More data available, page incremented');
           }
         }
       } else {
-        print('❌ Enhanced background fetch failed: ${response.message}');
+        debugLog('❌ Enhanced background fetch failed: ${response.message}');
       }
     } catch (e) {
-      print('❌ Enhanced background fetch error: $e');
+      debugLog('❌ Enhanced background fetch error: $e');
     }
   }
 
@@ -327,7 +328,7 @@ class FeedController extends GetxController {
       required bool refresh,
       String? id,
       String? query}) async {
-    print('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+    debugLog('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
 
     if (isInitialLoad) {
       page = 1;
@@ -337,12 +338,12 @@ class FeedController extends GetxController {
       _cachedPosts[type] = [];
       _displayedCounts[type] = 0;
     }
-    print('otherPage $otherPage');
+    debugLog('otherPage $otherPage');
 
-    print('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
+    debugLog('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
-    print('isInitialLoad: $isInitialLoad');
+    debugLog('isInitialLoad: $isInitialLoad');
     if (!isInitialLoad) {
       isTargetMoreDataLoading.value = true;
     }
@@ -350,7 +351,7 @@ class FeedController extends GetxController {
     // Check if we have cached data to display first
     if (_hasMoreCachedData(type) && !isInitialLoad) {
       _displayMoreCachedData(type, targetList);
-      print('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
+      debugLog('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
     }
 
     // ✅ Only show loader if last id is different
@@ -443,13 +444,13 @@ class FeedController extends GetxController {
           // Display only first batch
           targetList.value = postResponse.data.take(displayLimit).toList();
 
-          print(
+          debugLog(
               '📦 Initial enhanced load: Fetched ${postResponse.data.length}, Displaying ${targetList.length}, Cached ${_cachedPosts[type]!.length}');
 
           // Update cache service for All Posts tab
           if (type == PostType.all && postResponse.data.isNotEmpty) {
             await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
-            print('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
+            debugLog('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
           }
           // Persist the Social section's My Post grid for its next cold open,
           // so the tab paints the viewer's own posts on its first frame instead
@@ -460,7 +461,7 @@ class FeedController extends GetxController {
         } else {
           // Subsequent loads: add new data to cache
           _cachedPosts[type]!.addAll(postResponse.data);
-          print(
+          debugLog(
               '📦 Added ${postResponse.data.length} new posts to cache. Total cached: ${_cachedPosts[type]!.length}');
         }
 
@@ -475,10 +476,10 @@ class FeedController extends GetxController {
         final hasCacheMore = _hasMoreCachedData(type);
 
         if (!hasServerMore && !hasCacheMore) {
-          print('📄 No more data (server + cache exhausted)');
+          debugLog('📄 No more data (server + cache exhausted)');
           isTargetHasMoreData.value = false;
         } else {
-          print('📄 More data available (cache or server)');
+          debugLog('📄 More data available (cache or server)');
           isTargetHasMoreData.value = true;
 
           // Only increment page if server had more
@@ -507,7 +508,7 @@ class FeedController extends GetxController {
       required bool refresh,
       String? id,
       String? query}) async {
-    print('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
+    debugLog('🔄 Enhanced pagination - page: $page, type: $type, isInitialLoad: $isInitialLoad');
 
     if (isInitialLoad) {
       page = 1;
@@ -517,12 +518,12 @@ class FeedController extends GetxController {
       _cachedPosts[type] = [];
       _displayedCounts[type] = 0;
     }
-    print('otherPage $otherPage');
+    debugLog('otherPage $otherPage');
 
-    print('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
+    debugLog('isTargetHasMoreData: $isTargetHasMoreData, isTargetMoreDataLoading: $isTargetMoreDataLoading');
     if (isTargetHasMoreData.isFalse || isTargetMoreDataLoading.isTrue) return;
 
-    print('isInitialLoad: $isInitialLoad');
+    debugLog('isInitialLoad: $isInitialLoad');
     if (!isInitialLoad) {
       isTargetMoreDataLoading.value = true;
     }
@@ -530,7 +531,7 @@ class FeedController extends GetxController {
     // Check if we have cached data to display first
     if (_hasMoreCachedData(type) && !isInitialLoad) {
       _displayMoreCachedData(type, targetList);
-      print('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
+      debugLog('_cachedPosts length: ${_cachedPosts[type]?.length ?? 0}, targetList: ${targetList.length}');
     }
 
     // ✅ Only show loader if last id is different
@@ -568,18 +569,18 @@ class FeedController extends GetxController {
           // Display only first batch
           targetList.value = postResponse.data.take(displayLimit).toList();
 
-          print(
+          debugLog(
               '📦 Initial enhanced load: Fetched ${postResponse.data.length}, Displaying ${targetList.length}, Cached ${_cachedPosts[type]!.length}');
 
           // Update cache service for All Posts tab
           if (type == PostType.all && postResponse.data.isNotEmpty) {
             await HomeCacheService().cachePosts(postResponse.data.take(displayLimit).toList());
-            print('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
+            debugLog('💾 Updated cache service with ${displayLimit} posts for All Posts tab');
           }
         } else {
           // Subsequent loads: add new data to cache
           _cachedPosts[type]!.addAll(postResponse.data);
-          print(
+          debugLog(
               '📦 Added ${postResponse.data.length} new posts to cache. Total cached: ${_cachedPosts[type]!.length}');
         }
 
@@ -594,10 +595,10 @@ class FeedController extends GetxController {
         final hasCacheMore = _hasMoreCachedData(type);
 
         if (!hasServerMore && !hasCacheMore) {
-          print('📄 No more data (server + cache exhausted)');
+          debugLog('📄 No more data (server + cache exhausted)');
           isTargetHasMoreData.value = false;
         } else {
-          print('📄 More data available (cache or server)');
+          debugLog('📄 More data available (cache or server)');
           isTargetHasMoreData.value = true;
 
           // Only increment page if server had more
@@ -632,7 +633,7 @@ class FeedController extends GetxController {
     targetList.addAll(newPosts);
     _displayedCounts[type] = nextDisplayCount;
 
-    print('📱 Displayed ${newPosts.length} cached posts. Total displayed: ${targetList.length}');
+    debugLog('📱 Displayed ${newPosts.length} cached posts. Total displayed: ${targetList.length}');
 
     // Update cache service with more posts if it's All Posts tab
     if (nextDisplayCount >= cachedPosts.length && isTargetHasMoreData.isTrue) {
@@ -641,7 +642,7 @@ class FeedController extends GetxController {
   }
 
   void _triggerBackgroundFetch(PostType type) {
-    print('🔄 Triggering enhanced background fetch for more data');
+    debugLog('🔄 Triggering enhanced background fetch for more data');
     // Call the appropriate fetch method based on type
     switch (type) {
       case PostType.all:
@@ -774,7 +775,7 @@ class FeedController extends GetxController {
     try {
       // 🔹 Get the user's FINAL intended state
       final finalIntendedState = _lastIntendedLikeState[postId];
-      print('finalIntendedState -- > $finalIntendedState');
+      debugLog('finalIntendedState -- > $finalIntendedState');
       if (finalIntendedState == null) return;
 
       // 🔹 Get current post to check if we need to make API call

@@ -35,6 +35,7 @@ import 'package:get/get.dart';
 import 'package:get_thumbnail_video/index.dart';
 import 'package:get_thumbnail_video/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum Video { video, short }
 
@@ -111,7 +112,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   }
 
   Future<void> setInitialCover() async {
-    print("Video path: ${widget.videoPath}");
+    debugLog("Video path: ${widget.videoPath}");
 
     final videoPath = widget.videoPath;
 
@@ -131,13 +132,13 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         setState(() {
           _commonCoverImage = thumbnailPath.path;
         });
-        print("Thumbnail generated at: $_commonCoverImage");
+        debugLog("Thumbnail generated at: $_commonCoverImage");
       } catch (e) {
-        print("Thumbnail generation error: $e");
+        debugLog("Thumbnail generation error: $e");
         _commonCoverImage = reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
       }
     } else {
-      print("Video path invalid or file does not exist");
+      debugLog("Video path invalid or file does not exist");
       _commonCoverImage = reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
     }
   }

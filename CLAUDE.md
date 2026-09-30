@@ -91,6 +91,8 @@ Don't register the same class as permanent in one place and non-permanent in ano
 
 A plain `MaterialPageRoute` never frees the controllers registered under it. Only use one when something outside the screen still needs those controllers, as with the shell, call screens and sign-up flow.
 
+**Logging:** use `debugLog(...)` from `lib/core/constants/debug_log.dart`, not `print`. `print` writes to the device log in release builds (readable with `adb logcat`). `debugLog` prints only in debug.
+
 **Tests** fake a repo by extending the real one and overriding only the methods under test. They build responses with:
 ```dart
 ResponseModel(statusCode: 200, response: Response(requestOptions: RequestOptions(), statusCode: 200, data: {...}))

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// The signed-in user's earn services: their own products and order tabs.
 class EarnServiceController extends GetxController {
@@ -235,7 +236,7 @@ class EarnServiceController extends GetxController {
         ownProductsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       if (isLoadMore) {
         isOwnProductDataLoadingMore.value = false;

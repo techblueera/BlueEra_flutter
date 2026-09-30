@@ -30,6 +30,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// State and actions for a message (lekha) post: creating one, editing one,
 /// or reposting someone else's. Registered by MessagePostBinding.
@@ -395,7 +396,7 @@ class MessagePostController extends GetxController {
     final trimmedPath = await trimVideo(path);
 
     if (trimmedPath != null) {
-      print("✅ Trimmed Video Path: $trimmedPath");
+      debugLog("✅ Trimmed Video Path: $trimmedPath");
       final videoTriFile = File(trimmedPath);
 
       // Validate the trimmer output before exposing it to the rest of the
@@ -585,7 +586,7 @@ class MessagePostController extends GetxController {
         }
         // final size = await getVideoDimensions(videoFile.path);
         final size = await getImageDimensions(File(coverFile.path));
-        print('Width: ${size.width}, Height: ${size.height}');
+        debugLog('Width: ${size.width}, Height: ${size.height}');
         formData.fields
             .add(MapEntry(ApiKeys.media_width, size.width.toString()));
         formData.fields
@@ -621,7 +622,7 @@ class MessagePostController extends GetxController {
         if (imagesList.length == 1) {
           final size = await getImageDimensions(
               File(imagesList.firstOrNull?.path ?? ""));
-          print('Width: ${size.width}, Height: ${size.height}');
+          debugLog('Width: ${size.width}, Height: ${size.height}');
           formData.fields
               .add(MapEntry(ApiKeys.media_width, size.width.toString()));
           formData.fields

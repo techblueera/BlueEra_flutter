@@ -25,6 +25,7 @@ import 'package:get/get.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum CommentType { post, video }
 
@@ -781,7 +782,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
         // type used to share; the individual branch already routes this way.
         MeProfileNavigator.openOverview();
       } else {
-        print('targetUser.sId--> ${targetUser.sId}');
+        debugLog('targetUser.sId--> ${targetUser.sId}');
 
         Get.to(() => VisitBusinessProfileNew(
               businessId: targetUser.sId ?? '',

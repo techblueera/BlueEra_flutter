@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/debug_log.dart';
 class Certification {
   final String id;
   final String title;
@@ -15,18 +16,18 @@ class Certification {
   }) : parsedDate = _parseDate(certificateDate);
 
   factory Certification.fromMap(Map<String, dynamic> map) {
-    print('Parsing Certification: $map');
+    debugLog('Parsing Certification: $map');
     final id = map['_id'] ?? map['id'] ?? map['certificationId'] ?? '';
     final dynamic dateData = map['certificateDate'] ?? map['date'] ?? map['issueDate'];
-    print('date data: $dateData');
-    print('date data type: ${dateData.runtimeType}');
+    debugLog('date data: $dateData');
+    debugLog('date data type: ${dateData.runtimeType}');
 
     CertificationDate? certDate;
     if (dateData is Map) {
       try {
         certDate = CertificationDate.fromMap(Map<String, dynamic>.from(dateData));
       } catch (e) {
-        print('Error parsing CertificationDate: $e');
+        debugLog('Error parsing CertificationDate: $e');
         certDate = null;
       }
     } else {
@@ -78,8 +79,8 @@ class CertificationDate {
   });
 
   factory CertificationDate.fromMap(Map<String, dynamic> map) {
-    print('Parsing CertificationDate: $map');
-    map.forEach((key, value) => print('Key: $key, Value: $value'));
+    debugLog('Parsing CertificationDate: $map');
+    map.forEach((key, value) => debugLog('Key: $key, Value: $value'));
     int parseInt(dynamic value) {
       if (value is int) return value;
       if (value is String) return int.tryParse(value) ?? 0;

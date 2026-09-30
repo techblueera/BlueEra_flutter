@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class SocialActivityController extends GetxController {
   final SocialProfileRepo _repo = SocialProfileRepo();
@@ -85,7 +86,7 @@ class SocialActivityController extends GetxController {
         activityList.assignAll(res.data!);
       }
     } catch (e) {
-      print("Error fetching activities: $e");
+      debugLog("Error fetching activities: $e");
     } finally {
       isLoading.value = false;
     }

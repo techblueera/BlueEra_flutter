@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JobPostStep3Controller extends GetxController {
   RxString walkInInterview = 'No'.obs;
@@ -189,7 +190,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
         controller.communicationPreferences['chat'] = true; // Default to chat
       }
     } catch (e) {
-      print('Error initializing data from API: $e');
+      debugLog('Error initializing data from API: $e');
       // Set default values on error
       controller.walkInInterview.value = 'No';
       controller.communicationPreferences.updateAll((k, v) => false);

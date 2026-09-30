@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class FoodServicesBottomSheet extends StatefulWidget {
   final double lat;
@@ -53,7 +54,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
   @override
   initState() {
     super.initState();
-    print("called after getting lat lng");
+    debugLog("called after getting lat lng");
     // mapServiceController.getHomeServiceDataByProfession(
     //     serviceType: _selectedSubCategory,
     // );

@@ -15,6 +15,7 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ReelShortPopUpMenu extends StatelessWidget {
   final ShortFeedItem shortFeedItem;
@@ -123,7 +124,7 @@ class ReelShortPopUpMenu extends StatelessWidget {
     final croppedPath = await PhotoPickerService.pickFromGallery(
         context,
         cropAspectRatio: CropAspectRatio(width: 9, height: 16));
-    print('cropped path--> $croppedPath');
+    debugLog('cropped path--> $croppedPath');
     if(croppedPath!=null){
       await Get.find<ShortsController>().updateShortThumbnail(
           shortId: shortFeedItem.video?.id ?? '',

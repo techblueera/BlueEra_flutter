@@ -15,6 +15,7 @@ import '../../../../core/constants/common_methods.dart';
 import '../model/faq_details_model.dart';
 import '../repo/user_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class HelpAndSupportController extends GetxController {
   RxString phoneNumber = '1234567890'.obs;
@@ -101,19 +102,19 @@ class HelpAndSupportController extends GetxController {
     try {
       isLoading.value = true;
       final response = await UserRepo().getQueries(queryParams: queryParams);
-      print("dngkjb ${response.statusCode}");// Make sure repo uses params
+      debugLog("dngkjb ${response.statusCode}");// Make sure repo uses params
       if (response.statusCode == 200) {
         final List<SupportCase> cases = List<SupportCase>.from(
           (response.response!.data as List).map((e) => SupportCase.fromJson(e)),
         );
         allList.value = cases;
 
-        print("dngksafjb ${allList.length}");
+        debugLog("dngksafjb ${allList.length}");
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -135,12 +136,12 @@ class HelpAndSupportController extends GetxController {
         );
         allList.value = cases;
 
-        print("case id ${allList.length}");
+        debugLog("case id ${allList.length}");
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -208,11 +209,11 @@ commonSnackBar(message:"phone number copied");
         faqDetailsList.value = faqs;
         getFAQResponse.value=ApiResponse.complete(faqDetailsList);
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         getFAQResponse.value=ApiResponse.error("Error");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
       getFAQResponse.value=ApiResponse.error("Error");
     } finally {
       isLoading.value = false;
@@ -233,11 +234,11 @@ commonSnackBar(message:"phone number copied");
         // faqDetailsList.value = faqs;
         // getFAQResponse.value=ApiResponse.complete(faqDetailsList);
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         //getFAQResponse.value=ApiResponse.error("Error");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
       getFAQResponse.value = ApiResponse.error("Error");
     } finally {
       isLoading.value = false;
@@ -260,11 +261,11 @@ commonSnackBar(message:"phone number copied");
         // faqDetailsList.value = faqs;
         // getFAQResponse.value=ApiResponse.complete(faqDetailsList);
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         //getFAQResponse.value=ApiResponse.error("Error");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
       getFAQResponse.value=ApiResponse.error("Error");
     } finally {
       isLoading.value = false;

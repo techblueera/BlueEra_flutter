@@ -29,6 +29,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class CreateBusinessAccountNewStepOne extends StatefulWidget {
   CreateBusinessAccountNewStepOne({super.key});
@@ -854,7 +855,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
       }
     }
 
-    print("Selected Business Type: ${authController.selectedTypeOfBusiness}");
+    debugLog("Selected Business Type: ${authController.selectedTypeOfBusiness}");
 
     // 2️⃣ Business name required
     if (authController.businessNameTextController.text.trim().isEmpty) {

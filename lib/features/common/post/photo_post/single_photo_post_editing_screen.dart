@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class SinglePhotoPostEditingScreen extends StatefulWidget {
   final File photo;
@@ -116,7 +117,7 @@ class _SinglePhotoPostEditingScreenState extends State<SinglePhotoPostEditingScr
         ),
         callbacks: ProImageEditorCallbacks(
           onImageEditingComplete: (Uint8List bytes) async {
-            print('bytes--> $bytes');
+            debugLog('bytes--> $bytes');
             // _isCompleted = true;
 
             // Get temp directory
@@ -128,7 +129,7 @@ class _SinglePhotoPostEditingScreenState extends State<SinglePhotoPostEditingScr
             // Write bytes to file
             await file.writeAsBytes(bytes);
 
-            print('Saved file path: ${file.path}');
+            debugLog('Saved file path: ${file.path}');
 
             // Pop with file path string
             if (!context.mounted) return;

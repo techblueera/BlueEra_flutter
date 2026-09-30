@@ -19,6 +19,7 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class FeedCard extends StatefulWidget {
   final Post? post;
@@ -203,7 +204,7 @@ class _FeedCardState extends State<FeedCard> {
               try {
                 onShareButtonPressed(_post!);
               } catch (e) {
-                print("feed card share failed $e");
+                debugLog("feed card share failed $e");
               }
             },
           ),*/

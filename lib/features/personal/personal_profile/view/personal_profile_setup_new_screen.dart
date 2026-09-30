@@ -63,6 +63,7 @@ import '../../../common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PostTabModel {
   final String id; // For internal logic
@@ -807,7 +808,7 @@ class _PersonalProfileSetupNewScreenState
       logs.writeln("-----------------------------------");
 
      // 2. PRINT EVERYTHING AT THE VERY END
-      print(logs.toString());
+      debugLog(logs.toString());
 
     }
 

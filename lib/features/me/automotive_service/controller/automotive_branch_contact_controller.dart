@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/automotive_service/controller/automotive_bus
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotiveBranchContactController extends GetxController {
   Rx<ApiResponse> updateSchoolContactInfoResponse =
@@ -101,7 +102,7 @@ class AutomotiveBranchContactController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-      print("Request Body: $body");
+      debugLog("Request Body: $body");
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

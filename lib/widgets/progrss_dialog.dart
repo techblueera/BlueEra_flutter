@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ProgressDialog {
   static var isOpen = false;
@@ -17,7 +18,7 @@ class ProgressDialog {
       if (Get.isDialogOpen != true) {
         isOpen = true;
         if (kDebugMode) {
-          print('|--------------->🕙️ Loader start 🕑️<---------------|');
+          debugLog('|--------------->🕙️ Loader start 🕑️<---------------|');
         }
 
         Get.dialog(
@@ -33,7 +34,7 @@ class ProgressDialog {
       }
     } else if (Get.isDialogOpen == true) {
       if (kDebugMode) {
-        print('|--------------->🕙️ Loader end 🕑️<---------------|');
+        debugLog('|--------------->🕙️ Loader end 🕑️<---------------|');
       }
       // Bypass Get.back() — it routes through closeCurrentSnackbar() which
       // crashes with LateInitializationError when the GetX snackbar queue has

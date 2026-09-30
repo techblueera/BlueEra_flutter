@@ -44,6 +44,7 @@ import 'chat_view_controller.dart';
 import '../../../common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum CallType { audio, video }
 
@@ -264,7 +265,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       ));
     } catch (e) {
       // Non-fatal — worst case the ring plays on the media stream as before.
-      print('[CALL_DEBUG] ringtone AudioContext setup failed: $e');
+      debugLog('[CALL_DEBUG] ringtone AudioContext setup failed: $e');
     }
   }
 
@@ -302,7 +303,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // missed) this is what ends it.
     _ringWatchdog?.cancel();
     _ringWatchdog = Timer(_kMaxRingDuration, () {
-      print('[CALL_DEBUG] ring watchdog fired — force-stopping ringtone');
+      debugLog('[CALL_DEBUG] ring watchdog fired — force-stopping ringtone');
       stopRingtone();
     });
 
@@ -317,7 +318,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       return;
     } catch (e) {
       // iOS / engines without the channel — fall back to the in-app player.
-      print('[CALL_DEBUG] native ringtone unavailable, falling back: $e');
+      debugLog('[CALL_DEBUG] native ringtone unavailable, falling back: $e');
     }
     await _ensureRingtoneAudioContext();
     if (generation != _ringGeneration) return; // stopped while we were setting up
@@ -1155,11 +1156,11 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _remoteUserId = data['initiated_by'] ?? '';
     callStatus.value = CallStatus.ringing;
 
-    print('[FARE_CALL_DEBUG] _handleIncomingCall → callId=${callId.value}, roomId=${roomId.value}, remoteUserId=$_remoteUserId');
+    debugLog('[FARE_CALL_DEBUG] _handleIncomingCall → callId=${callId.value}, roomId=${roomId.value}, remoteUserId=$_remoteUserId');
 
     // Check if this is a fare-call (ride request via call)
     final metadata = data['metadata'];
-    print('[FARE_CALL_DEBUG] _handleIncomingCall → metadata=$metadata');
+    debugLog('[FARE_CALL_DEBUG] _handleIncomingCall → metadata=$metadata');
     if (metadata != null && metadata['orderType'] == 'fare-call') {
       isFareCall.value = true;
       fareCallOrderId.value = metadata['orderId'] ?? '';
@@ -1167,8 +1168,8 @@ class CallController extends GetxController with WidgetsBindingObserver {
       fareCallRideDetails.value = metadata['rideDetails'] != null
           ? Map<String, dynamic>.from(metadata['rideDetails'])
           : null;
-      print('[FARE_CALL] Incoming fare-call detected, orderId=${fareCallOrderId.value}, rideDetails=${fareCallRideDetails.value}');
-      print('[FARE_CALL_DEBUG] _handleIncomingCall → currentRoute=${Get.currentRoute}, navigating to IncomingRiderOrderScreen');
+      debugLog('[FARE_CALL] Incoming fare-call detected, orderId=${fareCallOrderId.value}, rideDetails=${fareCallRideDetails.value}');
+      debugLog('[FARE_CALL_DEBUG] _handleIncomingCall → currentRoute=${Get.currentRoute}, navigating to IncomingRiderOrderScreen');
       // Start ringtone for fare-call too
       startRingtone();
       // Navigate to rider order screen instead of regular call screen
@@ -1195,7 +1196,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // process context, so the OEM lets the IncomingCallActivity launch via
     // USE_FULL_SCREEN_INTENT and the user actually sees the call UI.
     if (!isAppInForeground && Platform.isAndroid) {
-      print('[CALL_DEBUG] _handleIncomingCall → app in background, posting local full-screen-intent notification');
+      debugLog('[CALL_DEBUG] _handleIncomingCall → app in background, posting local full-screen-intent notification');
       final ct = callType.value == CallType.video ? 'video_call' : 'audio_call';
       showIncomingCallLocalNotification(
         callId: callId.value,
@@ -1230,7 +1231,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// On Android (main engine): does API accept, then launches CallActivity for WebRTC.
   /// On CallActivity engine: does full accept (API + WebRTC).
   Future<bool> acceptCall({String? callIdParams, String? roomIdParams,bool? isVideoCall}) async {
-    print('[CALL_DEBUG] acceptCall → START, callIdParams=$callIdParams, roomIdParams=$roomIdParams, isVideoCall=$isVideoCall, currentStatus=${callStatus.value}');
+    debugLog('[CALL_DEBUG] acceptCall → START, callIdParams=$callIdParams, roomIdParams=$roomIdParams, isVideoCall=$isVideoCall, currentStatus=${callStatus.value}');
 
     // Prevent double accept (multiple CallKit listeners may fire)
     stopRingtone();
@@ -1240,7 +1241,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (callStatus.value == CallStatus.accepting ||
         callStatus.value == CallStatus.connecting ||
         callStatus.value == CallStatus.connected) {
-      print('[CALL_DEBUG] acceptCall → SKIPPED (already ${callStatus.value})');
+      debugLog('[CALL_DEBUG] acceptCall → SKIPPED (already ${callStatus.value})');
       return false;
     }
     // Re-bind call socket listeners in case ChatViewController.disposeSocket()
@@ -1261,7 +1262,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // Sending empty IDs guarantees a 400 "call_id and room_id required" —
     // bail cleanly instead with a user-facing message.
     if (savedCallId.isEmpty || savedRoomId.isEmpty) {
-      print('[CALL_DEBUG] acceptCall → ABORT, empty IDs (callId=$savedCallId, roomId=$savedRoomId)');
+      debugLog('[CALL_DEBUG] acceptCall → ABORT, empty IDs (callId=$savedCallId, roomId=$savedRoomId)');
       commonSnackBar(message: AppStrings.callNoLongerAvailable.tr);
       _cleanup();
       return false;
@@ -1299,7 +1300,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       await PermissionQueue.requestAll(permissions);
     } catch (e) {
       if (kDebugMode)
-        print('Permission request error (may already be in progress): $e');
+        debugLog('Permission request error (may already be in progress): $e');
     }
 
     // --- iOS-only early room join (Android→iOS race fix) ---
@@ -1318,14 +1319,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
           await _waitForSocketConnection();
         }
         _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
-        print('[CALL_DEBUG] acceptCall → early iOS join-room emitted pre-API, roomId=$savedRoomId');
+        debugLog('[CALL_DEBUG] acceptCall → early iOS join-room emitted pre-API, roomId=$savedRoomId');
       } catch (e) {
-        print('[CALL_DEBUG] acceptCall → early join-room error (non-fatal): $e');
+        debugLog('[CALL_DEBUG] acceptCall → early join-room error (non-fatal): $e');
       }
     }
 
 
-    print('[CALL_DEBUG] acceptCall → API call starting, callId=$savedCallId, roomId=$savedRoomId');
+    debugLog('[CALL_DEBUG] acceptCall → API call starting, callId=$savedCallId, roomId=$savedRoomId');
     ResponseModel response = await _callRepo.acceptCall({
       'call_id': savedCallId,
       'room_id': savedRoomId,
@@ -1333,7 +1334,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     if (!response.isSuccess) {
       final statusCode = response.response?.statusCode;
-      print('[CALL_DEBUG] acceptCall → API FAILED, statusCode=$statusCode, message=${response.message}');
+      debugLog('[CALL_DEBUG] acceptCall → API FAILED, statusCode=$statusCode, message=${response.message}');
       if (_isCallGoneResponse(response)) {
         commonSnackBar(message: AppStrings.callNoLongerAvailable.tr);
       } else {
@@ -1345,7 +1346,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     final data = response.response?.data;
     final iceServersJson = data?['ice_servers'] ?? {};
-    print('[CALL_DEBUG] acceptCall → API SUCCESS, iceServers=${iceServersJson != null ? "present" : "null"}');
+    debugLog('[CALL_DEBUG] acceptCall → API SUCCESS, iceServers=${iceServersJson != null ? "present" : "null"}');
 
     // Tell CallKit the call is connected as soon as the server accepts.
     // Why: flutter_callkit_incoming has an internal `duration` countdown and will
@@ -1360,7 +1361,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       try {
         await FlutterCallkitIncoming.setCallConnected(savedCallId);
       } catch (e) {
-        print('[CALL_DEBUG] acceptCall → setCallConnected error: $e');
+        debugLog('[CALL_DEBUG] acceptCall → setCallConnected error: $e');
       }
     }
 
@@ -1368,7 +1369,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // On Android: dismiss immediately (CallActivity handles audio).
     // On iOS: dismiss AFTER WebRTC setup so CallKit keeps the audio session
     // active during the handshake — dismissing too early kills the audio path.
-    print('[FARE_CALL_DEBUG] acceptCall → isFareCall=${isFareCall.value}, platform=${Platform.isAndroid ? "Android" : "iOS"}');
+    debugLog('[FARE_CALL_DEBUG] acceptCall → isFareCall=${isFareCall.value}, platform=${Platform.isAndroid ? "Android" : "iOS"}');
     if (Platform.isAndroid &&
         !isFareCall.value &&
         callKitWasShownFor(savedCallId)) {
@@ -1377,7 +1378,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         await FlutterCallkitIncoming.endCall(savedCallId);
         clearCallKitShownFor(savedCallId);
       } catch (e) {
-        print('[FARE_CALL_DEBUG] acceptCall → CallKit endCall error: $e');
+        debugLog('[FARE_CALL_DEBUG] acceptCall → CallKit endCall error: $e');
       } finally {
         _isDismissingCallKitUI = false;
       }
@@ -1437,7 +1438,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Setup local media — signal when ready so offer handler can wait
     try {
-      print('[FARE_CALL_DEBUG] acceptCall → setting up local media...');
+      debugLog('[FARE_CALL_DEBUG] acceptCall → setting up local media...');
       _mediaReadyCompleter = Completer<void>();
       await _setupLocalMedia();
       if (!_mediaReadyCompleter!.isCompleted) {
@@ -1514,8 +1515,8 @@ class CallController extends GetxController with WidgetsBindingObserver {
         // print('[CALL_DEBUG] acceptCall → WARNING: no remoteUserId, cannot create WebRTC connection');
       }
     } catch (e, stack) {
-      print('acceptCall WebRTC error: $e');
-      print(stack.toString());
+      debugLog('acceptCall WebRTC error: $e');
+      debugLog(stack.toString());
       _cleanup();
       return false;
     }
@@ -1574,7 +1575,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _connectionTimer = Timer(const Duration(seconds: 30), () {
       if (callStatus.value == CallStatus.connecting ||
           callStatus.value == CallStatus.accepting) {
-        if (kDebugMode) print('Call connection timeout — ending call');
+        if (kDebugMode) debugLog('Call connection timeout — ending call');
         // GlobalMessageService isn't registered in the CallActivity engine,
         // so guard the snackbar to avoid "GlobalMessageService not found".
         if (Get.isRegistered<GlobalMessageService>()) {
@@ -1611,7 +1612,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       try {
         final local = await pc.getLocalDescription();
         if (local == null || local.sdp == null) return;
-        print(
+        debugLog(
             '[CALL_DEBUG] offer retry #$attempts → re-emitting call:offer to $peerId');
         _socket.emitEvent('call:offer', {
           'room_id': roomId.value,
@@ -1619,7 +1620,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           'sdp': {'sdp': local.sdp, 'type': local.type},
         });
       } catch (e) {
-        print('[CALL_DEBUG] offer retry failed: $e');
+        debugLog('[CALL_DEBUG] offer retry failed: $e');
       }
     });
   }
@@ -1636,7 +1637,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       if (callType.value == CallType.video) permissions.add(Permission.camera);
       await PermissionQueue.requestAll(permissions);
     } catch (e) {
-      if (kDebugMode) print('Permission request error: $e');
+      if (kDebugMode) debugLog('Permission request error: $e');
     }
 
     // Parse ICE servers
@@ -1685,11 +1686,11 @@ class CallController extends GetxController with WidgetsBindingObserver {
           'target_user_id': remoteUserId,
           'sdp': {'sdp': offer.sdp, 'type': offer.type},
         });
-        print('[CALL_DEBUG] setupAcceptedCall → emitted call:offer to $remoteUserId');
+        debugLog('[CALL_DEBUG] setupAcceptedCall → emitted call:offer to $remoteUserId');
       }
     } catch (e, stack) {
-      print('setupAcceptedCall WebRTC error: $e');
-      print(stack.toString());
+      debugLog('setupAcceptedCall WebRTC error: $e');
+      debugLog(stack.toString());
       _cleanup();
       return false;
     }
@@ -1710,7 +1711,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       if (_socket.isConnected) return;
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    if (kDebugMode) print('Socket connection timed out after 10s');
+    if (kDebugMode) debugLog('Socket connection timed out after 10s');
   }
 
   /// Decline the ringing call.
@@ -1782,7 +1783,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       }
     } catch (e) {
       logs('DECLINE: server decline threw: $e');
-      if (kDebugMode) print('declineCall: server decline failed: $e');
+      if (kDebugMode) debugLog('declineCall: server decline failed: $e');
       // Swallowed on purpose. The ring must stop and the state must reset
       // whether or not the server heard us — the server's own 20s ring timeout
       // is the backstop for a decline that never landed.
@@ -1829,7 +1830,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         }
       }
     } catch (e) {
-      if (kDebugMode) print('declineWithMessage: send failed: $e');
+      if (kDebugMode) debugLog('declineWithMessage: send failed: $e');
       // Fall through — failing to deliver the note must never leave the call
       // ringing.
     }
@@ -1855,7 +1856,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // Same call re-delivered (socket echo + FCM) — not a second caller.
     if (incomingCallId.isEmpty || incomingCallId == callId.value) return;
 
-    print('[CALL_DEBUG] busy → declining incoming call $incomingCallId');
+    debugLog('[CALL_DEBUG] busy → declining incoming call $incomingCallId');
 
     if (incomingCallId.isNotEmpty) {
       cancelIncomingCallLocalNotification(incomingCallId);
@@ -1880,7 +1881,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         'reason': 'busy',
       });
     } catch (e) {
-      if (kDebugMode) print('_rejectAsBusy failed: $e');
+      if (kDebugMode) debugLog('_rejectAsBusy failed: $e');
     }
   }
 
@@ -1925,13 +1926,13 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (status == CallStatus.idle || status == CallStatus.ended) return;
 
     if (status == CallStatus.ringing || status == CallStatus.outgoing) {
-      print('[CALL_DEBUG] transport lost while $status ($reason) → abandon');
+      debugLog('[CALL_DEBUG] transport lost while $status ($reason) → abandon');
       _abandonCallForNetwork();
       return;
     }
 
     if (_networkGraceTimer?.isActive == true) return;
-    print('[CALL_DEBUG] transport lost ($reason) → '
+    debugLog('[CALL_DEBUG] transport lost ($reason) → '
         '${_networkGracePeriod.inSeconds}s grace');
     isReconnecting.value = true;
     _networkGraceTimer = Timer(_networkGracePeriod, () {
@@ -1939,7 +1940,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           callStatus.value == CallStatus.ended) {
         return;
       }
-      print('[CALL_DEBUG] grace expired → terminating call (network)');
+      debugLog('[CALL_DEBUG] grace expired → terminating call (network)');
       _abandonCallForNetwork();
     });
   }
@@ -1947,7 +1948,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// Transport came back inside the grace window — keep the call.
   void _onTransportRestored() {
     if (_networkGraceTimer == null && !isReconnecting.value) return;
-    print('[CALL_DEBUG] transport restored → cancelling grace timer');
+    debugLog('[CALL_DEBUG] transport restored → cancelling grace timer');
     _networkGraceTimer?.cancel();
     _networkGraceTimer = null;
     isReconnecting.value = false;
@@ -2045,7 +2046,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   /// End an active call
   Future<void> endCall() async {
-    print('[CALL_DEBUG] endCall → called, currentStatus=${callStatus.value}, caller stack: ${StackTrace.current.toString().split('\n').take(6).join(' | ')}');
+    debugLog('[CALL_DEBUG] endCall → called, currentStatus=${callStatus.value}, caller stack: ${StackTrace.current.toString().split('\n').take(6).join(' | ')}');
     // Guard: skip if already idle (prevents re-entrant calls from CallKit events)
     isIncomingCall.value=false;
     if (callStatus.value == CallStatus.idle) return;
@@ -2080,14 +2081,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
       _cleanup();
       _navigateBackFromCallScreen();
     } else {
-      print('[CALL_DEBUG] endCall → skipping second _cleanup (already cleaned by call:ended handler)');
+      debugLog('[CALL_DEBUG] endCall → skipping second _cleanup (already cleaned by call:ended handler)');
     }
   }
 
   // ==================== SOCKET EVENT HANDLERS ====================
 
   void _handleCallAccepted(dynamic data) async {
-    print('[CALL_DEBUG] _handleCallAccepted → received, currentStatus=${callStatus.value}, data=$data');
+    debugLog('[CALL_DEBUG] _handleCallAccepted → received, currentStatus=${callStatus.value}, data=$data');
 
     // Fare-call fallback: if ride:queue:calling was missed (race condition or
     // server skipped it for single-rider orders), the customer's callStatus is
@@ -2096,7 +2097,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (callStatus.value == CallStatus.idle) {
       final metadata = data['metadata'];
       if (metadata is Map && metadata['orderType'] == 'fare-call') {
-        print('[FARE_CALL] _handleCallAccepted → idle + fare-call metadata, bootstrapping call state');
+        debugLog('[FARE_CALL] _handleCallAccepted → idle + fare-call metadata, bootstrapping call state');
         final acceptedCallId = (data['call_id'] ?? '').toString();
         // Backend sends snake_case `room_id`; keep the old `room_Id` read as a
         // fallback (this branch previously never fired because of that typo).
@@ -2123,14 +2124,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
           // joinFareCallAsCustomer sets callStatus=outgoing — fall through
           // to the normal outgoing handling below.
         } else {
-          print('[FARE_CALL] _handleCallAccepted → missing call data, cannot bootstrap');
+          debugLog('[FARE_CALL] _handleCallAccepted → missing call data, cannot bootstrap');
           return;
         }
       }
     }
 
     if (callStatus.value != CallStatus.outgoing) {
-      print('[CALL_DEBUG] _handleCallAccepted → SKIPPED (not outgoing)');
+      debugLog('[CALL_DEBUG] _handleCallAccepted → SKIPPED (not outgoing)');
       return;
     }
 
@@ -2142,38 +2143,38 @@ class CallController extends GetxController with WidgetsBindingObserver {
     callStatus.value = CallStatus.connecting;
     final acceptedBy = data['accepted_by'] ?? '';
     _remoteUserId = acceptedBy;
-    print('[CALL_DEBUG] _handleCallAccepted → acceptedBy=$acceptedBy, creating offer...');
+    debugLog('[CALL_DEBUG] _handleCallAccepted → acceptedBy=$acceptedBy, creating offer...');
 
     // For fare-calls: customer stays on FareCallQueueScreen — audio connects in background.
     // For regular calls: navigate to CallRoomScreen.
-    print('[FARE_CALL_DEBUG] _handleCallAccepted → isFareCall=${isFareCall.value}');
+    debugLog('[FARE_CALL_DEBUG] _handleCallAccepted → isFareCall=${isFareCall.value}');
     _openCallRoom();
 
     // Caller creates and sends the SDP offer
-    print('[FARE_CALL_DEBUG] _handleCallAccepted → existing peerConnections=${peerConnections.keys.toList()}, localStream=${localStream != null ? "EXISTS" : "NULL"}, _remoteUserId=$_remoteUserId');
+    debugLog('[FARE_CALL_DEBUG] _handleCallAccepted → existing peerConnections=${peerConnections.keys.toList()}, localStream=${localStream != null ? "EXISTS" : "NULL"}, _remoteUserId=$_remoteUserId');
     final pc = peerConnections[_remoteUserId] ??
         await _createPeerConnection(_remoteUserId!);
 
-    print('[FARE_CALL_DEBUG] _handleCallAccepted → peerConnection signalingState=${pc.signalingState}, connectionState=${pc.connectionState}');
+    debugLog('[FARE_CALL_DEBUG] _handleCallAccepted → peerConnection signalingState=${pc.signalingState}, connectionState=${pc.connectionState}');
 
     try {
       final offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      print('[CALL_DEBUG] _handleCallAccepted → offer created, emitting call:offer');
-      print('[FARE_CALL_DEBUG] _handleCallAccepted → offer SDP type=${offer.type}, SDP length=${offer.sdp?.length}');
+      debugLog('[CALL_DEBUG] _handleCallAccepted → offer created, emitting call:offer');
+      debugLog('[FARE_CALL_DEBUG] _handleCallAccepted → offer SDP type=${offer.type}, SDP length=${offer.sdp?.length}');
 
       _socket.emitEvent('call:offer', {
         'room_id': roomId.value,
         'target_user_id': _remoteUserId,
         'sdp': {'sdp': offer.sdp, 'type': offer.type},
       });
-      print('[CALL_DEBUG] _handleCallAccepted → call:offer emitted to $_remoteUserId');
+      debugLog('[CALL_DEBUG] _handleCallAccepted → call:offer emitted to $_remoteUserId');
       // The receiver may not have joined the socket room yet (its accept API
       // is still in flight) — retry the offer until the handshake progresses.
       _scheduleOfferRetry(_remoteUserId!);
     } catch (e, stack) {
-      print('[FARE_CALL_DEBUG] _handleCallAccepted → OFFER CREATION FAILED: $e');
-      print('[FARE_CALL_DEBUG] _handleCallAccepted → stack: $stack');
+      debugLog('[FARE_CALL_DEBUG] _handleCallAccepted → OFFER CREATION FAILED: $e');
+      debugLog('[FARE_CALL_DEBUG] _handleCallAccepted → stack: $stack');
     }
   }
 
@@ -2186,7 +2187,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // Just cleanup WebRTC state — don't pop screen or show snackbar.
     // The server will send ride:queue:calling for the next rider.
     if (isFareCall.value) {
-      print('[FARE_CALL] _handleCallDeclined → rider declined, cleaning up for next rider');
+      debugLog('[FARE_CALL] _handleCallDeclined → rider declined, cleaning up for next rider');
       _leaveRoomAndCleanup();
       return;
     }
@@ -2197,13 +2198,13 @@ class CallController extends GetxController with WidgetsBindingObserver {
       safeBack();
     } else {
       // Group call: some users declined but others may still answer
-      if (kDebugMode) print('User ${data['declined_by']} declined group call');
+      if (kDebugMode) debugLog('User ${data['declined_by']} declined group call');
     }
   }
 
   void _handleCallCancelled(dynamic data) {
     stopRingtone();
-    print('[CALL_DEBUG] _handleCallCancelled → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
+    debugLog('[CALL_DEBUG] _handleCallCancelled → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
 
     // Always cancel the Android local notification for this call — it may have
     // been posted by the FCM background isolate and keeps ringing independently
@@ -2223,7 +2224,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         if (cancelledCallId.isNotEmpty && callKitWasShownFor(cancelledCallId)) {
           FlutterCallkitIncoming.endCall(cancelledCallId);
           clearCallKitShownFor(cancelledCallId);
-          print('[CALL_DEBUG] _handleCallCancelled → dismissed lingering CallKit id=$cancelledCallId (state was idle)');
+          debugLog('[CALL_DEBUG] _handleCallCancelled → dismissed lingering CallKit id=$cancelledCallId (state was idle)');
         }
       } catch (_) {}
       return;
@@ -2231,7 +2232,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Fare-call: don't dismiss CallKit (none shown) and don't pop fare-call screens
     if (isFareCall.value) {
-      print('[FARE_CALL] _handleCallCancelled → cleaning up without navigating');
+      debugLog('[FARE_CALL] _handleCallCancelled → cleaning up without navigating');
       _leaveRoomAndCleanup();
       return;
     }
@@ -2253,7 +2254,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (endedId.isNotEmpty) cancelIncomingCallLocalNotification(endedId);
     if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
 
-    print('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
+    debugLog('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
     // The post-call interstitial used to be shown from here for CallActivity
     // calls, because that engine had no Ads SDK. The call now ends in this
     // engine, so the normal teardown path (_showCallEndedInterstitial) handles
@@ -2268,7 +2269,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // detect via a `call_id` match AND the call actually being live.
     final endedCallId = data is Map ? (data['call_id'] ?? '').toString() : '';
     if (endedCallId.isNotEmpty && callId.value.isNotEmpty && endedCallId != callId.value) {
-      print('[CALL_DEBUG] _handleCallEnded → IGNORED stale event, endedCallId=$endedCallId vs active=${callId.value}');
+      debugLog('[CALL_DEBUG] _handleCallEnded → IGNORED stale event, endedCallId=$endedCallId vs active=${callId.value}');
       return;
     }
 
@@ -2276,7 +2277,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // lifecycle. Still fire the interstitial (fare/rider calls get ads too),
     // since this branch returns before _navigateBackFromCallScreen.
     if (isFareCall.value) {
-      print('[FARE_CALL] _handleCallEnded → cleaning up without navigating');
+      debugLog('[FARE_CALL] _handleCallEnded → cleaning up without navigating');
       _showCallEndedInterstitial();
       _leaveRoomAndCleanup();
       return;
@@ -2326,7 +2327,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     final eventCallId = (data['call_id'] ?? '').toString();
     // Filter stale events: ignore if not for the current outgoing call.
     if (callId.value.isEmpty || eventCallId != callId.value) {
-      print('[CALL_DEBUG] call:ringing → IGNORED (callId mismatch: event=$eventCallId active=${callId.value})');
+      debugLog('[CALL_DEBUG] call:ringing → IGNORED (callId mismatch: event=$eventCallId active=${callId.value})');
       return;
     }
 
@@ -2346,7 +2347,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           CallRingingState.fromServer(data['state']?.toString());
     }
 
-    print('[CALL_DEBUG] call:ringing → state=${ringingState.value.name}, group=$isGroup');
+    debugLog('[CALL_DEBUG] call:ringing → state=${ringingState.value.name}, group=$isGroup');
   }
 
   /// Aggregate group participant states into a single label state.
@@ -2393,7 +2394,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     _showCallEndedInterstitial();
 
     final route = Get.currentRoute;
-    if (kDebugMode) print('_navigateBackFromCallScreen: currentRoute=$route');
+    if (kDebugMode) debugLog('_navigateBackFromCallScreen: currentRoute=$route');
     if (route == '/CallRoomScreen' ||
         route == '/ActiveCallScreen' ||
         route == '/OutgoingCallScreen' ||
@@ -2498,7 +2499,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (callStatus.value == CallStatus.ringing ||
         callStatus.value == CallStatus.accepting) {
       _pendingOffer = data['sdp'];
-      print('[CALL_DEBUG] _handleRemoteOffer → stored as pendingOffer (still ${callStatus.value})');
+      debugLog('[CALL_DEBUG] _handleRemoteOffer → stored as pendingOffer (still ${callStatus.value})');
       return;
     }
 
@@ -2509,7 +2510,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // here deadlocked the call: rider retried 3×, customer ignored all of
     // them, ring timer expired at 30s. Treat it as the accept instead.
     if (isFareCall.value && callStatus.value == CallStatus.outgoing) {
-      print('[FARE_CALL] _handleRemoteOffer → offer while outgoing: treating as implicit call:accepted');
+      debugLog('[FARE_CALL] _handleRemoteOffer → offer while outgoing: treating as implicit call:accepted');
       _ringTimer?.cancel();
       stopOutgoingRingback();
       callStatus.value = CallStatus.connecting;
@@ -2615,39 +2616,39 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   void _handleRemoteAnswer(dynamic data) async {
     final fromUserId = data['from_user_id'] ?? '';
-    print('[CALL_DEBUG] _handleRemoteAnswer → from=$fromUserId');
-    print('[FARE_CALL_DEBUG] _handleRemoteAnswer → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}');
+    debugLog('[CALL_DEBUG] _handleRemoteAnswer → from=$fromUserId');
+    debugLog('[FARE_CALL_DEBUG] _handleRemoteAnswer → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}');
     final pc = peerConnections[fromUserId];
     if (pc == null) {
-      print('[CALL_DEBUG] _handleRemoteAnswer → NO peer connection for $fromUserId, SKIPPED');
-      print('[FARE_CALL_DEBUG] _handleRemoteAnswer → available peerConnections=${peerConnections.keys.toList()}');
+      debugLog('[CALL_DEBUG] _handleRemoteAnswer → NO peer connection for $fromUserId, SKIPPED');
+      debugLog('[FARE_CALL_DEBUG] _handleRemoteAnswer → available peerConnections=${peerConnections.keys.toList()}');
       return;
     }
 
-    print('[CALL_DEBUG] _handleRemoteAnswer → signalingState=${pc.signalingState}');
+    debugLog('[CALL_DEBUG] _handleRemoteAnswer → signalingState=${pc.signalingState}');
     // Only set remote description if we're in 'have-local-offer' state
     if (pc.signalingState !=
         RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-      print('[CALL_DEBUG] _handleRemoteAnswer → SKIPPED (not in have-local-offer state)');
-      print('[FARE_CALL_DEBUG] _handleRemoteAnswer → ⚠️ ANSWER DROPPED for fare-call! signalingState=${pc.signalingState}');
+      debugLog('[CALL_DEBUG] _handleRemoteAnswer → SKIPPED (not in have-local-offer state)');
+      debugLog('[FARE_CALL_DEBUG] _handleRemoteAnswer → ⚠️ ANSWER DROPPED for fare-call! signalingState=${pc.signalingState}');
       return;
     }
 
     try {
       final sdp = RTCSessionDescription(data['sdp']['sdp'], data['sdp']['type']);
       await pc.setRemoteDescription(sdp);
-      print('[CALL_DEBUG] _handleRemoteAnswer → remote description set');
-      print('[FARE_CALL_DEBUG] _handleRemoteAnswer → remote description SET successfully, connectionState=${pc.connectionState}');
+      debugLog('[CALL_DEBUG] _handleRemoteAnswer → remote description set');
+      debugLog('[FARE_CALL_DEBUG] _handleRemoteAnswer → remote description SET successfully, connectionState=${pc.connectionState}');
     } catch (e) {
-      print('[FARE_CALL_DEBUG] _handleRemoteAnswer → ❌ setRemoteDescription FAILED: $e');
+      debugLog('[FARE_CALL_DEBUG] _handleRemoteAnswer → ❌ setRemoteDescription FAILED: $e');
       return;
     }
 
     // Flush buffered ICE candidates
     final pendingCount = _pendingCandidates[fromUserId]?.length ?? 0;
-    print('[FARE_CALL_DEBUG] _handleRemoteAnswer → flushing $pendingCount pending ICE candidates');
+    debugLog('[FARE_CALL_DEBUG] _handleRemoteAnswer → flushing $pendingCount pending ICE candidates');
     await _flushPendingCandidates(fromUserId);
-    print('[CALL_DEBUG] _handleRemoteAnswer → ICE candidates flushed, waiting for connection...');
+    debugLog('[CALL_DEBUG] _handleRemoteAnswer → ICE candidates flushed, waiting for connection...');
   }
 
   void _handleRemoteIceCandidate(dynamic data) async {
@@ -2938,7 +2939,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       // sides sat on a black screen.
       await _renegotiateAfterMediaChange();
     } catch (e) {
-      if (kDebugMode) print('Failed to enable video: $e');
+      if (kDebugMode) debugLog('Failed to enable video: $e');
       commonSnackBar(message: AppStrings.failedToEnableCamera.tr);
     }
   }
@@ -2973,9 +2974,9 @@ class CallController extends GetxController with WidgetsBindingObserver {
         'target_user_id': peerId,
         'sdp': {'sdp': offer.sdp, 'type': offer.type},
       });
-      if (kDebugMode) print('_renegotiateAfterMediaChange: re-offer sent');
+      if (kDebugMode) debugLog('_renegotiateAfterMediaChange: re-offer sent');
     } catch (e) {
-      if (kDebugMode) print('_renegotiateAfterMediaChange failed: $e');
+      if (kDebugMode) debugLog('_renegotiateAfterMediaChange failed: $e');
     }
   }
 
@@ -3014,7 +3015,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   Future<void> _setupLocalMedia() async {
     final isVideo = callType.value == CallType.video;
-    print('[FARE_CALL_DEBUG] _setupLocalMedia → START, isVideo=$isVideo, isFareCall=${isFareCall.value}');
+    debugLog('[FARE_CALL_DEBUG] _setupLocalMedia → START, isVideo=$isVideo, isFareCall=${isFareCall.value}');
 
     // Sync isCameraOn with actual media state (fixes video:true on audio calls)
     isCameraOn.value = isVideo;
@@ -3039,14 +3040,14 @@ class CallController extends GetxController with WidgetsBindingObserver {
         await localRenderer!.initialize();
       }
 
-      print('[FARE_CALL_DEBUG] _setupLocalMedia → calling getUserMedia...');
+      debugLog('[FARE_CALL_DEBUG] _setupLocalMedia → calling getUserMedia...');
       localStream = await navigator.mediaDevices.getUserMedia({
         'audio': true,
         'video': isVideo
             ? {'facingMode': 'user', 'width': 640, 'height': 480}
             : false,
       });
-      print('[FARE_CALL_DEBUG] _setupLocalMedia → getUserMedia SUCCESS, tracks=${localStream?.getTracks().length}, audioTracks=${localStream?.getAudioTracks().length}');
+      debugLog('[FARE_CALL_DEBUG] _setupLocalMedia → getUserMedia SUCCESS, tracks=${localStream?.getTracks().length}, audioTracks=${localStream?.getAudioTracks().length}');
       hasLocalAudio.value =
           (localStream?.getAudioTracks().isNotEmpty ?? false);
 
@@ -3054,9 +3055,9 @@ class CallController extends GetxController with WidgetsBindingObserver {
         localRenderer!.srcObject = localStream;
       }
     } catch (e, stack) {
-      print('[FARE_CALL_DEBUG] _setupLocalMedia → ❌ getUserMedia FAILED: $e');
-      print('_setupLocalMedia error: $e');
-      print(stack.toString());
+      debugLog('[FARE_CALL_DEBUG] _setupLocalMedia → ❌ getUserMedia FAILED: $e');
+      debugLog('_setupLocalMedia error: $e');
+      debugLog(stack.toString());
       if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
         _mediaReadyCompleter!.completeError(e);
       }
@@ -3071,7 +3072,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   Future<RTCPeerConnection> _createPeerConnection(String peerId) async {
     if (peerConnections.containsKey(peerId)) {
-      print('[FARE_CALL_DEBUG] _createPeerConnection → reusing existing PC for $peerId');
+      debugLog('[FARE_CALL_DEBUG] _createPeerConnection → reusing existing PC for $peerId');
       return peerConnections[peerId]!;
     }
 
@@ -3081,7 +3082,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
             {'urls': 'stun:stun.l.google.com:19302'}
           ]
         };
-    print('[FARE_CALL_DEBUG] _createPeerConnection → creating NEW PC for $peerId, iceServers count=${(config['iceServers'] as List?)?.length ?? 0}, localStream=${localStream != null ? "EXISTS (tracks=${localStream!.getTracks().length})" : "NULL"}');
+    debugLog('[FARE_CALL_DEBUG] _createPeerConnection → creating NEW PC for $peerId, iceServers count=${(config['iceServers'] as List?)?.length ?? 0}, localStream=${localStream != null ? "EXISTS (tracks=${localStream!.getTracks().length})" : "NULL"}');
 
     final pc = await createPeerConnection(config, {
       'mandatory': {
@@ -3099,7 +3100,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // ICE candidate handler
     pc.onIceCandidate = (RTCIceCandidate candidate) {
-      print('[CALL_DEBUG] onIceCandidate → sending to $peerId');
+      debugLog('[CALL_DEBUG] onIceCandidate → sending to $peerId');
       _socket.emitEvent('call:ice-candidate', {
         'room_id': roomId.value,
         'target_user_id': peerId,
@@ -3109,7 +3110,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Remote stream handler
     pc.onTrack = (RTCTrackEvent event) {
-      print('[CALL_DEBUG] onTrack → received from $peerId, streams=${event.streams.length}, track=${event.track.kind}');
+      debugLog('[CALL_DEBUG] onTrack → received from $peerId, streams=${event.streams.length}, track=${event.track.kind}');
       if (event.streams.isNotEmpty) {
         _handleRemoteStream(peerId, event.streams[0]);
       }
@@ -3117,7 +3118,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // ICE connection state (more granular than connection state)
     pc.onIceConnectionState = (RTCIceConnectionState state) {
-      print('[CALL_DEBUG] onIceConnectionState → $state (peer=$peerId)');
+      debugLog('[CALL_DEBUG] onIceConnectionState → $state (peer=$peerId)');
       if (_disposed) return;
       // Fallback for ALL platforms: flutter_webrtc's `onConnectionState` is
       // unreliable on iOS (often never reports Connected) and has been seen
@@ -3129,7 +3130,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       if ((state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
               state == RTCIceConnectionState.RTCIceConnectionStateCompleted) &&
           callStatus.value != CallStatus.connected) {
-        print('[CALL_DEBUG] ✅ promoting to connected via ICE state (peer=$peerId)');
+        debugLog('[CALL_DEBUG] ✅ promoting to connected via ICE state (peer=$peerId)');
         _connectionTimer?.cancel();
         _peerDisconnectTimer?.cancel();
         _ringTimer?.cancel();
@@ -3142,16 +3143,16 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Signaling state
     pc.onSignalingState = (RTCSignalingState state) {
-      print('[CALL_DEBUG] onSignalingState → $state (peer=$peerId)');
+      debugLog('[CALL_DEBUG] onSignalingState → $state (peer=$peerId)');
     };
 
     // Connection state
     pc.onConnectionState = (RTCPeerConnectionState state) {
-      print('[CALL_DEBUG] onConnectionState → $state (peer=$peerId)');
+      debugLog('[CALL_DEBUG] onConnectionState → $state (peer=$peerId)');
       if (_disposed) return;
       switch (state) {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
-          print('[CALL_DEBUG] ✅ CALL CONNECTED! peer=$peerId');
+          debugLog('[CALL_DEBUG] ✅ CALL CONNECTED! peer=$peerId');
           _connectionTimer?.cancel();
           _peerDisconnectTimer?.cancel();
           _ringTimer?.cancel();
@@ -3161,7 +3162,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           _cancelNetworkGrace();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
-          print('[CALL_DEBUG] ❌ CALL FAILED! peer=$peerId');
+          debugLog('[CALL_DEBUG] ❌ CALL FAILED! peer=$peerId');
           endCall();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
@@ -3170,7 +3171,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           // end was left in a ghost call when the other side lost internet:
           // no audio, timer still counting, no way to know. Give it the same
           // grace window as a local drop, then tear down.
-          print('[CALL_DEBUG] ⚠️ PEER DISCONNECTED (may reconnect), peer=$peerId');
+          debugLog('[CALL_DEBUG] ⚠️ PEER DISCONNECTED (may reconnect), peer=$peerId');
           _onTransportLost('peer disconnected');
           break;
         default:
@@ -3227,7 +3228,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           add(sender.track);
         }
       } catch (e) {
-        if (kDebugMode) print('_localAudioTracks: getSenders failed: $e');
+        if (kDebugMode) debugLog('_localAudioTracks: getSenders failed: $e');
       }
     }
     return tracks;
@@ -3356,7 +3357,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         final active = AudioRouteUi.fromTypeName(activeName);
         if (active != null) {
           if (active != route && kDebugMode) {
-            print('_applyAudioRoute: asked for $route, got $active');
+            debugLog('_applyAudioRoute: asked for $route, got $active');
           }
           return active;
         }
@@ -3367,7 +3368,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         await _applyIosRoute(route);
       }
     } catch (e) {
-      if (kDebugMode) print('_applyAudioRoute($route) failed: $e');
+      if (kDebugMode) debugLog('_applyAudioRoute($route) failed: $e');
     }
     return route;
   }
@@ -3401,7 +3402,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         AndroidAudioConfiguration.communication,
       );
     } catch (e) {
-      if (kDebugMode) print('_enableCommunicationAudioMode failed: $e');
+      if (kDebugMode) debugLog('_enableCommunicationAudioMode failed: $e');
     }
   }
 
@@ -3415,7 +3416,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       );
       await Helper.clearAndroidCommunicationDevice();
     } catch (e) {
-      if (kDebugMode) print('_restoreMediaAudioMode failed: $e');
+      if (kDebugMode) debugLog('_restoreMediaAudioMode failed: $e');
     }
   }
 
@@ -3448,7 +3449,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         try {
           Helper.setVolume(volume, track);
         } catch (e) {
-          if (kDebugMode) print('_applyRouteVolume failed: $e');
+          if (kDebugMode) debugLog('_applyRouteVolume failed: $e');
         }
       }
     }
@@ -3496,7 +3497,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       await _volumeChannel
           .invokeMethod('setCallVolumeActive', {'active': active});
     } catch (e) {
-      if (kDebugMode) print('_setVolumeInterceptActive failed: $e');
+      if (kDebugMode) debugLog('_setVolumeInterceptActive failed: $e');
     }
   }
 
@@ -3627,7 +3628,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       if (hasWired) routes.add(AudioRoute.wiredHeadset);
       availableAudioRoutes.assignAll(routes);
     } catch (e) {
-      if (kDebugMode) print('_refreshAudioRoutes enumerate failed: $e');
+      if (kDebugMode) debugLog('_refreshAudioRoutes enumerate failed: $e');
     }
 
     // Decide the route to apply.
@@ -3711,8 +3712,8 @@ class CallController extends GetxController with WidgetsBindingObserver {
     final ResponseModel response =
         await _callRepo.getCallHistory(page: page, limit: limit);
 
-    print('[CALL_HISTORY] statusCode=${response.statusCode}');
-    print('[CALL_HISTORY] response=${response.response?.data}');
+    debugLog('[CALL_HISTORY] statusCode=${response.statusCode}');
+    debugLog('[CALL_HISTORY] response=${response.response?.data}');
 
     if (!response.isSuccess) return [];
     final dynamic data = response.response?.data;
@@ -3853,10 +3854,10 @@ class CallController extends GetxController with WidgetsBindingObserver {
       // means the call is progressing and must NOT be cancelled — otherwise
       // an active call would be flipped into a missed/cancelled state.
       if (callStatus.value == CallStatus.outgoing && isCaller.value) {
-        print('[CALL_DEBUG] _startRingTimer → 30s no-answer, cancelling outgoing call');
+        debugLog('[CALL_DEBUG] _startRingTimer → 30s no-answer, cancelling outgoing call');
         cancelCall();
       } else {
-        print('[CALL_DEBUG] _startRingTimer → expired but call is ${callStatus.value} (isCaller=${isCaller.value}) — no-op');
+        debugLog('[CALL_DEBUG] _startRingTimer → expired but call is ${callStatus.value} (isCaller=${isCaller.value}) — no-op');
       }
     });
   }
@@ -3926,7 +3927,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         payload: '{"action":"open_active_call"}',
       );
     } catch (e) {
-      if (kDebugMode) print('Connecting notification error: $e');
+      if (kDebugMode) debugLog('Connecting notification error: $e');
     }
   }
 
@@ -3983,7 +3984,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         payload: '{"action":"open_active_call"}',
       );
     } catch (e) {
-      if (kDebugMode) print('Ongoing notification error: $e');
+      if (kDebugMode) debugLog('Ongoing notification error: $e');
     }
   }
 
@@ -4009,7 +4010,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     required String fareConversationId,
     required List<dynamic> iceServers,
   }) async {
-    print('[FARE_CALL] joinFareCallAsCustomer → callId=$fareCallId, roomId=$fareRoomId, riderId=$riderId');
+    debugLog('[FARE_CALL] joinFareCallAsCustomer → callId=$fareCallId, roomId=$fareRoomId, riderId=$riderId');
 
     // Call socket listeners can be wiped mid-session by
     // ChatViewController.disposeSocket() (chat screen teardown) and are only
@@ -4021,13 +4022,13 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
     // Same room, already set up — skip
     if (roomId.value == fareRoomId && callStatus.value != CallStatus.idle) {
-      print('[FARE_CALL] joinFareCallAsCustomer → already in this room, skipping');
+      debugLog('[FARE_CALL] joinFareCallAsCustomer → already in this room, skipping');
       return true;
     }
 
     // New rider in queue — clean up previous call first
     if (callStatus.value != CallStatus.idle) {
-      print('[FARE_CALL] joinFareCallAsCustomer → cleaning up previous call for new rider');
+      debugLog('[FARE_CALL] joinFareCallAsCustomer → cleaning up previous call for new rider');
       _leaveRoomAndCleanup();
     }
 
@@ -4039,7 +4040,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
         return false;
       }
     } catch (e) {
-      if (kDebugMode) print('Permission request error: $e');
+      if (kDebugMode) debugLog('Permission request error: $e');
     }
 
     // ── Set state (mirrors initiateCall after API success) ──
@@ -4054,7 +4055,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     remoteUserImage.value = '';
     isGroupCall.value = false;
 
-    print('[FARE_CALL] joinFareCallAsCustomer → state set, callStatus=outgoing, isFareCall=true');
+    debugLog('[FARE_CALL] joinFareCallAsCustomer → state set, callStatus=outgoing, isFareCall=true');
 
     // ── Parse ICE servers (mirrors initiateCall) ──
     _iceConfig = IceServerConfig(
@@ -4063,11 +4064,11 @@ class CallController extends GetxController with WidgetsBindingObserver {
         return IceServer(urls: 'stun:stun.l.google.com:19302');
       }).toList(),
     );
-    print('[FARE_CALL] joinFareCallAsCustomer → ICE servers parsed, count=${_iceConfig?.iceServers.length}');
+    debugLog('[FARE_CALL] joinFareCallAsCustomer → ICE servers parsed, count=${_iceConfig?.iceServers.length}');
 
     // ── Join socket room (same as initiateCall) ──
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
-    print('[FARE_CALL] joinFareCallAsCustomer → emitted call:join-room');
+    debugLog('[FARE_CALL] joinFareCallAsCustomer → emitted call:join-room');
 
     // ── Setup local media & peer connection (same as initiateCall) ──
     _mediaReadyCompleter = Completer<void>();
@@ -4075,7 +4076,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (!_mediaReadyCompleter!.isCompleted) {
       _mediaReadyCompleter!.complete();
     }
-    print('[FARE_CALL] joinFareCallAsCustomer → local media ready');
+    debugLog('[FARE_CALL] joinFareCallAsCustomer → local media ready');
 
     await _createPeerConnection(riderId);
     _remoteUserId = riderId;
@@ -4108,21 +4109,21 @@ class CallController extends GetxController with WidgetsBindingObserver {
   /// docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §7.4.
   Future<bool> acceptFareCallRide() async {
     if (fareCallOrderId.value.isEmpty) return false;
-    print('[FARE_CALL] acceptFareCallRide → orderId=${fareCallOrderId.value}');
+    debugLog('[FARE_CALL] acceptFareCallRide → orderId=${fareCallOrderId.value}');
     final repo = MakeOrderRepo();
     final response = await repo.rideActionApi(
       {'action': 'accept'},
       fareCallOrderId.value,
     );
     if (response.isSuccess) {
-      print('[FARE_CALL] Ride accepted successfully');
+      debugLog('[FARE_CALL] Ride accepted successfully');
       return true;
     }
 
     // 409 = another rider got there first. Silent dismissal: no toast, and
     // stop the ring so it doesn't keep going for a ride that's gone.
     if (response.response?.statusCode == 409) {
-      print('[FARE_CALL] Ride already taken by another rider — closing quietly');
+      debugLog('[FARE_CALL] Ride already taken by another rider — closing quietly');
       await AppNotificationHandler().dismissBroadcastRide({
         'payload': {
           'metadata': {'orderId': fareCallOrderId.value}
@@ -4485,7 +4486,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
           try {
             FlutterCallkitIncoming.setCallConnected(event.body['id']?.toString() ?? '');
           } catch (e) {
-            print('[CALL_DEBUG] setCallConnected error: $e');
+            debugLog('[CALL_DEBUG] setCallConnected error: $e');
           }
           // Skip if already handled from main.dart killed-state check
           if (_killedStateAcceptHandled) {
@@ -4665,7 +4666,7 @@ void showFlutterCallNotification({
   // This call is already over — a late or out-of-order push must not resurrect
   // the CallKit UI. Mirrors the same guard on the Android notification path.
   if (await isCallRetired(callSessionId)) {
-    print('[CALL_DEBUG] showFlutterCallNotification → skipped, call retired');
+    debugLog('[CALL_DEBUG] showFlutterCallNotification → skipped, call retired');
     return;
   }
 
@@ -4708,7 +4709,7 @@ void showFlutterCallNotification({
   } catch (e) {
     // Known plugin bug: throws when its internal call list is empty/null.
     // The native list is still cleared either way — safe to ignore.
-    print('[CALL_DEBUG] showFlutterCallNotification → endAllCalls (benign): $e');
+    debugLog('[CALL_DEBUG] showFlutterCallNotification → endAllCalls (benign): $e');
   }
   await Future.delayed(const Duration(milliseconds: 80));
 

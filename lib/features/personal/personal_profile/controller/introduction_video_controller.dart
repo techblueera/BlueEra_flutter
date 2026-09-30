@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class IntroductionVideoController extends GetxController {
   final Rx<File?> selectedVideo = Rx<File?>(null);
@@ -90,7 +91,7 @@ class IntroductionVideoController extends GetxController {
         hasUploadedVideo.value = true;
       }
     } catch (e) {
-      print('Error checking existing video: $e');
+      debugLog('Error checking existing video: $e');
     }
   }
 
@@ -239,7 +240,7 @@ class IntroductionVideoController extends GetxController {
         commonSnackBar(message: response.message ?? 'Delete failed');
       }
     } catch (e) {
-      print('Error deleting video: $e');
+      debugLog('Error deleting video: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isUploading.value = false;

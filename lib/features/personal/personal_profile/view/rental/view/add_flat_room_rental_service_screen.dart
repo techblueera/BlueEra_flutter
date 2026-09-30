@@ -36,6 +36,7 @@ import 'package:BlueEra/widgets/time_selection_dropdown.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AddFlatRoomRentalServiceScreen extends StatefulWidget {
   const AddFlatRoomRentalServiceScreen({Key? key}) : super(key: key);
@@ -160,7 +161,7 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           title: AppStrings.propertyLocationTitle,
                           hintText: AppStrings.propertyLocationHint,
                           onSelected: (placeId, lat, lng, address) async {
-                            print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                            debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                             controller.location.text = address;
                             controller.currentAddress.value = address;
                             controller.latitude = lat;

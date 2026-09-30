@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 // Adjust import path
 import '../place_list_model.dart';
 import '../repo/add_place_repo.dart';    // Your API service
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PlaceController extends GetxController {
   RxList<PlaceList> allPlaces = <PlaceList>[].obs;
@@ -39,10 +40,10 @@ class PlaceController extends GetxController {
         );
         allPlaces.value = places;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }

@@ -16,6 +16,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 String? appVersion = '';
 String? authTokenGlobal = '';
@@ -676,7 +677,7 @@ resetLanguageLocalization() async {
   // 5️⃣ Optionally set app back to English
   await localizationService.updateLanguage("en");
 
-  print("✅ Language localization fully reset.");
+  debugLog("✅ Language localization fully reset.");
 }
 
 ///LOGIN USER STATUS...

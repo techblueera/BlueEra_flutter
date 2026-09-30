@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_users.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class TagUserController extends GetxController {
   /// [initialTaggedIds] are the users an edited post already tags; they are
@@ -57,7 +58,7 @@ class TagUserController extends GetxController {
     isLoadingMore.value = true;
 
     try {
-      print('api call');
+      debugLog('api call');
       ResponseModel response = await _repo.getAllUsers(params: params);
 
       if (response.statusCode == 200) {
@@ -94,7 +95,7 @@ class TagUserController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print('Error fetching users: $e');
+      debugLog('Error fetching users: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;

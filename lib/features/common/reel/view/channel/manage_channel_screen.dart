@@ -24,6 +24,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../controller/channel_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ManageChannelScreen extends StatefulWidget {
   const ManageChannelScreen({super.key});
@@ -112,7 +113,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
 
           field.linkController.text = url;
         } catch (e) {
-          print(
+          debugLog(
               "Social link field not found for platform: ${socialLink.platform}");
         }
       }
@@ -207,7 +208,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
                                           },
                                           errorBuilder:
                                               (context, error, stackTrace) {
-                                            print(
+                                            debugLog(
                                                 "Error loading image: $error");
                                             return Center(
                                               child: SvgPicture.asset(
@@ -574,7 +575,7 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
           }
         }
       } catch (e) {
-        print("Error in _onSubmit: $e");
+        debugLog("Error in _onSubmit: $e");
         commonSnackBar(message: "Something went wrong. Please try again.");
       }
     } else {

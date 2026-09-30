@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:hive/hive.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// A persisted, location-stamped list cache entry (see [HiveServices.getGeoList]).
 /// Holds the raw JSON [items] plus the [lat]/[lng] and [savedAt] of the fetch
@@ -246,13 +247,13 @@ class HiveServices{
             final postMap = jsonDecode(jsonEncode(value)) as Map<String, dynamic>;
             posts.add(Post.fromJson(postMap));
           } else {
-            print('Hive -> Unexpected value type for key "$key": ${value.runtimeType}');
+            debugLog('Hive -> Unexpected value type for key "$key": ${value.runtimeType}');
           }
         } catch (e, st) {
-          print('Hive -> Failed to parse Post for key "$key"');
-          print('Error: $e');
-          print('StackTrace: $st');
-          print('Raw value: $value\n');
+          debugLog('Hive -> Failed to parse Post for key "$key"');
+          debugLog('Error: $e');
+          debugLog('StackTrace: $st');
+          debugLog('Raw value: $value\n');
         }
       }
     }
@@ -306,7 +307,7 @@ class HiveServices{
               final postMap = jsonDecode(jsonEncode(value)) as Map<String, dynamic>;
               videos.add(ShortFeedItem.fromJson(postMap));
             }else{
-              print('Hive -> Unexpected value type for key "$key": ${value.runtimeType}');
+              debugLog('Hive -> Unexpected value type for key "$key": ${value.runtimeType}');
             }
           } catch (_) {}
       }
@@ -379,10 +380,10 @@ class HiveServices{
         'lng': lng,
         'items': jsonList,
       });
-      print('Saved ${jsonList.length} geo-cache items for key: $key');
+      debugLog('Saved ${jsonList.length} geo-cache items for key: $key');
       return true;
     } catch (e) {
-      print('Error saving geo-cache list ($key): $e');
+      debugLog('Error saving geo-cache list ($key): $e');
       return false;
     }
   }
@@ -406,7 +407,7 @@ class HiveServices{
             (data['savedAt'] as num?)?.toInt() ?? 0),
       );
     } catch (e) {
-      print('Error loading geo-cache list ($key): $e');
+      debugLog('Error loading geo-cache list ($key): $e');
       return null;
     }
   }
@@ -438,7 +439,7 @@ class HiveServices{
           },
       });
     } catch (e) {
-      print('Error saving store counts: $e');
+      debugLog('Error saving store counts: $e');
     }
   }
 
@@ -465,7 +466,7 @@ class HiveServices{
         if (row is Map) out[id] = Map<String, dynamic>.from(row);
       }
     } catch (e) {
-      print('Error loading store counts: $e');
+      debugLog('Error loading store counts: $e');
     }
     return out;
   }
@@ -484,10 +485,10 @@ class HiveServices{
 
       await box.put(key, jsonList);
 
-      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      debugLog('Saved ${jsonList.length} stores feed items for user: $userId');
       return true;
     } catch (e) {
-      print('Error saving stores feed: $e');
+      debugLog('Error saving stores feed: $e');
       return false;
     }
   }
@@ -500,12 +501,12 @@ class HiveServices{
       final data = box.get(key);
 
       if (data == null) {
-        print('No cached stores feed found for user: $userId');
+        debugLog('No cached stores feed found for user: $userId');
         return null;
       }
 
       if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
+        debugLog('Invalid data type in Hive: ${data.runtimeType}');
         return null;
       }
 
@@ -513,10 +514,10 @@ class HiveServices{
           .map((json) => GetProductData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
           .toList();
 
-      print('Loaded ${storesProductsList.length} stores feed items for user: $userId');
+      debugLog('Loaded ${storesProductsList.length} stores feed items for user: $userId');
       return storesProductsList;
     } catch (e) {
-      print('Error loading stores feed: $e');
+      debugLog('Error loading stores feed: $e');
       return null;
     }
   }
@@ -535,10 +536,10 @@ class HiveServices{
 
       await box.put(key, jsonList);
 
-      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      debugLog('Saved ${jsonList.length} stores feed items for user: $userId');
       return true;
     } catch (e) {
-      print('Error saving stores feed: $e');
+      debugLog('Error saving stores feed: $e');
       return false;
     }
   }
@@ -551,12 +552,12 @@ class HiveServices{
       final data = box.get(key);
 
       if (data == null) {
-        print('No cached stores feed found for user: $userId');
+        debugLog('No cached stores feed found for user: $userId');
         return null;
       }
 
       if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
+        debugLog('Invalid data type in Hive: ${data.runtimeType}');
         return null;
       }
 
@@ -564,10 +565,10 @@ class HiveServices{
           .map((json) => GetServiceModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
           .toList();
 
-      print('Loaded ${storesServicesList.length} stores feed items for user: $userId');
+      debugLog('Loaded ${storesServicesList.length} stores feed items for user: $userId');
       return storesServicesList;
     } catch (e) {
-      print('Error loading stores feed: $e');
+      debugLog('Error loading stores feed: $e');
       return null;
     }
   }
@@ -586,10 +587,10 @@ class HiveServices{
 
         await box.put(key, jsonList);
 
-        print('Saved ${jsonList.length} stores feed items for user: $userId');
+        debugLog('Saved ${jsonList.length} stores feed items for user: $userId');
         return true;
       } catch (e) {
-        print('Error saving stores feed: $e');
+        debugLog('Error saving stores feed: $e');
         return false;
       }
     }
@@ -602,12 +603,12 @@ class HiveServices{
         final data = box.get(key);
 
         if (data == null) {
-          print('No cached stores feed found for user: $userId');
+          debugLog('No cached stores feed found for user: $userId');
           return null;
         }
 
         if (data is! List) {
-          print('Invalid data type in Hive: ${data.runtimeType}');
+          debugLog('Invalid data type in Hive: ${data.runtimeType}');
           return null;
         }
 
@@ -615,10 +616,10 @@ class HiveServices{
             .map((json) => GetFoodDetailsModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
             .toList();
 
-        print('Loaded ${storesFoodServicesList.length} stores feed items for user: $userId');
+        debugLog('Loaded ${storesFoodServicesList.length} stores feed items for user: $userId');
         return storesFoodServicesList;
       } catch (e) {
-        print('Error loading stores feed: $e');
+        debugLog('Error loading stores feed: $e');
         return null;
       }
     }
@@ -713,12 +714,12 @@ class HiveServices{
       final data = box.get(key);
 
       if (data == null) {
-        print('No cached category found');
+        debugLog('No cached category found');
         return null;
       }
 
       if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
+        debugLog('Invalid data type in Hive: ${data.runtimeType}');
         return null;
       }
 
@@ -726,12 +727,12 @@ class HiveServices{
           .map((json) => CategoryData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
           .toList();
 
-      print('Loaded ${businessCategoryList.length} business categories');
+      debugLog('Loaded ${businessCategoryList.length} business categories');
 
       return businessCategoryList;
 
     }catch (e) {
-      print('Error loading business categories: $e');
+      debugLog('Error loading business categories: $e');
       return null;
     }
   }
@@ -759,12 +760,12 @@ class HiveServices{
       final data = box.get(key);
 
       if (data == null) {
-        print('No cached profession list found');
+        debugLog('No cached profession list found');
         return null;
       }
 
       if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
+        debugLog('Invalid data type in Hive: ${data.runtimeType}');
         return null;
       }
 
@@ -773,10 +774,10 @@ class HiveServices{
               jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
           .toList();
 
-      print('Loaded ${professions.length} profession types');
+      debugLog('Loaded ${professions.length} profession types');
       return professions;
     } catch (e) {
-      print('Error loading profession list: $e');
+      debugLog('Error loading profession list: $e');
       return null;
     }
   }
@@ -801,12 +802,12 @@ class HiveServices{
       final data = box.get(key);
 
       if (data == null) {
-        print('No cached video data found');
+        debugLog('No cached video data found');
         return null;
       }
 
       if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
+        debugLog('Invalid data type in Hive: ${data.runtimeType}');
         return null;
       }
 
@@ -814,12 +815,12 @@ class HiveServices{
           .map((json) => AdminVideoData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
           .toList();
 
-      print('Loaded ${videos.length} videos Data');
+      debugLog('Loaded ${videos.length} videos Data');
 
       return videos;
 
     }catch (e) {
-      print('Error loading videos data: $e');
+      debugLog('Error loading videos data: $e');
       return null;
     }
   }
@@ -841,12 +842,12 @@ class HiveServices{
       final data = box.get(groceryCategoryKey);
 
       if (data == null) {
-        print('No cached nested categories data found');
+        debugLog('No cached nested categories data found');
         return null;
       }
 
       if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
+        debugLog('Invalid data type in Hive: ${data.runtimeType}');
         return null;
       }
 
@@ -854,12 +855,12 @@ class HiveServices{
           .map((json) => GroceryNestedCategoryModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
           .toList();
 
-      print('Loaded ${nestedCategories.length} Nested Category Data');
+      debugLog('Loaded ${nestedCategories.length} Nested Category Data');
 
       return nestedCategories;
 
     }catch (e) {
-      print('Error loading videos data: $e');
+      debugLog('Error loading videos data: $e');
       return null;
     }
   }

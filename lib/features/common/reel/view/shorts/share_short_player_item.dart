@@ -27,6 +27,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ShareShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -989,7 +990,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
       ));
 
     } catch (e) {
-      print("Video share failed: $e");
+      debugLog("Video share failed: $e");
     } finally {
       _isShortSharing = false; // Reset flag
     }

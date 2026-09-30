@@ -14,6 +14,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
 import 'package:dio/dio.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PostRepo extends BaseService {
   /// Creating a post increments the user's posts count, so drop the cached
@@ -132,7 +133,7 @@ class PostRepo extends BaseService {
 
       if (song != null) {
         final encodedSong = jsonEncode(song);
-        print("Encoded song value: $encodedSong"); // 🔹 prints the JSON string
+        debugLog("Encoded song value: $encodedSong"); // 🔹 prints the JSON string
         formData.fields.add(
           MapEntry(ApiKeys.song, encodedSong),
         );

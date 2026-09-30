@@ -21,6 +21,7 @@ import '../../../../common/profile_category/model/category_option.dart';
 import '../../../../common/profile_category/widget/change_category_confirm_sheet.dart';
 import '../../../auth/controller/view_personal_details_controller.dart';
 import '../../controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 class UpdatePersonalProfessionDialog extends StatefulWidget {
   const UpdatePersonalProfessionDialog({super.key});
 
@@ -274,7 +275,7 @@ setState(() {
         GetBuilder<AuthController>(
           init: getOrPut(() => AuthController()),
             builder: (authController) {
-              print("lsdkcmlskmdc ${selectedProfession} ${selectedProfession==POLITICIAN} ${POLITICIAN}");
+              debugLog("lsdkcmlskmdc ${selectedProfession} ${selectedProfession==POLITICIAN} ${POLITICIAN}");
               final dataList = authController
                   .professionTypeDataList
                   .where((e) =>

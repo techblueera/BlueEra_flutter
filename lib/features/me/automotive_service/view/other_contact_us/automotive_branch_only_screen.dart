@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotiveBranchOnlyScreen extends StatefulWidget {
   final SchoolContactUsData schoolContactUsData;
@@ -86,7 +87,7 @@ class _AutomotiveBranchOnlyScreenState extends State<AutomotiveBranchOnlyScreen>
                 isShowLeading: false,
                 hintText: AppStrings.egLucknowGomtiNagar,
                 onSelected: (placeId, lat, lng, address) async {
-                  print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                  debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                   addressController.text = address;
                   // The field already resolved the place; these are its coordinates
                   // (0.0 when that lookup failed).

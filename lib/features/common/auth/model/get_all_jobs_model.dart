@@ -1,4 +1,5 @@
 import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class GetAllJobPostsModel {
   String? message;
@@ -15,7 +16,7 @@ class GetAllJobPostsModel {
         try {
           jobs!.add(new Jobs.fromJson(v));
         } catch (e) {
-          print("Error processing job: $e");
+          debugLog("Error processing job: $e");
         }
       });
     } else {
@@ -114,7 +115,7 @@ class Jobs {
           ? new BusinessDetails.fromJson(json['businessDetails'])
           : null;
     } catch (e) {
-      print("Error parsing Jobs.fromJson: $e");
+      debugLog("Error parsing Jobs.fromJson: $e");
       rethrow;
     }
   }
