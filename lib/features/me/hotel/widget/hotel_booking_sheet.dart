@@ -1,4 +1,5 @@
-import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
+import 'package:BlueEra/features/me/hotel/model/hotel_booking_models.dart';
+import 'package:BlueEra/features/me/hotel/service/hotel_room_catalog.dart';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -8,7 +9,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_booking_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -16,54 +16,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Snapshot of the hotel being booked — denormalised so the sheet header
-/// and (later) the in-chat card render without re-fetching the listing.
-class HotelBookingListing {
-  final String hotelId;
-  final String ownerId;
-  final String ownerName;
-  final String hotelName;
-  final String? coverImage;
-  final String? location;
-
-  const HotelBookingListing({
-    required this.hotelId,
-    required this.ownerId,
-    required this.ownerName,
-    required this.hotelName,
-    this.coverImage,
-    this.location,
-  });
-}
-
-/// One selectable room in the booking sheet — a slim projection of the
-/// discover screen's `Rooms` model (see
-/// `lib/features/common/Discover/model/hotel_search_model.dart`) so this
-/// widget doesn't couple to the search-response shape.
-///
-/// When the customer picks a room the booking becomes **room-level**
-/// (doc §2.1): the id is sent as `room_id`, dates become required, and
-/// `roomName`/`roomType`/`pricePerNight` are derived by the server from
-/// the Room doc — so we never need to send them ourselves.
-class HotelBookingRoomOption {
-  final String id;
-  final String name;
-  final String type;
-  final String? image;
-  final int? pricePerDay;
-  final String? bedType;
-  final String? maxOccupancy;
-
-  const HotelBookingRoomOption({
-    required this.id,
-    required this.name,
-    required this.type,
-    this.image,
-    this.pricePerDay,
-    this.bedType,
-    this.maxOccupancy,
-  });
-}
+export 'package:BlueEra/features/me/hotel/model/hotel_booking_models.dart';
 
 /// Customer-side bottom sheet for the hotel-**booking** flow
 /// (`POST /hotel-bookings`). Distinct from [HotelEnquirySheet]: booking
@@ -104,33 +57,13 @@ class HotelBookingSheet {
     AppStrings.hotelRoomStudio
   ];
 
-  /// In-memory cache of a hotel's rooms keyed by hotelId.
-  ///
-  /// Populated by callers that already know the hotel's rooms (e.g. the
-  /// discover screen, which received them in the hotel-search response)
-  /// so the enquiry-first flow — where the booking sheet is opened from
-  /// the chat card, which doesn't itself hold the rooms — can still
-  /// render a real room picker instead of the text-chip fallback.
-  ///
-  /// This is a session cache: it's OK to lose it on app restart. If the
-  /// entry is missing when [open] runs, the sheet gracefully falls back
-  /// to the [_defaultRoomTypes] chip picker.
-  static final Map<String, List<HotelBookingRoomOption>> _roomsCache = {};
-
   /// Register the rooms for [hotelId] so subsequent [open] calls that
   /// don't pass `availableRooms` can still render the real room picker.
   /// Call this right before triggering the enquiry (discover screen)
-  /// or any other pre-booking navigation.
+  /// or any other pre-booking navigation. See [HotelRoomCatalog].
   static void cacheRoomsForHotel(
-      String hotelId, List<HotelBookingRoomOption> rooms) {
-    final id = hotelId.trim();
-    if (id.isEmpty) return;
-    if (rooms.isEmpty) {
-      _roomsCache.remove(id);
-    } else {
-      _roomsCache[id] = List.unmodifiable(rooms);
-    }
-  }
+          String hotelId, List<HotelBookingRoomOption> rooms) =>
+      HotelRoomCatalog.remember(hotelId, rooms);
 
   static Future<void> open(
     BuildContext context, {
@@ -148,7 +81,7 @@ class HotelBookingSheet {
     List<HotelBookingRoomOption>? rooms =
         (availableRooms != null && availableRooms.isNotEmpty)
             ? availableRooms
-            : _roomsCache[listing.hotelId.trim()];
+            : HotelRoomCatalog.cached(listing.hotelId);
 
     // Cache miss — hydrate on demand. Happens on the enquiry-first
     // flow when the customer taps "Book Now" on the chat card in a
@@ -156,7 +89,7 @@ class HotelBookingSheet {
     // notification tap or a socket-delivered card. Falls back to the
     // text-chip picker if the fetch fails; the sheet still opens.
     if (rooms == null || rooms.isEmpty) {
-      rooms = await _fetchRoomsForListing(listing);
+      rooms = await HotelRoomCatalog().fetch(listing);
       if (rooms.isNotEmpty) {
         cacheRoomsForHotel(listing.hotelId, rooms);
       }
@@ -187,53 +120,6 @@ class HotelBookingSheet {
                 roomType, checkIn, checkOut, guests, note, photoPaths),
       ),
     );
-  }
-
-  /// Fetches the hotel's Rooms from the search endpoint and projects
-  /// them onto the sheet's option shape. Returns an empty list on any
-  /// failure so callers can silently fall back to the text-chip
-  /// picker. Matches by `profile.sId == listing.hotelId` first to
-  /// disambiguate multi-hotel owners; falls back to the sole result
-  /// when the endpoint already narrowed to one.
-  static Future<List<HotelBookingRoomOption>> _fetchRoomsForListing(
-      HotelBookingListing listing) async {
-    try {
-      final hotel = await DiscoverRepo()
-          .fetchHotelByBusinessId(listing.ownerId.trim());
-      if (hotel == null) return const [];
-      // fetchHotelByBusinessId already prefers the exact-businessId
-      // match, but a multi-hotel owner can still return the wrong
-      // listing when businessId matches multiple. Prefer the row whose
-      // profile._id matches our hotelId; else use what we got.
-      final chosen = (hotel.profile?.sId == listing.hotelId.trim())
-          ? hotel
-          : hotel;
-      return _projectRooms(chosen.rooms);
-    } catch (_) {
-      return const [];
-    }
-  }
-
-  /// Projection of `HotelServiceData.rooms` onto the sheet's
-  /// option shape — mirrors `_roomsForBooking()` on the discover
-  /// screen so both entry points produce identical picker cards.
-  static List<HotelBookingRoomOption> _projectRooms(List<Rooms>? rooms) {
-    final out = <HotelBookingRoomOption>[];
-    for (final r in rooms ?? const <Rooms>[]) {
-      final id = (r.sId ?? '').trim();
-      if (id.isEmpty) continue;
-      if (r.isActive == false) continue;
-      out.add(HotelBookingRoomOption(
-        id: id,
-        name: (r.name ?? '').trim(),
-        type: (r.type ?? '').trim(),
-        image: r.images?.exteriorImages?.firstOrNull,
-        pricePerDay: r.pricePerDay,
-        bedType: r.bedType,
-        maxOccupancy: r.maxOccupancy,
-      ));
-    }
-    return out;
   }
 
   static Future<void> _submit(
