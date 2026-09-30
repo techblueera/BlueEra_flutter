@@ -1,11 +1,10 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/common/profile_share_preview/service/share_preview_service.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -54,29 +53,12 @@ class _FoodProductSharePreviewScreenState
       _loading = true;
       _error = null;
     });
-    final ResponseModel res =
-        await FoodRepo().fetchSingleFoodProductDetailsRepo(foodID: widget.foodId);
-    if (!mounted) return;
-    if (res.isSuccess && res.response?.data != null) {
-      // Endpoint returns either the bare product object or a `{ data: {...} }`
-      // envelope. Handle both so the deep-link landing doesn't break if the
-      // backend shape evolves.
-      final raw = res.response!.data;
-      final dynamic payload = raw is Map<String, dynamic>
-          ? (raw['data'] is Map<String, dynamic> ? raw['data'] : raw)
-          : null;
-      if (payload != null) {
-        setState(() {
-          _product = CategoryFoodProductData.fromJson(payload);
-          _loading = false;
-        });
-        return;
-      }
-    }
+    final product = await SharePreviewService().foodProduct(widget.foodId);
     if (!mounted) return;
     setState(() {
+      _product = product;
       _loading = false;
-      _error = AppStrings.noDataFound.tr;
+      if (product == null) _error = AppStrings.noDataFound.tr;
     });
   }
 

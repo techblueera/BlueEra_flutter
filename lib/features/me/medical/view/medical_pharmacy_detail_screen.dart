@@ -17,7 +17,7 @@ import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dar
 import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_card_adapter.dart';
-import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical/service/medical_profile_service.dart';
 import 'package:BlueEra/features/me/medical/view/all_popular_medical_products_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_category_products_screen.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
@@ -84,18 +84,10 @@ class _MedicalPharmacyDetailScreenState
 
   Future<void> _fetchData() async {
     try {
-      final res = await MedicalRepo()
-          .fetchMedicalProfileFd(businessId: widget.businessId);
-      if (res.isSuccess && res.response?.data != null) {
-        final data = res.getExtraData('data') ?? res.response?.data;
-        if (data != null && data is Map<String, dynamic>) {
-          if (mounted) {
-            setState(() => _data = MedicalHomeResponseModel.fromJson(data));
-          }
-        }
+      final result = await MedicalProfileService().fetch(widget.businessId);
+      if (result != null && mounted) {
+        setState(() => _data = result.profile);
       }
-    } catch (e) {
-      debugPrint("Error fetching pharmacy profile: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

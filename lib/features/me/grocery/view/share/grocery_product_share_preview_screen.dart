@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -6,7 +5,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
+import 'package:BlueEra/features/common/profile_share_preview/service/share_preview_service.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -58,31 +57,13 @@ class _GroceryProductSharePreviewScreenState extends State<GroceryProductSharePr
       _loading = true;
       _error = null;
     });
-    final ResponseModel res =
-        await GroceryRepo().fetchGroceryProductByIdRepo(widget.productId);
-    if (!mounted) return;
-    if (res.isSuccess && res.response?.data != null) {
-      // Endpoint returns either the bare product object or a `{ data: {...} }`
-      // envelope. Handle both so the deep-link landing doesn't break if the
-      // backend shape evolves.
-      final raw = res.response!.data;
-      final Map<String, dynamic>? payload = raw is Map<String, dynamic>
-          ? (raw['data'] is Map<String, dynamic>
-              ? raw['data'] as Map<String, dynamic>
-              : raw)
-          : null;
-      if (payload != null) {
-        setState(() {
-          _product = GroceryProductData.fromJson(payload);
-          _loading = false;
-        });
-        return;
-      }
-    }
+    final product =
+        await SharePreviewService().groceryProduct(widget.productId);
     if (!mounted) return;
     setState(() {
+      _product = product;
       _loading = false;
-      _error = AppStrings.noDataFound.tr;
+      if (product == null) _error = AppStrings.noDataFound.tr;
     });
   }
 

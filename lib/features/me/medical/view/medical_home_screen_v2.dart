@@ -24,7 +24,7 @@ import 'package:BlueEra/features/common/statistics/view/profile_statistics_scree
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
-import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical/service/medical_profile_service.dart';
 import 'package:BlueEra/features/me/medical/view/tabs/medical_overview_tab.dart';
 // import 'package:BlueEra/features/me/medical/view/tabs/medical_post_tab.dart';
 import 'package:BlueEra/features/me/medical/view/tabs/medical_products_tab.dart';
@@ -189,18 +189,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   Future<void> _fetchData() async {
     if (mounted) setState(() => _isProfileLoading = true);
     try {
-      final res = await MedicalRepo()
-          .fetchMedicalProfileFd(businessId: widget.businessId);
-      if (res.isSuccess && res.response?.data != null) {
-        final data = res.getExtraData('data') ?? res.response?.data;
-        if (data != null && data is Map<String, dynamic>) {
-          if (!mounted) return;
-          setState(() => _data = MedicalHomeResponseModel.fromJson(data));
-          _populateGalleryFromResponse(data['gallery']);
-        }
+      final result = await MedicalProfileService().fetch(widget.businessId);
+      if (result != null && mounted) {
+        setState(() => _data = result.profile);
+        _populateGalleryFromResponse(result.gallery);
       }
-    } catch (e) {
-      debugPrint("Error fetching medical profile: $e");
     } finally {
       // Let a failed fetch retry the next time Overview is opened rather than
       // leaving the tab permanently empty.
