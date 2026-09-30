@@ -38,6 +38,7 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
 import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
+import 'package:BlueEra/features/chat/view/call_screen/widget/overlay_caller_widget.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
@@ -178,6 +179,17 @@ String resolveCallerImage(
     if (url.isNotEmpty) return url;
   }
   return '';
+}
+
+/// Entry point for the floating call bubble. flutter_overlay_window starts
+/// it in its own engine and looks it up by name in this file, so it has to
+/// live here rather than next to the widget.
+@pragma('vm:entry-point')
+void overlayMain() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: CallerOverlayWidget(),
+  ));
 }
 
 @pragma('vm:entry-point')
