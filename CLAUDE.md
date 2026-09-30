@@ -63,6 +63,40 @@ feature/
 
 **Navigation:** GetX `GetMaterialApp` with named routes defined in `RouteHelper.generateRoute()`.
 
+## Conventions
+
+**Views don't touch repositories.** A screen or widget never constructs a `*Repo()`. Data calls go through a controller or a class in the feature's `service/` folder. Views keep UI state, navigation and snackbars.
+
+**Repositories are injected.** Controllers and services take their repos as optional constructor params with a default:
+```dart
+class FooService {
+  FooService({FooRepo? repo}) : _repo = repo ?? FooRepo();
+  final FooRepo _repo;
+}
+```
+Services return plain results (a model, a `bool`, a record, or `String?` where null means success and a string is the error message) rather than showing UI themselves. The exception is one-off action services like `VideoActions`, which show their own snackbar.
+
+**Controller lifetime — pick one:**
+- **Route-scoped:** register it in a `Bindings` class and pass that to the route: `_getRoute(() => Screen(), binding: FooBinding())` in `route_helper.dart`, or `GetPageRoute(page:, binding:)` for a `Navigator.push`. GetX deletes the controller when the route closes.
+- **Session-wide:** give the class a permanent accessor, use it everywhere, and drop it in `LogoutHelper` (`lib/core/constants/logout_helper.dart`) so the next account starts clean:
+  ```dart
+  static FooController get to => Get.isRegistered<FooController>()
+      ? Get.find<FooController>()
+      : Get.put(FooController(), permanent: true);
+  ```
+  In `LogoutHelper`, call it as `_drop(() => deleteIfRegistered<FooController>());`. Always wrap it in a closure; a bare generic tear-off breaks release builds.
+- **Per-entity:** use a tag, e.g. `Get.put(X(), tag: businessId)`, and delete it with the same tag.
+
+Don't register the same class as permanent in one place and non-permanent in another. The first screen to register it would then decide whether GetX deletes it. Helpers live in `lib/core/constants/getx_utils.dart`: `getOrPut` (find or put), `putLazy` (avoids building a throwaway instance in `build`), and `deleteIfRegistered` (force delete).
+
+A plain `MaterialPageRoute` never frees the controllers registered under it. Only use one when something outside the screen still needs those controllers, as with the shell, call screens and sign-up flow.
+
+**Tests** fake a repo by extending the real one and overriding only the methods under test. They build responses with:
+```dart
+ResponseModel(statusCode: 200, response: Response(requestOptions: RequestOptions(), statusCode: 200, data: {...}))
+```
+Import dio with `show RequestOptions, Response` and get with `hide Response`. Call `Get.reset` in `setUp`/`tearDown`, and `Hive.init(Directory.systemTemp.createTempSync().path)` in `setUpAll` for anything that opens a box.
+
 ## Key Services & Integrations
 
 - **API:** Dio HTTP client (`lib/core/api/apiService/`)
