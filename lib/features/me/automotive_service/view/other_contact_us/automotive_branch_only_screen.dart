@@ -1,9 +1,6 @@
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/automotive_branch_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -91,27 +88,10 @@ class _AutomotiveBranchOnlyScreenState extends State<AutomotiveBranchOnlyScreen>
                 onSelected: (placeId, lat, lng, address) async {
                   print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                   addressController.text = address;
-                  try {
-                    final detailsResponse = await PlaceRepo()
-                        .getCompletePlaceDetails(placeId: placeId);
-                    final detailsData = detailsResponse.response?.data;
-                    final placeDetails =
-                        PlaceDetailsResponse.fromJson(detailsData);
-                    logs("detailsData=== ${detailsData}");
-                    logs(
-                        "placeDetails.result?.geometry?.location?.lat??0.0=== ${placeDetails.result?.geometry?.location?.lat ?? 0.0}");
-                    logs(
-                        "placeDetails.result?.geometry?.location?.lng??0.0=== ${placeDetails.result?.geometry?.location?.lng ?? 0.0}");
-                    // controller.selectedLat = placeDetails.result?.geometry?.location?.lat??0.0;
-                    // controller.selectedLng = placeDetails.result?.geometry?.location?.lng??0.0;
-
-                    schoolAboutUsController.selectedLat =
-                        placeDetails.result?.geometry?.location?.lat ?? 0.0;
-                    schoolAboutUsController.selectedLng =
-                        placeDetails.result?.geometry?.location?.lng ?? 0.0;
-                  } catch (e) {
-                    print("Error fetching place details: $e");
-                  }
+                  // The field already resolved the place; these are its coordinates
+                  // (0.0 when that lookup failed).
+                  schoolAboutUsController.selectedLat = lat;
+                  schoolAboutUsController.selectedLng = lng;
 
                   _runValidation();
                 },

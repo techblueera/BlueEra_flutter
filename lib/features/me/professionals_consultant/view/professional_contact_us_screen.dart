@@ -1,5 +1,3 @@
-import 'package:BlueEra/core/api/model/place_details.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
@@ -202,21 +200,10 @@ class _ProfessionalContactUsScreenState
                         isShowLeading: false,
                         onSelected: (placeId, lat, lng, address) async {
                           addressController.text = address;
-                          try {
-                            final detailsResponse = await PlaceRepo()
-                                .getCompletePlaceDetails(placeId: placeId);
-                            final detailsData = detailsResponse.response?.data;
-                            final placeDetails =
-                                PlaceDetailsResponse.fromJson(detailsData);
-                            controller.selectedLat =
-                                placeDetails.result?.geometry?.location?.lat ??
-                                    0.0;
-                            controller.selectedLng =
-                                placeDetails.result?.geometry?.location?.lng ??
-                                    0.0;
-                          } catch (e) {
-                            debugPrint("Error fetching place details: $e");
-                          }
+                          // The field already resolved the place; these are its coordinates
+                          // (0.0 when that lookup failed).
+                          controller.selectedLat = lat;
+                          controller.selectedLng = lng;
                           _triggerValidation();
                         },
                       ),

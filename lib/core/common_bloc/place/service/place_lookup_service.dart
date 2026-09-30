@@ -63,6 +63,19 @@ class PlaceLookupService {
     return body is Map ? Map<String, dynamic>.from(body) : null;
   }
 
+  /// The postal code in a [details] body, or null when it carries none.
+  static String? postalCodeIn(Map<String, dynamic>? details) {
+    final components = details?['result']?['address_components'];
+    if (components is! List) return null;
+    for (final component in components) {
+      if (component is Map &&
+          (component['types'] as List?)?.contains('postal_code') == true) {
+        return component['long_name']?.toString();
+      }
+    }
+    return null;
+  }
+
   /// The coordinates in a [details] body, or null when it carries none.
   static ({double lat, double lng})? coordinatesIn(
       Map<String, dynamic>? details) {

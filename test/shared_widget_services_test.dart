@@ -101,6 +101,32 @@ void main() {
           PlaceLookupService.coordinatesIn(details), (lat: 26.85, lng: 80.94));
       expect(PlaceLookupService.coordinatesIn(const {}), isNull);
     });
+
+    test('the postal code is read from the address components', () {
+      expect(
+        PlaceLookupService.postalCodeIn({
+          'result': {
+            'address_components': [
+              {
+                'long_name': 'Lucknow',
+                'types': ['locality']
+              },
+              {
+                'long_name': '226001',
+                'types': ['postal_code']
+              },
+            ],
+          },
+        }),
+        '226001',
+      );
+      expect(
+          PlaceLookupService.postalCodeIn({
+            'result': {'address_components': []}
+          }),
+          isNull);
+      expect(PlaceLookupService.postalCodeIn(null), isNull);
+    });
   });
 
   group('ReferralCodeService', () {

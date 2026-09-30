@@ -1,5 +1,3 @@
-import 'package:BlueEra/core/api/model/place_details.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -176,25 +174,10 @@ class SocialActivityFormScreen extends StatelessWidget {
                       onSelected:
                           (placeId, lat, lng, address) async {
                         controller.venueController.text = address;
-                        try {
-                          final detailsResponse = await PlaceRepo()
-                              .getCompletePlaceDetails(
-                                  placeId: placeId);
-                          final detailsData =
-                              detailsResponse.response?.data;
-                          final placeDetails =
-                              PlaceDetailsResponse.fromJson(
-                                  detailsData);
-                          controller.lat.value = placeDetails.result
-                                  ?.geometry?.location?.lat ??
-                              0.0;
-                          controller.lng.value = placeDetails.result
-                                  ?.geometry?.location?.lng ??
-                              0.0;
-                        } catch (e) {
-                          debugPrint(
-                              "Error fetching place details: $e");
-                        }
+                        // The field already resolved the place; these are
+                        // its coordinates (0.0 when that lookup failed).
+                        controller.lat.value = lat;
+                        controller.lng.value = lng;
                         controller.validateForm();
                       },
                     ),

@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/api/model/place_details.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -228,34 +227,13 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                         controller.latitude = lat;
                         controller.longitude = lng;
 
-                        controller.isFetchingAddressDetails.value = true;
-
-                        // Fetch and auto-fill details
-                        try {
-                          final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-                          final detailsData = detailsResponse.response?.data;
-
-                          final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                          final components = placeDetails.result?.addressComponents ?? [];
-
-                          String postalCode = '';
-
-                          for (var comp in components) {
-                            final types = comp.types ?? [];
-                            if (types.contains('locality')) {
-                            } else if (types.contains('administrative_area_level_1')) {
-                            } else if (types.contains('postal_code')) {
-                              postalCode = comp.longName ?? '';
-                            }
-                          }
-
-                          controller.pinCodeCtrl.text = postalCode;
-
-                        } catch (e) {
-                          print("Error fetching place details: $e");
-                        }finally {
-                          controller.isFetchingAddressDetails.value = false;
-                        }
+                      },
+                      // The field hands over the Place Details it already fetched; the
+                      // postal code comes from there (kept as-is if that fetch failed).
+                      onPlaceDetails: (_, __, details) {
+                        if (details == null) return;
+                        controller.pinCodeCtrl.text =
+                            PlaceLookupService.postalCodeIn(details) ?? '';
                       },
                     ),
                   ),
