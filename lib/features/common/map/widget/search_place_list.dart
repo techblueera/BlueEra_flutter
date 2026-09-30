@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -50,7 +49,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
   /// spinner and blocks a second tap while a lookup is in flight.
   String? _resolvingPlaceId;
   late GoogleMapController mapController;
-  Set<Marker> _markers = {};
   LatLng? targetLocation;
 
   @override
@@ -68,35 +66,6 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
     super.initState();
     _handleCurrentLocationTap();
     targetLocation=LatLng(widget.lat, widget.lng);
-  }
-
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    mapController = controller;
-    try {
-      final BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-        const ImageConfiguration(size: Size(30, 30)),
-        AppImageAssets.markerBlue,
-      );
-
-      final Marker customMarker = Marker(
-        markerId: const MarkerId("custom_marker_id"),
-        position: LatLng(widget.lat, widget.lng),
-        icon: customIcon,
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _markers.add(customMarker);
-      });
-
-      // Smoothly animate camera to marker
-      await mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(widget.lat, widget.lng), 14.0),
-      );
-
-    } catch (e) {
-      debugPrint("Error loading marker: $e");
-    }
   }
 
   Future<void> _fetchPredictions() async {

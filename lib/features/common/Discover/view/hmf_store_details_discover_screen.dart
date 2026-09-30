@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
@@ -526,39 +525,6 @@ class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverS
     );
   }
 
-  Widget _chatPill() {
-    return GestureDetector(
-      onTap: _openChat,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-        decoration: BoxDecoration(
-          color: _primary,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: _primary.withValues(alpha: 0.30),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LocalAssets(
-              imagePath: AppIconAssets.chat,
-              width: 15,
-              height: 15,
-              imgColor: Colors.white,
-            ),
-            const SizedBox(width: 6),
-            CustomText('Chat', fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _tagPill(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -625,26 +591,6 @@ class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverS
           ],
         ),
       ),
-    );
-  }
-
-  void _openChat() {
-    final uid = store.userId ?? '';
-    if (uid.trim().isEmpty) return;
-    if (isGuestUser()) {
-      createProfileScreen();
-      return;
-    }
-    final bId = store.id?.trim();
-    if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(userId: bId, source: ChatClickSource.searchResult);
-    }
-    final chatViewController = ChatViewController.to;
-    chatViewController.checkChatConnectionAndOpenChat(
-      userId: uid,
-      name: store.serviceName,
-      profile: store.serviceLogo,
-      route: AppConstants.route_discover,
     );
   }
 

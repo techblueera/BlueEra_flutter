@@ -4,13 +4,10 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
@@ -22,11 +19,8 @@ import 'package:BlueEra/core/navigation/visit_profile_resolver.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
 import 'package:BlueEra/features/chat/view/order_track/order_steps_screen.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
 import 'package:BlueEra/features/chat/auth/service/self_pickup_ready_service.dart';
-import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -1402,76 +1396,6 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
         ],
       ),
     );
-  }
-
-  /// Resolves the shop (business) pickup location, sets pickup = shop and
-  /// drop = the just-chosen [drop] address on the shared [DiscoverController],
-  /// kicks off the rider search, and opens the transport booking screen.
-  Future<void> _startRideToDrop(SavedAddress drop) async {
-    final dropLat = drop.lat ?? 0.0;
-    final dropLng = drop.lng ?? 0.0;
-    if (dropLat == 0.0 && dropLng == 0.0) {
-      commonSnackBar(
-          message:
-              'Selected address has no location. Please re-select it from the suggestions.');
-      return;
-    }
-
-    // The shop is the business that owns this self-pickup order.
-    final businessId = widget.message.metadata?.selfPickupOrder?.businessId ??
-        widget.message.sender?.id ??
-        '';
-    if (businessId.isEmpty) {
-      commonSnackBar(message: 'Shop pickup location is unavailable.');
-      return;
-    }
-
-    AppLoader.show(message: 'Finding riders...');
-    try {
-      // Fetch the shop's pickup coordinates + address.
-      final orderController = getOrPut(() => OrderNowController());
-      await orderController.viewBusinessForLocation(businessId, 'BUSINESS');
-      final pickupLat = double.tryParse(orderController.lat.value) ?? 0.0;
-      final pickupLng = double.tryParse(orderController.long.value) ?? 0.0;
-      final pickupAddress = orderController.address.value;
-
-      if (pickupLat == 0.0 && pickupLng == 0.0) {
-        AppLoader.hide();
-        commonSnackBar(message: 'Could not get the shop pickup location.');
-        return;
-      }
-
-      // Seed the transport flow: pickup = shop, drop = chosen address.
-      final discoverController = DiscoverController.to;
-      discoverController.selectedFromLat?.value = pickupLat;
-      discoverController.selectedFromLong?.value = pickupLng;
-      discoverController.selectedFromAddress?.value = pickupAddress;
-      discoverController.selectedToLat?.value = dropLat;
-      discoverController.selectedToLong?.value = dropLng;
-      discoverController.selectedToAddress?.value = drop.fullAddress;
-
-      // Mark this booking as a chat self-pickup dispatch so the booking screen
-      // creates the ride via the chat-dispatch endpoint (shop = pickup,
-      // customer = drop) and the two handoff OTP cards are issued.
-      discoverController.setChatDispatchContext(
-        selfpickupOrderId: widget.message.metadata?.selfpickupOrderId ??
-            widget.message.metadata?.selfPickupOrder?.orderId ??
-            '',
-        selfpickupType: widget.message.messageType ?? 'selfpickup',
-        businessId: businessId,
-        orderFor: 'grocery',
-      );
-
-      // Search for riders between the shop and the drop, then open the screen.
-      await discoverController.getBookingRidersApi();
-      AppLoader.hide();
-      Get.to(() =>
-          const ProductOrderBookingRiderMain(vehicleType: 'TWO_WHEELER'));
-    } catch (e) {
-      AppLoader.hide();
-      log('startRideToDrop error: $e');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
   }
 
   Widget _orderActionButton({

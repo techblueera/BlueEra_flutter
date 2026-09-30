@@ -147,31 +147,6 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
     );
   }
 
-  /// The existing AI generator — opens its own selection dialog and writes the
-  /// pick into the same field.
-  Future<void> _generateAiBio() async {
-    await aiController.fetchSuggestions(
-        bodyRequest: {
-          ApiKeys.profession: widget.profession,
-          ApiKeys.designation: widget.designation,
-          ApiKeys.date_of_birth_Obj: {
-            ApiKeys.year: widget.selectedYear,
-            ApiKeys.month: widget.selectedMonth,
-            ApiKeys.date: widget.selectedDay
-          },
-          ApiKeys.gender: viewPersonalDetailsController
-              .personalProfileDetails.value.user?.gender
-        },
-        apiType: "bio",
-        targetController: bioController,
-        onSaved: (){
-          // An AI pick replaces whatever suggestion was ticked.
-          _selectedSuggestionIndex = null;
-          validateForm();
-        }
-    );
-  }
-
   void _applySuggestion(int index, BioSuggestion suggestion) {
     // The field caps at 900 characters, so keep the sentences that fit.
     bioController.text =

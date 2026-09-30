@@ -28,12 +28,6 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
   static const Color _primary = AppColors.primaryColor;
   static const Color _primaryDeep = AppColors.blue5CAF;
 
-  static const List<Color> _cardColors = [
-    Color(0xFFEFF6FF),
-    Color(0xFFF6F0FF),
-    Color(0xFFFFF5EC),
-  ];
-
   @override
   Widget build(BuildContext context) {
     // Self-register so the cart works regardless of entry path (e.g. reached

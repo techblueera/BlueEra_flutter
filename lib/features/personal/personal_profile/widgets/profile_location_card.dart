@@ -304,14 +304,6 @@ class _LocationTile extends StatelessWidget {
     );
   }
 
-  /// Formats a lat/lon pair into a human-readable directional readout
-  /// (`22.3010°N · 88.4560°E`). Tabular figures keep the digits
-  /// aligned across rebuilds.
-  String _formatCoords(double lat, double lon) {
-    final latDir = lat >= 0 ? 'N' : 'S';
-    final lonDir = lon >= 0 ? 'E' : 'W';
-    return '${lat.abs().toStringAsFixed(4)}°$latDir  ·  ${lon.abs().toStringAsFixed(4)}°$lonDir';
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -156,9 +156,6 @@ class _SelfProfessionDiscoverScreenV2State
   final String serviceSubType = 'selfWork';
   final String earnServiceType = AppConstants.service;
 
-  /// Custom pin for the backdrop map — rendered once, reused for every marker.
-  BitmapDescriptor? _markerIcon;
-
   static const LatLng _fallbackCenter = LatLng(28.6139, 77.2090); // Delhi
 
   @override
@@ -176,9 +173,6 @@ class _SelfProfessionDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchEarnServicesIfNeeded(
         earnServiceType: earnServiceType, subType: serviceSubType);
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _markerIcon = d);
-    });
   }
 
   // ─── Sorting / formatting helpers ──────────────────────────────────────────
@@ -279,21 +273,6 @@ class _SelfProfessionDiscoverScreenV2State
       pins.add((lat: lat, lng: lng));
     }
     return pins;
-  }
-
-  Set<Marker> _backdropMarkers() {
-    final markers = <Marker>{};
-    for (final s in controller.earnServiceList) {
-      final lat = s.userLocation?.lat?.toDouble();
-      final lng = s.userLocation?.lon?.toDouble();
-      if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
-      markers.add(Marker(
-        markerId: MarkerId(s.id ?? '${s.name}_$lat,$lng'),
-        position: LatLng(lat, lng),
-        icon: _markerIcon ?? BitmapDescriptor.defaultMarker,
-      ));
-    }
-    return markers;
   }
 
   void _openFullMap() {

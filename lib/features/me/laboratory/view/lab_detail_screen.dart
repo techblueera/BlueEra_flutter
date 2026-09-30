@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -12,7 +11,6 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
-import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_package_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
@@ -23,7 +21,6 @@ import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -1220,61 +1217,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
     );
   }
 
-  // ─── Live Photos ────────────────────────────────────────────────────
-  Widget _buildLivePhotosSection() {
-    return Obx(() {
-      if (viewBusinessDetailsController.isProfileLoading.value) {
-        return const SizedBox.shrink();
-      }
-      final details =
-          viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-      final livePhotos =
-          details?.livePhotos?.where((p) => p.trim().isNotEmpty).toList();
-      if (livePhotos == null || livePhotos.isEmpty) {
-        return const SizedBox.shrink();
-      }
-      final natureOfBusiness = details?.subCategoryDetails?.name ??
-          details?.natureOfBusiness ??
-          'OTHER';
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: CommonCardWidget(
-          padding: 10,
-          cardMargin: 0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                AppStrings.groceryViewLivePhotos.tr,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-              const SizedBox(height: 10),
-              StoreLivePhotoWidget(
-                livePhotos: livePhotos,
-                natureOfBusiness: natureOfBusiness,
-                onViewFullScreen: ({
-                  required int index,
-                  required List<String> storeImage,
-                  required String natureOfBusiness,
-                }) {
-                  navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: details?.businessName ?? '',
-                      subTitle: natureOfBusiness,
-                      imageUrls: storeImage,
-                      initialIndex: index,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
 }
 
 class _LabCategoryConfig {

@@ -8,7 +8,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/service/property_edit_service.dart';
 import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
-import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
@@ -532,36 +531,6 @@ class PropertyListingCard extends StatelessWidget {
     );
   }
 
-  /// Square chip with rounded corners. `filled` flips between the
-  /// outlined chat shortcut and the filled call shortcut so the two
-  /// read as a related pair without competing for attention.
-  Widget _circleIconAction({
-    required bool filled,
-    required Widget child,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        width: 40,
-        height: 40,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: filled ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: filled
-              ? null
-              : Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.7),
-                  width: 1,
-                ),
-        ),
-        child: child,
-      ),
-    );
-  }
-
   String _ownerDisplayName() {
     // `listedByName` is now sent on every payload from each step-2
     // spec screen and echoed back on the response model — read it
@@ -624,19 +593,6 @@ class PropertyListingCard extends StatelessWidget {
     // the chip visible so the layout matches the Discover design;
     // surface a hint so the tap isn't silent.
     commonSnackBar(message: AppStrings.shareComingSoon.tr);
-  }
-
-  /// Opens the property-enquiry bottom sheet (purpose / intended use /
-  /// requirements / timeline). On submit it raises the enquiry and navigates
-  /// into the owner's business chat, where the backend posts the
-  /// `property_enquiry` card — mirrors the self-profession Enquire flow.
-  void _openChat() {
-    final ownerId = property.userId;
-    if (ownerId == null || ownerId.isEmpty) {
-      commonSnackBar(message: AppStrings.ownerNotAvailableForChat.tr);
-      return;
-    }
-    PropertyEnquirySheet.open(Get.context!, property);
   }
 
   // Call shortcut is commented out in the footer for now (see

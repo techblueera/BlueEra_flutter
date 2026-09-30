@@ -144,9 +144,6 @@ class _ProfessionConsultantDiscoverScreenV2State
     extends State<ProfessionConsultantDiscoverScreenV2> {
   final controller = ProfessionalDiscoverController.to;
 
-  /// Custom pin for the backdrop map — rendered once, reused for every marker.
-  BitmapDescriptor? _markerIcon;
-
   static const LatLng _fallbackCenter = LatLng(28.6139, 77.2090); // Delhi
 
   // ─── Client-side distance state ────────────────────────────────────────────
@@ -172,9 +169,6 @@ class _ProfessionConsultantDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchProfessionalConsultantServicesIfNeeded();
     _ensureOrigin();
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _markerIcon = d);
-    });
   }
 
   /// Establishes the distance origin: the location picked on the entry screen
@@ -340,21 +334,6 @@ class _ProfessionConsultantDiscoverScreenV2State
       pins.add((lat: lat, lng: lng));
     }
     return pins;
-  }
-
-  Set<Marker> _backdropMarkers() {
-    final markers = <Marker>{};
-    for (final c in controller.professionalConsDataList) {
-      final lat = _toDouble(c.userDetails?.userLocation?.lat);
-      final lng = _toDouble(c.userDetails?.userLocation?.lon);
-      if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
-      markers.add(Marker(
-        markerId: MarkerId(c.id ?? c.userId ?? '${c.userDetails?.name}_$lat,$lng'),
-        position: LatLng(lat, lng),
-        icon: _markerIcon ?? BitmapDescriptor.defaultMarker,
-      ));
-    }
-    return markers;
   }
 
   void _openFullMap() {

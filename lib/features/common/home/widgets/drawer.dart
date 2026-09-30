@@ -62,7 +62,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   static const _amber = Color(0xFFD97706);
   static const _gold = Color(0xFFF59E0B);
   static const _teal = Color(0xFF0D9488);
-  static const _blue = Color(0xFF2563EB);
   static const _slate = Color(0xFF475569);
   static const _copper = Color(0xFFB7781F);
   static const _rose = Color(0xFFE11D48);

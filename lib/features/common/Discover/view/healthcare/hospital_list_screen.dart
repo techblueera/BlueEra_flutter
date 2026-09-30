@@ -647,8 +647,6 @@ class _HospitalCard extends StatelessWidget {
   // ─── FOOTER (departments / facilities) ────────────────────────────
   int get _deptCount => item.departmentCount ?? _departmentNames().length;
   int get _facilityCount => item.facilityCount ?? _buildFacilities().length;
-  bool get _hasFooter => _deptCount > 0 || _facilityCount > 0;
-
   /// Sits below a hairline in the same footer slot [ServiceBusinessCard]
   /// uses for its Price Range block, styled at the same weight so the two
   /// cards share visual rhythm when placed side by side.

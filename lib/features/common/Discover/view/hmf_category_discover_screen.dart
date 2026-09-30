@@ -26,7 +26,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -800,35 +799,6 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  /// Chat button — local `chat` asset on a white, 8-radius box with a light
-  /// grey icon tint.
-  Widget _chatButton(VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: 38,
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.greyE5),
-          ),
-          child: LocalAssets(
-            imagePath: AppIconAssets.chat,
-            height: 18,
-            width: 18,
-            boxFix: BoxFit.contain,
-            imgColor: AppColors.greyAF,
-          ),
-        ),
-      ),
     );
   }
 

@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -16,8 +15,6 @@ import 'package:BlueEra/features/me/automotive_service/view/management/automotiv
 import 'package:BlueEra/features/me/automotive_service/view/other_career_jobs/automotive_job_listing_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_privacy_condition/automotive_privacy_condition_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
-import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/automotive_branch_details_form_screen.dart';
-import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/automotive_branch_only_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_service_gallery/automotive_service_photos_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
@@ -25,12 +22,10 @@ import 'package:BlueEra/features/me/others/model/business_profile_full_model.dar
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../../widgets/common_business_live_photo.dart';
@@ -68,12 +63,6 @@ class AutomotiveOverviewTabV2 extends StatelessWidget {
       // "still loading" distinguishable from "empty workshop profile" without
       // blanking widgets whose own data already arrived.
       final isOtherLoading = data == null && controller.isLoading.value;
-
-      final coordinates = data?.profile?.location?.coordinates;
-      final hasCoords = coordinates != null &&
-          coordinates.length >= 2 &&
-          (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
-          (double.tryParse(coordinates[1].toString()) ?? 0.0) != 0.0;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,159 +619,6 @@ class _GalleryLayout extends StatelessWidget {
               const SizedBox(width: gap),
               Expanded(child: tile(3, overlay: extra > 0)),
             ]),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContactUs extends StatelessWidget {
-  final ContactUsOtherProfile contacts;
-  const _ContactUs({required this.contacts});
-
-  @override
-  Widget build(BuildContext context) {
-    final branch = contacts.branch;
-    final firstDept = (contacts.departments?.isNotEmpty ?? false)
-        ? contacts.departments!.first
-        : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-            color: Colors.white,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.business_outlined,
-                      size: 16, color: AppColors.secondaryTextColor),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: CustomText(
-                      branch?.name ?? '',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Get.to(() => AutomotiveBranchOnlyScreen(
-                      schoolContactUsData: SchoolContactUsData(
-                        id: contacts.id,
-                        branch: Branch(
-                          name: contacts.branch?.name,
-                          location: SchoolLocation(
-                            name: contacts.branch?.location?.name,
-                            coordinates:
-                                contacts.branch?.location?.coordinates ?? [],
-                          ),
-                          website: contacts.branch?.website,
-                        ),
-                        departments: contacts.departments ?? [],
-                        schoolId: contacts.id,
-                        v: contacts.v,
-                      ),
-                    )),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.primaryColor),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.edit_outlined,
-                              size: 14, color: AppColors.primaryColor),
-                          SizedBox(width: 4),
-                          CustomText(AppStrings.edit,
-                              fontSize: 12, color: AppColors.primaryColor),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              if (branch?.website != null && branch!.website!.isNotEmpty)
-                _row(AppIconAssets.website_click, branch.website!,
-                    AppColors.primaryColor,
-                    isLink: true),
-              if (firstDept != null) ...[
-                if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
-                  _row(AppIconAssets.phone_outline, firstDept.phone!,
-                      AppColors.mainTextColor),
-                if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _row(AppIconAssets.email, firstDept.email!,
-                      AppColors.mainTextColor),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        GestureDetector(
-          onTap: () => Get.to(() => AutomotiveBranchDetailsFormScreen()),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.add, size: 16, color: AppColors.primaryColor),
-                SizedBox(width: 6),
-                CustomText(AppStrings.addMore,
-                    fontSize: 13,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _row(String icon, String text, Color textColor,
-      {bool isLink = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: icon,
-            imgColor: isLink == false ? AppColors.mainTextColor : null,
-            height: 20,
-            width: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: InkWell(
-              onTap: isLink ? () => launchUrl(Uri.parse(text)) : null,
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: textColor,
-                  decoration: isLink ? TextDecoration.underline : null,
-                ),
-              ),
-            ),
           ),
         ],
       ),
