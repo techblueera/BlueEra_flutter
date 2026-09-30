@@ -71,8 +71,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
         _populateGalleryFromResponse(result.gallery);
       }
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

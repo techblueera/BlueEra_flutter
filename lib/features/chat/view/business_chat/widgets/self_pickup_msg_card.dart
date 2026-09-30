@@ -31,10 +31,8 @@ import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
-import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/pickup_otp_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_customer_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/packing_pdf_qr.dart';
@@ -946,8 +944,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       log('Error generating packing summary PDF: $e');
       commonSnackBar(message: 'Failed to generate PDF');
     } finally {
-      if (!mounted) return;
-      setState(() => _isGeneratingPdf = false);
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
 
@@ -1965,8 +1962,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       log('Error generating PDF: $e');
       commonSnackBar(message: 'Failed to generate PDF');
     } finally {
-      if (!mounted) return;
-      setState(() => _isGeneratingPdf = false);
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
 

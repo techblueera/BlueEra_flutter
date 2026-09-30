@@ -24,9 +24,7 @@ import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.d
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_lifecycle_section.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/pickup_otp_dialog.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
-import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/goods_multi_order_booking_main.dart';
@@ -939,8 +937,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
       log('Error generating packing summary PDF: $e');
       commonSnackBar(message: 'Failed to generate PDF');
     } finally {
-      if (!mounted) return;
-      setState(() => _isGeneratingPdf = false);
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
 
@@ -1896,8 +1893,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
       log('Error generating PDF: $e');
       commonSnackBar(message: 'Failed to generate PDF');
     } finally {
-      if (!mounted) return;
-      setState(() => _isGeneratingPdf = false);
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
 

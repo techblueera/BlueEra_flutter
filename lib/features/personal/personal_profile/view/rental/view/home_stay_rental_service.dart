@@ -149,7 +149,8 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                     onTap: () async {
                       final result = await CommonMobileOtpDialog().show(context);
 
-                      if (result == true) {
+                      // The dialog returns the verified new number, or null when cancelled.
+                      if (result != null) {
                         //  OTP successfully verified
                         print("OTP verification successful");
                       } else {

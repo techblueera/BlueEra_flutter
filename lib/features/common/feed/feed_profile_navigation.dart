@@ -6,7 +6,6 @@ import 'package:BlueEra/core/navigation/profile_taxonomy.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 // `openMeOverview` — the own-profile destination — already lives beside the
 // author header; imported rather than duplicated so there is still one of it.
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 
 /// ONE entry point for every profile tap in the feed — the author header on a

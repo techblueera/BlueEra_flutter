@@ -169,7 +169,7 @@ class ContactSyncController extends GetxController {
       final storedDigest = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.contactServiceDigestKey);
       if (storedDigest != digest) return true;
-      return isTimeBasedSyncDue();
+      return await isTimeBasedSyncDue();
     } catch (_) {
       // Storage hiccup — err on the side of syncing.
       return true;

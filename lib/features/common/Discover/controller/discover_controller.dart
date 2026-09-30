@@ -1094,7 +1094,7 @@ class DiscoverController extends GetxController {
           final confirmed = await onFareMismatch(effective, fresh);
           if (!confirmed) return false;
           // Re-submit ONCE, at the price the customer just agreed to.
-          return makeChatDispatchOrderApi(confirmedFare: effective);
+          return await makeChatDispatchOrderApi(confirmedFare: effective);
         }
       }
 

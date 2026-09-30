@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:BlueEra/core/services/ads/admob_banner_ad_widget.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';

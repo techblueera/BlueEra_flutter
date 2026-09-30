@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -908,8 +909,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                           if (value == null || value.isEmpty) {
                             return AppStrings.pleaseEnterAUrl.tr;
                           }
-                          final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
-                          if (!httpsUrlRegex.hasMatch(value)) {
+                          if (!ValidationMethod.isHttpsUrl(value)) {
                             return AppStrings.onlyHttpsUrlsAllowed.tr;
                           }
                           return null;

@@ -8,7 +8,6 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 /// Lets the user theme the profile / home ("me" tab) pages with ONE active

@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -2014,13 +2013,13 @@ class AppNotificationHandler {
           apns = await _waitForApnsToken(timeout: const Duration(seconds: 3));
         }
         if (apns == null || apns.isEmpty) {
-          return cached();
+          return await cached();
         }
       }
 
       final liveToken = await firebaseMessaging.getToken();
       if (liveToken == null || liveToken.isEmpty) {
-        return cached();
+        return await cached();
       }
 
       final previous = await cached();
@@ -2031,7 +2030,7 @@ class AppNotificationHandler {
       return liveToken;
     } catch (e) {
       print("=========fcm- Error :$e");
-      return cached();
+      return await cached();
     }
   }
 

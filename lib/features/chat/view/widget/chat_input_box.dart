@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/routes/pending_pop.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:async';
@@ -980,8 +981,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter a URL';
                                   }
-                                  final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
-                                  if (!httpsUrlRegex.hasMatch(value)) {
+                                  if (!ValidationMethod.isHttpsUrl(value)) {
                                   return 'Only HTTPS URLs are allowed';
                                   }
                                   return null;

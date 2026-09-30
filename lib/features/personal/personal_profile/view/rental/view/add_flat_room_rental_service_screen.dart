@@ -228,7 +228,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                         onTap: () async {
                           final result = await CommonMobileOtpDialog().show(context);
 
-                          if (result == true) {
+                          // The dialog returns the verified new number, or null when cancelled.
+                          if (result != null) {
                             //  OTP successfully verified
                             log("OTP verification successful");
                           } else {

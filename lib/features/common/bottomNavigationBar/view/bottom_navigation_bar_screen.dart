@@ -27,7 +27,6 @@ import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 // Commented rather than deleted: with the import live but the widget only
 // named inside a comment, the analyzer reports it as an unused import.
 // import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';

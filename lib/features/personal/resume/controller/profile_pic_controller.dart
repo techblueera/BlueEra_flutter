@@ -51,7 +51,7 @@ class ProfilePicController extends GetxController {
         if (allowAutoCreate && _isNoResumeResponse(data)) {
           final created = await ResumeRepo().createResume();
           if (created.isSuccess) {
-            return getMyResume(allowAutoCreate: false);
+            return await getMyResume(allowAutoCreate: false);
           }
         }
 

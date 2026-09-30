@@ -80,7 +80,7 @@ class _CustomDropdownForDocumentTypeState extends State<CustomDropdownForDocumen
     var size = renderBox.size;
     var offset = renderBox.localToGlobal(Offset.zero);
 
-    if(_selectedItem == BusinessDocumentType.otherGovtLicense){
+    if (_selectedItem == BusinessDocumentType.otherGovtLicense.label) {
       _showTextField.value = true;
     }
 

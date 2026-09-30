@@ -1,11 +1,8 @@
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/services/ads/ad_debug.dart';
-import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

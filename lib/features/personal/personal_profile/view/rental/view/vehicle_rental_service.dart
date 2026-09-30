@@ -35,7 +35,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/model/personal_profile_details_model.dart';
@@ -173,7 +172,8 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                             onTap: () async {
                               final result = await CommonMobileOtpDialog().show(context);
 
-                              if (result == true) {
+                              // The dialog returns the verified new number, or null when cancelled.
+                              if (result != null) {
                                 //  OTP successfully verified
                                 print("OTP verification successful");
                               } else {
