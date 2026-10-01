@@ -64,7 +64,7 @@ class MyPostTabScreen extends StatefulWidget {
 
 class _MyPostTabScreenState extends State<MyPostTabScreen>
     with AutomaticKeepAliveClientMixin {
-  final _feedController = getOrPut(() => FeedController());
+  final _feedController = FeedController.to;
   final _socialController = getOrPut(() => SocialHomeController());
   final _viewController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);

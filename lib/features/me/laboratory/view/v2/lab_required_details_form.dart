@@ -68,11 +68,7 @@ class _LabRequiredDetailsFormState extends State<LabRequiredDetailsForm> {
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<FacilityController>()) {
-      _facilityController = Get.put(FacilityController(), permanent: true);
-    } else {
-      _facilityController = Get.find<FacilityController>();
-    }
+    _facilityController = FacilityController.to;
 
     // Prefilled from whatever the lab already has, so a profile created before
     // the card redesign is only asked for the pieces it is actually missing.

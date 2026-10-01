@@ -34,7 +34,6 @@ import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_s
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/professionals_consultant_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/self_profession_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_folder_tile.dart';

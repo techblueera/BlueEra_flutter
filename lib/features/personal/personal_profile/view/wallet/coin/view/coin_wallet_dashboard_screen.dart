@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/controller/earn_coin_controller.dart';
@@ -38,7 +37,7 @@ class CoinWalletDashboardScreen extends StatefulWidget {
 
 class _CoinWalletDashboardScreenState extends State<CoinWalletDashboardScreen>
     with SingleTickerProviderStateMixin {
-  final _controller = getOrPut(() => EarnCoinController());
+  final _controller = EarnCoinController.to;
   late final TabController _tab = TabController(length: 5, vsync: this)
     ..addListener(() => setState(() {}));
 

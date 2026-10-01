@@ -1,6 +1,6 @@
+import 'package:BlueEra/features/common/Discover/model/category_filter.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:flutter/material.dart';
 
 /// Compact **sort** control shared by the Discover list screens (professional

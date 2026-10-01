@@ -38,6 +38,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotiveInventoryController extends GetxController {
   Rx<ApiResponse> ownDraftAndPublicProductResponse = ApiResponse.initial('Initial').obs;
@@ -757,11 +758,11 @@ class AutomotiveInventoryController extends GetxController {
           }
 
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         _resolveBusinessProductsFailure(silent: silent);
       }
     } catch (e, s) {
-        print("stack trace: $s");
+        debugLog("stack trace: $s");
         _resolveBusinessProductsFailure(silent: silent);
     } finally {
       if (isLoadMore) {
@@ -864,7 +865,7 @@ class AutomotiveInventoryController extends GetxController {
       }
 
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       searchProductResponse.value = ApiResponse.error('error');
     }finally{
       if (isLoadMore) {
@@ -933,7 +934,7 @@ class AutomotiveInventoryController extends GetxController {
          businessLat = businessProfileDetails?.businessLocation?.lat ?? LocationService.lat;
          businessLng = businessProfileDetails?.businessLocation?.lon ?? LocationService.lng ;
          categoryId = businessProfileDetails?.categoryOfBusiness ?? businessProfileDetails?.subCategoryOfBusiness;
-         print('categoryId: $categoryId');
+         debugLog('categoryId: $categoryId');
       }
 
       Map<String, dynamic> params = {
@@ -987,7 +988,7 @@ class AutomotiveInventoryController extends GetxController {
       }
 
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       suggestedProductResponse.value = ApiResponse.error('error');
     } finally{
       if (isLoadMore) {
@@ -1013,11 +1014,11 @@ class AutomotiveInventoryController extends GetxController {
       final payload = _buildInventoryPayload(variants, providerType);
 
       if (payload.isEmpty) {
-        print("No variants selected — skipping API call");
+        debugLog("No variants selected — skipping API call");
         return;
       }
 
-      print("Final Clone Payload: $payload");
+      debugLog("Final Clone Payload: $payload");
 
       final responseModel = await AutomotiveProductRepo().cloneProductVariantRepo(
           params: payload);
@@ -1069,7 +1070,7 @@ class AutomotiveInventoryController extends GetxController {
       }
 
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       searchProductResponse.value = ApiResponse.error('error');
     }finally{
       cloneProductVariantLoading.value = false;
@@ -1171,7 +1172,7 @@ class AutomotiveInventoryController extends GetxController {
 
   void navigateToProductSection() {
     Get.until((route) {
-      print("🔍 Scanning route → ${route.settings.name}");
+      debugLog("🔍 Scanning route → ${route.settings.name}");
 
       // STOP when this route matches
       if(route.settings.name == RouteHelper.getAutomotivePartsScreenRoute()) return route.settings.name == RouteHelper.getAutomotivePartsScreenRoute();
@@ -1292,7 +1293,7 @@ class AutomotiveInventoryController extends GetxController {
       //   deleteProductVariantResponse.value = ApiResponse.error('error');
       // }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isDeleteProductVariantLoading.value = false;
       deleteProductVariantResponse.value = ApiResponse.error('error');

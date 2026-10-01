@@ -1,5 +1,5 @@
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/business/auth/service/profile_rating_service.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/order_card_ui.dart';
 import 'package:flutter/material.dart';
 
@@ -80,12 +80,12 @@ class _OrderRatingSheetState extends State<_OrderRatingSheet> {
     if (_stars == 0 || _sending) return;
     setState(() => _sending = true);
     try {
-      final res = await BusinessProfileRepo().submitRatingToBusinessAccount(
-        widget.businessId,
-        {'rating': _stars, 'comment': _review.text.trim()},
-      );
+      final error = await ProfileRatingService().rateBusiness(
+          widget.businessId,
+          stars: _stars,
+          comment: _review.text);
       if (!mounted) return;
-      if (res.isSuccess) {
+      if (error == null) {
         Navigator.of(context).pop(true);
         commonSnackBar(message: 'Thank you for your rating!');
       } else {
@@ -93,7 +93,9 @@ class _OrderRatingSheetState extends State<_OrderRatingSheet> {
         // failure is worth a sentence and not a locked sheet.
         Navigator.of(context).pop(false);
         commonSnackBar(
-            message: res.message ?? "That didn't go through. Try again later.");
+            message: error.isNotEmpty
+                ? error
+                : "That didn't go through. Try again later.");
       }
     } finally {
       if (mounted) setState(() => _sending = false);

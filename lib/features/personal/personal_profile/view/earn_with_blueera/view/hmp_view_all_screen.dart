@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
@@ -18,7 +17,7 @@ class HomeMadeProductsViewAllScreen extends StatefulWidget {
 
 class _HomeMadeProductsViewAllScreenState
     extends State<HomeMadeProductsViewAllScreen> {
-  final earnServiceController = getOrPut(() => EarnServiceController());
+  final earnServiceController = EarnServiceController.to;
   final _scrollController = ScrollController();
 
   @override

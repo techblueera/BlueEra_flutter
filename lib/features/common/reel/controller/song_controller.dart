@@ -7,6 +7,7 @@ import 'package:BlueEra/features/common/reel/models/get_all_favourite_songs_mode
 import 'package:BlueEra/features/common/reel/models/get_all_songs_model.dart';
 import 'package:BlueEra/features/common/reel/repo/song_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class SongController extends GetxController{
   ApiResponse getAllSongsResponse = ApiResponse.initial('Initial');
@@ -48,7 +49,7 @@ class SongController extends GetxController{
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      print('stack trace-- $s');
+      debugLog('stack trace-- $s');
       getAllSongsResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally{

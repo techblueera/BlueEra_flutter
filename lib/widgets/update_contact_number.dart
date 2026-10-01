@@ -2,13 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/auth/service/mobile_update_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -88,7 +86,7 @@ class CommonMobileOtpDialog {
                             return;
                           }
                           setState(() => isSendingOtp = true);
-                          final success = await requestMobileUpdateOTP({
+                          final success = await MobileUpdateService().requestOtp({
                             ApiKeys.newContactNo: newMobileController.text,
                           });
 
@@ -134,7 +132,7 @@ class CommonMobileOtpDialog {
 
                           log('call verify otp');
                           setState(() => isVerifyingOtp = true);
-                          final verified = await verifyMobileUpdateOTP({
+                          final verified = await MobileUpdateService().verifyOtp({
                             ApiKeys.newContactNo: newMobileController.text,
                             ApiKeys.otp: otpController.text,
                           });
@@ -327,43 +325,5 @@ class CommonMobileOtpDialog {
         ),
       ],
     );
-  }
-
-  /// --- API CALLS ---
-  Future<bool> requestMobileUpdateOTP(Map<String, dynamic> params) async {
-    try {
-      ResponseModel response =
-      await AuthRepo().requestMobileUpdateOtpRepo(bodyRequest: params);
-      if (response.isSuccess) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        return true;
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        return false;
-      }
-    } catch (e) {
-      commonSnackBar(message: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> verifyMobileUpdateOTP(Map<String, dynamic> params) async {
-    try {
-      ResponseModel response =
-      await AuthRepo().verifyMobileUpdateOtpRepo(bodyRequest: params);
-
-      if (response.statusCode == 200) {
-        commonSnackBar(message: response.message ?? AppStrings.success);
-        return true;
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        return false;
-      }
-    } catch (e) {
-      commonSnackBar(message: e.toString());
-      return false;
-    }
   }
 }

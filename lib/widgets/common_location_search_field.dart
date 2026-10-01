@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -55,6 +54,7 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
   final isLoading = false.obs;
   final errorMessage = ''.obs;
   final predictions = <PlacePrediction>[].obs;
+  final _places = PlaceLookupService();
   Timer? debounce;
 
   RxString currentAddress = ''.obs;
@@ -94,28 +94,18 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     currentAddress.value = query;
 
     try {
-      final response = await PlaceRepo()
-          .autoCompleteSearch(query: query)
+      final result = await _places
+          .searchDetailed(query)
           .timeout(const Duration(seconds: 12));
 
       // A newer keystroke already superseded this request — drop the result.
       if (query != currentAddress.value) return;
 
-      if (response.statusCode == 200) {
-        logs("SEARCH DATA === ${response.response?.data}");
-        final list =
-            response.getExtraData('predictions') as List? ?? const [];
-
-        // Parse on background isolate to avoid frame drop
-        final parsedList = await compute(PlacePrediction.fromList, list);
-        predictions.assignAll(parsedList);
+      if (result.error == null) {
+        predictions.assignAll(result.predictions);
         log('Predictions found: ${predictions.length}');
       } else {
-        // Top-level key: the Places envelope has no `data` wrapper, so the old
-        // `.data['error_message']` indexed null and threw rather than
-        // producing the message.
-        errorMessage.value =
-            response.getExtraData('error_message') ?? 'Something went wrong';
+        errorMessage.value = result.error!;
       }
     } on TimeoutException {
       if (query != currentAddress.value) return;
@@ -254,17 +244,12 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                 if (placeId.isNotEmpty) {
                   try {
                     isLoading.value = true;
-                    final res = await PlaceRepo()
-                        .getCompletePlaceDetails(placeId: placeId)
+                    details = await _places
+                        .details(placeId)
                         .timeout(const Duration(seconds: 12));
-                    final body = res.response?.data;
-                    if (body is Map) {
-                      details = Map<String, dynamic>.from(body);
-                    }
-                    final loc = res.response?.data?['result']?['geometry']
-                        ?['location'];
-                    latitude = (loc?['lat'] as num?)?.toDouble() ?? 0.0;
-                    longitude = (loc?['lng'] as num?)?.toDouble() ?? 0.0;
+                    final coords = PlaceLookupService.coordinatesIn(details);
+                    latitude = coords?.lat ?? 0.0;
+                    longitude = coords?.lng ?? 0.0;
                     logs('PlaceDetails → lat=$latitude lng=$longitude');
                   } catch (e) {
                     logs('PlaceDetails failed: $e');

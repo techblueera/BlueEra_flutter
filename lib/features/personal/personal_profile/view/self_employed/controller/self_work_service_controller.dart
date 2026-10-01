@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class SelfWorkServiceController extends GetxController{
   Rx<ApiResponse> predefinedCategoryResponse =
@@ -180,7 +181,7 @@ class SelfWorkServiceController extends GetxController{
       }
     } catch (e, s) {
       predefinedCategoryResponse.value = ApiResponse.error('error');
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isPredefinedCategoryServiceTypeLoading.value = false;
     }
@@ -221,7 +222,7 @@ class SelfWorkServiceController extends GetxController{
       }
     } catch (e, s) {
       predefinedCategoryResponse.value = ApiResponse.error('error');
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isServiceSelectionLoading.value = false;
     }
@@ -585,7 +586,7 @@ class SelfWorkServiceController extends GetxController{
       }
     } catch (e, s) {
       serviceResponse.value = ApiResponse.error('error');
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isProfessionDataLoading.value = false;
     }

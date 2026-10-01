@@ -67,11 +67,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<LabTestController>()) {
-      controller = Get.put(LabTestController(), permanent: true);
-    } else {
-      controller = Get.find<LabTestController>();
-    }
+    controller = LabTestController.to;
     // Ensure Category + Parameters dropdowns are populated with THIS lab's
     // rows. Both fetches internally hit `/laboratory/{labId}` so the ids
     // we submit back always belong to this lab — the unscoped endpoints
@@ -527,7 +523,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
               child: Switch(
                 value: value,
                 onChanged: onChanged,
-                activeColor: AppColors.primaryColor,
+                activeThumbColor: AppColors.primaryColor,
               ),
             ),
           ],

@@ -16,8 +16,16 @@ import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PersonalCreateProfileController extends GetxController {
+  /// The signed-in user's profile editor state, registered on first use.
+  /// Permanent: the Me tabs, profile sheets and profile setup share it; logout
+  /// deletes it (LogoutHelper._resetPersonalProfileControllers).
+  static PersonalCreateProfileController get to => Get.isRegistered<PersonalCreateProfileController>()
+      ? Get.find<PersonalCreateProfileController>()
+      : Get.put(PersonalCreateProfileController(), permanent: true);
+
   ApiResponse updateUserProfileResponse = ApiResponse.initial('Initial');
   Rx<ApiResponse> deleteProjectResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteExperienceResponse = ApiResponse.initial('Initial').obs;
@@ -192,7 +200,7 @@ class PersonalCreateProfileController extends GetxController {
 
     try {
       updateBtnLoading.value = true;
-      print("Params being sent to API: $params");
+      debugLog("Params being sent to API: $params");
       ResponseModel responseModel =
           await PersonalProfileRepo().updateUser(formData: params, showProgress: showProgress);
 

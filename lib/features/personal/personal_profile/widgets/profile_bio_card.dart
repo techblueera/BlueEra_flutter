@@ -216,7 +216,7 @@ class _BioEditSheetState extends State<_BioEditSheet> {
   final ViewPersonalDetailsController _viewCtrl =
       Get.find<ViewPersonalDetailsController>();
   final PersonalCreateProfileController _personalCtrl =
-      Get.put(PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
   final AiSuggestionController _aiCtrl =
       Get.put(AiSuggestionController());
 

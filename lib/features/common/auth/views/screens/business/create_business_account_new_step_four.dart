@@ -159,24 +159,6 @@ class _CreateBusinessAccountNewStepFourState
     );
   }
 
-  /// The existing AI generator — opens its own selection dialog and writes
-  /// the pick into the same field.
-  Future<void> _generateAiDescription() async {
-    final data = viewBusinessDetailsController.businessProfileDetails.value?.data;
-    await descriptionController.generateDescriptions(
-      onSaved: _onDescriptionChanged,
-      bodyRequest: {
-        ApiKeys.business_name: data?.businessName,
-        ApiKeys.category: data?.categoryDetails?.name,
-        ApiKeys.sub_category: data?.subCategoryDetails?.name,
-        ApiKeys.city: widget.city,
-      },
-    );
-    if (!mounted) return;
-    setState(() => _selectedSuggestionIndex = null);
-    _onDescriptionChanged();
-  }
-
   void _applySuggestion(int index, DescriptionSuggestion suggestion) {
     // The field caps at 400 characters, so keep the sentences that fit.
     _descriptionTextController.text =

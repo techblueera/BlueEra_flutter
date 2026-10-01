@@ -63,6 +63,7 @@ import '../../../common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PostTabModel {
   final String id; // For internal logic
@@ -117,9 +118,9 @@ class _PersonalProfileSetupNewScreenState
     extends State<PersonalProfileSetupNewScreen> with TickerProviderStateMixin {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final personalCreateProfileController =
-      getOrPut(() => PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
   final bookingTabController = getOrPut(() => BookingController());
-  final myDocumentsController = getOrPut(() => MyDocumentsController());
+  final myDocumentsController = MyDocumentsController.to;
   final introVideoController = getOrPut(() => IntroductionVideoController());
 
   final youtubeController = TextEditingController();
@@ -637,7 +638,7 @@ class _PersonalProfileSetupNewScreenState
   void _showCategoryBottomSheet() {
     final controller = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
     final authController = getOrPut(() => AuthController());
-    final personalController = getOrPut(()=> PersonalCreateProfileController());
+    final personalController = PersonalCreateProfileController.to;
 
     final user = controller.personalProfileDetails.value.user;
     IndividualProfileTypeModel _selectedProfileType =
@@ -807,7 +808,7 @@ class _PersonalProfileSetupNewScreenState
       logs.writeln("-----------------------------------");
 
      // 2. PRINT EVERYTHING AT THE VERY END
-      print(logs.toString());
+      debugLog(logs.toString());
 
     }
 
@@ -2606,7 +2607,7 @@ class _PersonalProfileSetupNewScreenState
                 ? Obx(() {
                     AvailabilityData data =
                         bookingTabController.availabilityDetails.value!;
-                    final selectedType;
+                    final BookingType selectedType;
                     final bt = data.bookingType?.toLowerCase();
                     if (bt == 'online') {
                       selectedType = BookingType.online;
@@ -2621,7 +2622,7 @@ class _PersonalProfileSetupNewScreenState
                     final minFee = data.feeDetails?.minFee?.toString() ?? '';
                     final maxFee = data.feeDetails?.maxFee?.toString() ?? '';
                     final feeType = data.feeDetails?.feeType?.toString() ?? '';
-                    final selectedTimeSlot;
+                    final String selectedTimeSlot;
                     if (data.durationInMinutes?.toString().isNotEmpty ??
                         false) {
                       final candidate = '${data.durationInMinutes} Min';

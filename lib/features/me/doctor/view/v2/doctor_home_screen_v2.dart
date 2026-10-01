@@ -60,10 +60,10 @@ class _DoctorHomeScreenV2State extends State<DoctorHomeScreenV2>
   // Registered up-front so the chat surfaces this shell can reach have live
   // controllers, matching what the hospital/professional dashboards do.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   static const int _bookingTabIndex = 0;
 

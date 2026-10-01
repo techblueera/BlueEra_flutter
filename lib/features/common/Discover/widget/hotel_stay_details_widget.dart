@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/stay_discover_controller.dart';
 import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,7 +9,6 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
@@ -26,7 +26,8 @@ class HotelsDetailsWidget extends StatelessWidget {
   final HotelServiceData hotelServiceData;
   HotelsDetailsWidget({super.key, required this.hotelServiceData});
 
-final discoverController = Get.find<DiscoverController>();
+  // Registered by StayDiscoverBinding on the stays screen, which hosts this.
+  StayDiscoverController get _stays => Get.find<StayDiscoverController>();
 
 
   @override
@@ -246,14 +247,14 @@ final discoverController = Get.find<DiscoverController>();
 
                     // Dynamic Category Chips
                     Obx(() {
-                      final types = discoverController.getDynamicRoomTypes(hotelServiceData);
+                      final types = _stays.getDynamicRoomTypes(hotelServiceData);
                       return SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: types.map((type) {
-                            bool isSelected = discoverController.selectedRoomType.value == type;
+                            bool isSelected = _stays.selectedRoomType.value == type;
                             return GestureDetector(
-                              onTap: () => discoverController.selectedRoomType.value = type,
+                              onTap: () => _stays.selectedRoomType.value = type,
                               child: Container(
                                 margin: const EdgeInsets.only(right: 10),
                                 padding: const EdgeInsets.symmetric(

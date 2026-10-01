@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/job_seekar/controller/job_seeker_portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/me/job_seekar/view/project_portfolio/job_seeker_portfolio_form_screen.dart';
@@ -35,8 +34,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
       : super(key: key);
 
   // final portfolioController = Get.find<PortfolioProfessionalsController>();
-  final portfolioController =
-      getOrPut(() => PortfolioProfessionalsController(), permanent: true);
+  final portfolioController = PortfolioProfessionalsController.to;
   String? formattedDate;
 
   @override
@@ -368,9 +366,7 @@ class JobSeekerPortfolioProjectCardWidget extends StatefulWidget {
 class _JobSeekerPortfolioProjectCardWidgetState
     extends State<JobSeekerPortfolioProjectCardWidget> {
   // final portfolioController = Get.find<PortfolioProfessionalsController>();
-  final portfolioController = getOrPut(
-      () => JobSeekerPortfolioProfessionalsController(),
-      permanent: true);
+  final portfolioController = JobSeekerPortfolioProfessionalsController.to;
 
   String? formattedDate;
 

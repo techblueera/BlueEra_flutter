@@ -20,10 +20,6 @@ class VideoFeedController extends GetxController {
   // Tracks URLs currently holding a precache ref — prevents double-counting on every scroll
   final Set<String> _precachedUrls = {};
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   /// Reset all state for fresh navigation
   void reset() {

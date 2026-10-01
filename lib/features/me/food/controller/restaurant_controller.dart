@@ -15,6 +15,7 @@ import 'package:BlueEra/features/me/food/service/food_local_store.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// What a read of the saved Products-tab snapshot produced.
 ///
@@ -479,7 +480,7 @@ class RestaurantController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-      print("Request Body: $body");
+      debugLog("Request Body: $body");
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

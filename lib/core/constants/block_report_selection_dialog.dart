@@ -71,7 +71,7 @@ void openPostReportDialog(
           reportType: reportType,
           contentId: contentId,
           otherUserId: userId,
-          userBlockVoidCallback: ()=> null,
+          userBlockVoidCallback: (){},
             reportCallback: (params)=> reportCallback(params)
         ),
       );

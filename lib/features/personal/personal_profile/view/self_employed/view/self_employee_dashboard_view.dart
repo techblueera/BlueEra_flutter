@@ -51,7 +51,7 @@
 // class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
 //     with SingleTickerProviderStateMixin {
 //   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
-//   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
+//   final _personalCtrl = PersonalCreateProfileController.to;
 //
 //   late TabController _tabController;
 //

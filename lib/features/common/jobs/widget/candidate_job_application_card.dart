@@ -197,8 +197,7 @@ class _CandidateJobApplicationCardState
                           itemBuilder: (context, applicationIndex) {
                             ApplicationsCandidateList? userData =
                                 appliedController.applicationsCandidateList[
-                                        applicationIndex] ??
-                                    null;
+                                        applicationIndex];
                             return ApplicationCard(
                               index: applicationIndex,
                               jobDetails: appliedController.jobDetails?.value ??

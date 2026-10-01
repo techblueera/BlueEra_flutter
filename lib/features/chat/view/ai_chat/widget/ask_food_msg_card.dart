@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/geo_coordinates.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -13,19 +12,20 @@ import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
 import '../../../../../core/constants/size_config.dart';
 import '../../../../../widgets/common_box_shadow.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AskFoodMsgCard extends StatelessWidget {
   final FoodAskAiModel response;
 
   AskFoodMsgCard({Key? key, required this.response}) : super(key: key);
 
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatThemeController = ChatThemeController.to;
 
 
   @override
   Widget build(BuildContext context) {
     final arrFoodData = response.data?.foodData ?? [];
-    print('total food data -- ${arrFoodData.length}');
+    debugLog('total food data -- ${arrFoodData.length}');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../../../../../core/constants/getx_utils.dart';
 import '../../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../../features/personal/personal_profile/view/wallet/model/wallet_withdrawal_methods.dart';
 import '../controller/wallet_controller.dart';
@@ -25,7 +24,7 @@ class AmountWithdrawScreen extends StatefulWidget {
 }
 
 class _AmountWithdrawScreenState extends State<AmountWithdrawScreen> {
-  final controller = getOrPut(() => WalletController());
+  final controller = WalletController.to;
 
   @override
   initState(){

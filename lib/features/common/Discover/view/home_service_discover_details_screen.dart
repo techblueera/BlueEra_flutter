@@ -441,7 +441,7 @@
 //       ChatClickTracker.track(
 //           userId: bId, source: ChatClickSource.searchResult);
 //     }
-//     final chatViewController = getOrPut(() => ChatViewController());
+//     final chatViewController = ChatViewController.to;
 //     chatViewController.checkChatConnectionAndOpenChat(
 //       userId: uid,
 //       name: store.serviceName,

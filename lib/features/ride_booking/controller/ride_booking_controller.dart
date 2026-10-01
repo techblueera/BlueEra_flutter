@@ -43,6 +43,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// recents and saved places (SharedPreferences), cancel reasons (a shipped
 /// list), and fare-raise (disabled — see [kFareRaiseEnabled]).
 class RideBookingController extends GetxController {
+  /// One instance for the session, whichever screen asks first; logout drops it.
+  static RideBookingController get to => Get.isRegistered<RideBookingController>()
+      ? Get.find<RideBookingController>()
+      : Get.put(RideBookingController(), permanent: true);
+
   /// Broadcast dispatch has no fare-bump endpoint — the "+₹10/₹20/₹30" chips
   /// must not ship until one exists, or the user pays more for nothing.
   /// Guide §6. Flip when the backend lands.

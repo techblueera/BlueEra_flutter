@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/more/model/card_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class MoreCardsScreenController extends GetxController{
   Rx<ApiResponse> allCardCategoriesResponse = ApiResponse.initial('Initial').obs;
@@ -86,7 +87,7 @@ class MoreCardsScreenController extends GetxController{
               categories.add(categoryName);
             }
 
-            print('category name -- $categoryName');
+            debugLog('category name -- $categoryName');
           }
         }
 

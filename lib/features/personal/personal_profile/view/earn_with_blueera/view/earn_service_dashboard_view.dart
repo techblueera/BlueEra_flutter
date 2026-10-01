@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -35,7 +34,7 @@ class EarnServiceDashboardView extends StatefulWidget {
 
 class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
-  final _earnProfileCtrl = getOrPut(() => EarnProfileController());
+  final _earnProfileCtrl = EarnProfileController.to;
 
   /// The flavour this dashboard renders: the explicitly-passed [earnType],
   /// else the first earn profile the user has created.

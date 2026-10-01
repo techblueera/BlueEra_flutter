@@ -1225,7 +1225,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     final result = await Get.to(
       () => ShopAvailabilityScreen(
         initialSchedule: weeklySchedule,
-        onSave: _saveWeeklyHours,
+        onSave: saveWeeklyHours,
       ),
     );
     if (result == true) await loadHours();
@@ -1233,7 +1233,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   /// Persist the weekly schedule to the BUSINESS endpoint. Returns null on
   /// success, else an error message for the editor to surface.
-  Future<String?> _saveWeeklyHours(List<Schedule> schedule) async {
+  Future<String?> saveWeeklyHours(List<Schedule> schedule) async {
     final res = await BusinessProfileRepo().setBusinessHours({
       'timezone': 'Asia/Kolkata',
       'schedule': schedule.map((s) => s.toJson()).toList(),

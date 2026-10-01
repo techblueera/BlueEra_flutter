@@ -53,7 +53,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
   void initState() {
     super.initState();
     messageTime= formatChatTime(widget.message.createdAt ?? '');
-    _controller = VideoPlayerController.network(widget.videoPath)
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoPath))
       ..setVolume(1.0)
       ..initialize().then((_) {
         _controller.play();
@@ -105,9 +105,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
 
                 if (!mounted) return;
                 setState(() {
-                  if(like==null){
-                    like=widget.message.is_liked;
-                  }
+                  like ??= widget.message.is_liked;
                   if(like??false){
                     like_count=like_count!-1;
                   }else{
@@ -396,7 +394,7 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
                                 SvgPicture.asset(height: 22,
                                   width: 22,
                                   AppIconAssets.chat_box_smile,
-                                  color: AppColors.primaryColor,),
+                                  colorFilter: ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn),),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: TextFormField(

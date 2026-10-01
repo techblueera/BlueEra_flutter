@@ -22,6 +22,26 @@ class LabServiceAiController extends GetxController {
   /// `laboratory_main` watches this to swap entry screens.
   final RxBool hasLabCreated = false.obs;
 
+  /// Works out whether this account has a lab yet: resolves and stores the
+  /// lab profile id the first time, then sets [hasLabCreated]. On failure the
+  /// flag stays as it was ("no lab created" on a fresh start).
+  Future<void> refreshLabCreated() async {
+    try {
+      if (labIDGlobal.isEmpty) {
+        final ResponseModel response = await _repo.getLabFullDetailsByIdRepo();
+        final fetched = response.isSuccess
+            ? (response.getExtraData('data')?['profile']?['_id'] ?? '')
+            : '';
+        labIDGlobal = fetched;
+        await setLabID(fetched);
+      }
+      await getLabID();
+      hasLabCreated.value = labIDGlobal.isNotEmpty;
+    } on Exception {
+      // Silent failure — the UI falls back to the "no lab created" state.
+    }
+  }
+
   final RxBool isSaving = false.obs;
 
   /// Resets every form field. Method name kept (typo: `clearFiled`) for

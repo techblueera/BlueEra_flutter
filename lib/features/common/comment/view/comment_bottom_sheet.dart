@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/comment/controller/comment_controller.dart';
 import 'package:BlueEra/features/common/comment/model/comment_model_response.dart';
 import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reelsModule/widget/comment_shimmer_ui.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -26,6 +25,7 @@ import 'package:get/get.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum CommentType { post, video }
 
@@ -782,7 +782,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
         // type used to share; the individual branch already routes this way.
         MeProfileNavigator.openOverview();
       } else {
-        print('targetUser.sId--> ${targetUser.sId}');
+        debugLog('targetUser.sId--> ${targetUser.sId}');
 
         Get.to(() => VisitBusinessProfileNew(
               businessId: targetUser.sId ?? '',

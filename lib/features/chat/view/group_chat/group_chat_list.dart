@@ -159,7 +159,7 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
               children: [
                 SvgPicture.asset(
                   AppIconAssets.chat,
-                  color: Colors.black,
+                  colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
                   height: 70,
                   width: 70,
                 ),

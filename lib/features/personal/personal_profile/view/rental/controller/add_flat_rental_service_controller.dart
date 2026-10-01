@@ -5,17 +5,23 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/product/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/stay_images_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/repo/rental_service_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
+/// The flat / room rental listing form. Registered by AddFlatRentalBinding.
 class AddFlatRentalServiceController extends GetxController {
+  AddFlatRentalServiceController(
+      {required this.stayImagesController, RentalServiceRepo? repo})
+      : _repo = repo ?? RentalServiceRepo();
+
+  final RentalServiceRepo _repo;
+
   Rx<ApiResponse> addFlatRentalServiceResponse = ApiResponse.initial('Initial').obs;
 
   final currentStep = 0.obs;
@@ -85,7 +91,7 @@ class AddFlatRentalServiceController extends GetxController {
   var checkOutPeriod = RxnString();
 
   /// step 2
-  final stayImagesController = getOrPut(() => StayImagesController());
+  final StayImagesController stayImagesController;
 
   // final RxList<File> roadSideImage = <File>[].obs;
   // final RxList<File> roomImages = <File>[].obs;
@@ -98,7 +104,7 @@ class AddFlatRentalServiceController extends GetxController {
     super.onInit();
 
     ever(currentStep, (step) {
-      print('Current Step Changed: $step');
+      debugLog('Current Step Changed: $step');
       // You can trigger animations, validations, or scroll resets here.
     });
 
@@ -247,14 +253,14 @@ class AddFlatRentalServiceController extends GetxController {
           if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
         };
 
-        ResponseModel response = await RentalServiceRepo().addRentalServiceRepo(
+        ResponseModel response = await _repo.addRentalServiceRepo(
           params: params,
         );
 
         if (response.isSuccess) {
           addFlatRentalServiceResponse.value = ApiResponse.complete(response);
           rentalId = response.getNested(['data', '_id']);
-          print('rental id-- $rentalId');
+          debugLog('rental id-- $rentalId');
 
           // await setEarnServiceOptData(true);
 
@@ -316,7 +322,7 @@ class AddFlatRentalServiceController extends GetxController {
         if(arrMoreDetails.isNotEmpty) ApiKeys.additionalDetails: jsonEncode(arrMoreDetails.map((e) => e.toJson()).toList()),
       };
 
-      ResponseModel response = await RentalServiceRepo().updateRentalServiceRepo(
+      ResponseModel response = await _repo.updateRentalServiceRepo(
         rentalId: rentalId!,
         params: params,
       );
@@ -340,7 +346,8 @@ class AddFlatRentalServiceController extends GetxController {
     }
   }
 
-  void validateStepFour(StayImagesController stayImagesController){
+  /// True when every photo section is uploaded, so the listing is complete.
+  bool validateStepFour(StayImagesController stayImagesController){
 
     for (var entry in stayImagesController.sectionUploadStatus.entries) {
       String sectionId = entry.key;
@@ -349,15 +356,11 @@ class AddFlatRentalServiceController extends GetxController {
       if (!isUploaded) {
         String readableName = stayImagesController.sectionNames[sectionId] ?? "Section Images"; // Fallback name
         commonSnackBar(message: "⚠️ Missing: Please upload $readableName");
-        return;
+        return false;
       }
     }
 
-    Get.until(
-          (route) =>
-      route.settings.name ==
-          RouteHelper.getSelfEmployeeScreenRoute(),
-    );
+    return true;
 
 
   }

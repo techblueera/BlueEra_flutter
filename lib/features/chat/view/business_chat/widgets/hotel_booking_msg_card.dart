@@ -147,25 +147,6 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
     return out;
   }
 
-  String get _subtitle {
-    final b = _b;
-    final parts = <String>[];
-    final nights = b?.nights ?? 0;
-    if (nights > 0) {
-      parts.add('$nights ${nights == 1 ? 'night' : 'nights'}');
-    }
-    final guests = b?.guests ?? 0;
-    if (guests > 0) {
-      parts.add('$guests ${guests == 1 ? 'guest' : 'guests'}');
-    }
-    if (parts.isEmpty) {
-      final name = (b?.listingName ?? '').trim();
-      if (name.isNotEmpty) return name;
-      return AppStrings.hotelBookingTitle.tr;
-    }
-    return parts.join(' · ');
-  }
-
   @override
   Widget build(BuildContext context) {
     final hasPhotos = _cover.isNotEmpty || _photos.isNotEmpty;

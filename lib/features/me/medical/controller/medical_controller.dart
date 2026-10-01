@@ -34,6 +34,7 @@ import 'package:get/get.dart';
 import '../model/my_medical_products_response.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PriceResult {
   final String sellingRange;
@@ -214,7 +215,7 @@ class MedicalController extends GetxController {
       final payload = buildSnapSearchInventoryPayload();
       if (payload.isEmpty) return;
 
-      print(jsonEncode(payload));
+      debugLog(jsonEncode(payload));
 
       final response = await MedicalRepo().addGroceryProductVariantRepo(
         params: payload,
@@ -793,7 +794,7 @@ class MedicalController extends GetxController {
       final payload = buildInventoryPayload();
       if(payload.isEmpty) return;
 
-      print(jsonEncode(payload));
+      debugLog(jsonEncode(payload));
 
       final response = await MedicalRepo().addGroceryProductVariantRepo(
         params: payload,

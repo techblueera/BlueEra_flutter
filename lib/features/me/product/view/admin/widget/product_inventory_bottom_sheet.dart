@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
@@ -158,7 +157,7 @@ class _ProductInventoryBottomSheetState
       context: context,
       product: widget.product,
       onUpdate: widget.onUpdatePrice ??
-          getOrPut(() => InventoryController()).updateProductVariantPrice,
+          InventoryController.to.updateProductVariantPrice,
     );
   }
 
@@ -232,7 +231,7 @@ class _ProductInventoryBottomSheetState
     AppLoader.show();
     final ok = widget.onDeleteVariant != null
         ? await widget.onDeleteVariant!(inventoryId)
-        : await getOrPut(() => InventoryController())
+        : await InventoryController.to
             .deleteInventoryVariant(inventoryId: inventoryId);
     AppLoader.hide();
 

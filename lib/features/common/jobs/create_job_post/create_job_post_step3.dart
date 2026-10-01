@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -13,6 +14,7 @@ import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JobPostStep3Controller extends GetxController {
   RxString walkInInterview = 'No'.obs;
@@ -97,7 +99,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
   final createJobPostController = Get.find<CreateJobPostController>();
   Worker? _jobDetailsWorker;
 
-  final controller = Get.put(JobPostStep3Controller());
+  final controller = Get.find<JobPostStep3Controller>();
 
   @override
   void initState() {
@@ -188,7 +190,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
         controller.communicationPreferences['chat'] = true; // Default to chat
       }
     } catch (e) {
-      print('Error initializing data from API: $e');
+      debugLog('Error initializing data from API: $e');
       // Set default values on error
       controller.walkInInterview.value = 'No';
       controller.communicationPreferences.updateAll((k, v) => false);
@@ -623,7 +625,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                   ),
                   Expanded(
                       child: PositiveCustomBtn(
-                    onTap: () {
+                    onTap: () async {
                       // Validate communication preference is selected
                       if (!controller.hasCommunicationPreferenceSelected) {
                         commonSnackBar(
@@ -680,11 +682,12 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                         };
                       }
 
-                      mainController.postJobStep3Api(
+                      if (await mainController.postJobStep3Api(
                         jobId: mainController.jobID.value,
                         interviewDetails: interviewDetails,
-                      );
-                      // Get.to(() => CreateJobPostStep4());
+                      )) {
+                        Get.toNamed(RouteHelper.getCreateJobPostStep4Route());
+                      }
                     },
                     title: AppStrings.continueTxt,
                   ))

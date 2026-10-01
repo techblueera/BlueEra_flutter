@@ -63,7 +63,8 @@ class _AutomotiveProductsStoreDetailsScreenState
           () => AutomotiveInventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
       getOrPut<ViewBusinessDetailsController>(
-          () => ViewBusinessDetailsController());
+          () => ViewBusinessDetailsController(),
+          permanent: true);
   final StoreController storeController =
       getOrPut<StoreController>(() => StoreController());
   // Session cart — same instance the discover/cart bar watches, so

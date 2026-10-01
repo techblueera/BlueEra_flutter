@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -28,6 +27,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ShareShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -990,7 +990,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
       ));
 
     } catch (e) {
-      print("Video share failed: $e");
+      debugLog("Video share failed: $e");
     } finally {
       _isShortSharing = false; // Reset flag
     }

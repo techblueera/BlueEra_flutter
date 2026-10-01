@@ -20,6 +20,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PhotoPostEditingScreen extends StatefulWidget {
   PhotoPostEditingScreen({Key? key}) : super(key: key);
@@ -185,7 +186,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
                     photoPostController.originalPhotos.removeAt(index);
                     _imageKeys.removeAt(index);
                     if (selectedPhotos.isEmpty) {
-                      Navigator.pop(context);
+                      Navigator.pop(context, <String>[]);
                       return;
                     }
                     setState(() {});
@@ -388,8 +389,8 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
 
   void addPhotos() async {
     final SafeImagePicker _picker = SafeImagePicker();
-    final List<XFile>? images = await _picker.pickMultiImage();
-    if (images == null || images.isEmpty) return;
+    final List<XFile> images = await _picker.pickMultiImage();
+    if (images.isEmpty) return;
 
     int totalImage = selectedPhotos.length + images.length;
     if (totalImage > maxPhotos) {
@@ -442,7 +443,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
 
       return file;
     } catch (e) {
-      print("Error exporting image $index: $e");
+      debugLog("Error exporting image $index: $e");
       return null;
     }
   }

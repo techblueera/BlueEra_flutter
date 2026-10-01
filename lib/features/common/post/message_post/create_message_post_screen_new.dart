@@ -3,11 +3,9 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/message_post/message_post_preview_screen_new.dart';
@@ -28,14 +26,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
+/// Opened through [RouteHelper.getCreateMessagePostScreenRoute], whose
+/// MessagePostBinding provides the controllers.
 class CreateMessagePostScreenNew extends StatefulWidget {
-  final Post? post;
-  final bool isEdit;
-  final bool isRepost = false;
-  final PostVia? postVia;
-
-  const CreateMessagePostScreenNew(
-      {super.key, this.post, required this.isEdit, this.postVia});
+  const CreateMessagePostScreenNew({super.key});
 
   @override
   State<CreateMessagePostScreenNew> createState() =>
@@ -44,44 +38,15 @@ class CreateMessagePostScreenNew extends StatefulWidget {
 
 class _CreateMessagePostScreenNewState
     extends State<CreateMessagePostScreenNew> {
-  final msgController = Get.put(MessagePostController());
-  final tagUserController = Get.put(TagUserController());
+  final msgController = Get.find<MessagePostController>();
+  final tagUserController = Get.find<TagUserController>();
   final reelUploadDetailsController = Get.put(ReelUploadDetailsController());
   VideoCategoryData? _commonCategory;
 
   @override
   void initState() {
-    // TODO: implement initState
-    // Default to first background color option, we no longer use images
-    msgController.isMsgPostEdit = widget.isEdit;
-
-    if (widget.isEdit) {
-      msgController.postId = widget.post?.id ?? "";
-      msgController.postText.value = widget.post?.message ?? "";
-      msgController.postTextDataController.value.text =
-          widget.post?.message ?? "";
-      msgController.descriptionMessage.value.text = widget.post?.subTitle ?? "";
-
-      msgController.natureOfPostController.value.text =
-          widget.post?.natureOfPost ?? "";
-
-      if (widget.post?.referenceLink?.isNotEmpty ?? false) {
-        msgController.isAddLink.value = true;
-        msgController.referenceLinkController.value.text =
-            widget.post?.referenceLink ?? "";
-      }
-    } else {
-      reelUploadDetailsController.getVideoCategories();
-    }
-
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    deleteIfRegistered<MessagePostController>();
-    deleteIfRegistered<TagUserController>();
-    super.dispose();
+    reelUploadDetailsController.getVideoCategories();
   }
 
   @override
@@ -90,10 +55,7 @@ class _CreateMessagePostScreenNewState
       appBar: CommonBackAppBar(
         title: AppStrings.lekhaPost,
         isLeading: true,
-        onBackTap: () {
-          msgController.clearData();
-          safeBack();
-        },
+        onBackTap: () => safeBack(),
       ),
       bottomNavigationBar: Obx(() {
         return SafeArea(
@@ -105,9 +67,9 @@ class _CreateMessagePostScreenNewState
                 top: SizeConfig.size5),
             child: CustomBtn(
                 isValidate: (msgController.postText.value.isNotEmpty &&
-                    (msgController.imagesList.length >= 1)),
+                    (msgController.imagesList.isNotEmpty)),
                 onTap: (msgController.postText.value.isNotEmpty &&
-                        (msgController.imagesList.length >= 1))
+                        (msgController.imagesList.isNotEmpty))
                     ? () async {
                         await Future.delayed(Duration(milliseconds: 200));
                         final input = msgController.postText.value.trim();
@@ -120,31 +82,12 @@ class _CreateMessagePostScreenNewState
                           return commonSnackBar(message: AppStrings.lekhaMin30);
                         }
 
-                        if (msgController.imagesList.length < 1) {
+                        if (msgController.imagesList.isEmpty) {
                           commonSnackBar(message: AppStrings.atleastOnePhoto);
                           return;
                         }
 
-                        if (!msgController.isMsgPostEdit) {
-                          Get.to(() => MessagePostPreviewScreenNew(
-                                postVia: widget.postVia,
-                                isEdit: msgController.isMsgPostEdit,
-                              ));
-                          return;
-                        }
-
-                        if (msgController.isMsgPostEdit) {
-                          if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
-                            final taggedIds = widget.post?.taggedUsers ?? [];
-
-                            tagUserController.selectedUsers.value =
-                                tagUserController.allUsers.where((user) {
-                              final isTagged = taggedIds.contains(user.id);
-                              user.isSelected.value = isTagged;
-                              return isTagged;
-                            }).toList();
-                          }
-                        }
+                        Get.to(() => const MessagePostPreviewScreenNew());
                       }
                     : null,
                 title: AppStrings.continueText),

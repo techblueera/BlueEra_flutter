@@ -27,8 +27,7 @@ class JobSeekerPortfolioFormScreen extends StatefulWidget {
 
 class _JobSeekerPortfolioFormScreenState
     extends State<JobSeekerPortfolioFormScreen> {
-  final portfolioController =
-      Get.put(JobSeekerPortfolioProfessionalsController());
+  final portfolioController = JobSeekerPortfolioProfessionalsController.to;
 
   @override
   void initState() {

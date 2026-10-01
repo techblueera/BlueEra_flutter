@@ -2,39 +2,18 @@ import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller
 import 'package:BlueEra/features/chat/auth/controller/order_broadcast_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'dart:async';
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
-import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
-import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
-import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
-import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
-import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/repo/discover_repo.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/store/repo/store_repo.dart';
-import 'package:BlueEra/features/me/school/repo/school_repo.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
-import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/location/geocoding_compat.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import '../../../../core/api/model/new_food_home_res_model.dart';
 import '../model/get_booking_rider_model.dart';
 import '../model/multi_shop_rider_model.dart';
 import '../../../business/auth/repo/business_profile_repo.dart';
@@ -46,103 +25,31 @@ import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
 import 'rider_location_poll_controller.dart';
 import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
-
-enum CategoryFilter {
-  nearest('Nearest', AppStrings.filterNearest),
-  experienced('Experienced', AppStrings.filterExperienced),
-  priceLowToHigh('Price (Low-High)', AppStrings.filterPriceLowToHigh);
-
-  final String label;
-  final String _translationKey;
-
-  const CategoryFilter(this.label, this._translationKey);
-
-  /// Returns the translated label, falling back to the English [label]
-  /// if the current locale has no translation yet (so the UI never breaks
-  /// or shows raw keys while Hindi/other-language packs are still loading).
-  String get localizedLabel {
-    final translated = _translationKey.tr;
-    return translated == _translationKey ? label : translated;
-  }
-}
-
-enum DiscoverFilter {
-  home('Home', AppStrings.discoverHome),
-  deals('Deals', AppStrings.discoverDeals),
-  events('Events', AppStrings.discoverEvents),
-  careerJobs('Career / Jobs', AppStrings.discoverCareerJobs);
-
-  final String label;
-  final String _translationKey;
-
-  const DiscoverFilter(this.label, this._translationKey);
-
-  String get localizedLabel {
-    final translated = _translationKey.tr;
-    return translated == _translationKey ? label : translated;
-  }
-}
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class DiscoverController extends GetxController {
-  var selfProfessionServiceResponse = ApiResponse.initial('Initial').obs;
+  /// The session's instance, registered on first use. Permanent: an ongoing
+  /// fare-call ride or multi-shop order lives here and must outlast whichever
+  /// booking screen started it (the ongoing-ride chip and card read it from
+  /// home); logout deletes it.
+  static DiscoverController get to => Get.isRegistered<DiscoverController>()
+      ? Get.find<DiscoverController>()
+      : Get.put(DiscoverController(), permanent: true);
 
-  var profConProfessionServiceResponse = ApiResponse.initial('Initial').obs;
+  @override
+  void onClose() {
+    // Only reached on logout; stop the polls so they don't outlive it.
+    stopRideStartedFallbackPoll();
+    stopMultiShopBroadcastPoll();
+    super.onClose();
+  }
+
 
   // var educationServiceResponse = ApiResponse.initial('Initial').obs;
   // var foodRestaurantServiceResponse = ApiResponse.initial('Initial').obs;
-  var rentalServiceResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> productsResponse = ApiResponse.initial('Initial').obs;
   Set<Marker> markers = {};
-  final ScrollController scrollController = ScrollController();
-  Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
 
-  final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
-  Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
-  Rx<OnboardingCategoryModel?> selectedEarnServiceData =
-  Rx<OnboardingCategoryModel?>(null);
-  Rx<OnboardingCategoryModel?> selectedProfConsServiceData =
-  Rx<OnboardingCategoryModel?>(null);
-  RxInt selectedTabIndex = 0.obs;
-  final List<CategoryFilter> filters = CategoryFilter.values;
-  Rx<CategoryFilter> selectedFilter = CategoryFilter.nearest.obs;
-  final int limit = 20;
-
-  /// Self Profession Services
-  RxList<ServiceData> earnServiceList = <ServiceData>[].obs;
-
-  /// Full unpaginated service list used by the map view. Populated by
-  /// [fetchAllEarnServicesForMap]; kept separate from the paginated
-  /// [earnServiceList] so list-screen pagination state isn't disturbed.
-  RxList<ServiceData> earnServiceMapList = <ServiceData>[].obs;
-  Rx<ApiResponse> earnServiceMapResponse = ApiResponse.initial('Initial').obs;
-  RxList<ProfessionalConsData> professionalConsDataList =
-      <ProfessionalConsData>[].obs;
-
-  /// Full unpaginated consultant list used by the v2 map view. Populated by
-  /// [fetchAllProfessionalConsForMap]; kept separate from the paginated
-  /// [professionalConsDataList] so list pagination state isn't disturbed.
-  /// Mirrors the [earnServiceMapList] pairing above.
-  RxList<ProfessionalConsData> professionalConsMapList =
-      <ProfessionalConsData>[].obs;
-  Rx<ApiResponse> professionalConsMapResponse =
-      ApiResponse.initial('Initial').obs;
-  RxList<SchoolDetailsData> schoolDetailsDataDataList =
-      <SchoolDetailsData>[].obs;
-
-  RxList<FoodData> foodRestaurantDataList = <FoodData>[].obs;
-  RxBool isEarnServiceLoading = false.obs;
-  RxBool isProfConServiceLoading = false.obs;
-  RxBool isEducationServiceLoading = false.obs;
-  RxBool isFoodRestaurantLoading = false.obs;
-  int earnServicePage = 1;
-  int profConsServicePage = 1;
-  int educationServicePage = 1;
-  int foodRestaurantServicePage = 1;
-  var isEarnServiceLoadingMore = false.obs;
-  var isProfConServiceLoadingMore = false.obs;
-  var isEducationServiceLoadingMore = false.obs;
-  var isFoodRestaurantLoadingMore = false.obs;
   Rx<VehicleAllResponse> ridersDetailsList = VehicleAllResponse().obs;
   var bookingRiderListResponse = ApiResponse.initial('Initial').obs;
 
@@ -171,11 +78,6 @@ class DiscoverController extends GetxController {
   RxInt multiShopBroadcastRidersNotified = 0.obs;
   Timer? _multiShopBroadcastPollTimer;
 
-  bool hasMoreEarnServiceData = true;
-  bool hasMoreProfConServiceData = true;
-  bool hasMoreEducationServiceData = true;
-  bool hasMoreFoodRestaurantData = true;
-
   RxBool findRiderDetailsLoading = false.obs;
   RxBool bookRiderBtnLoading = false.obs;
   RxInt selectedHorizontalTab = 0.obs;
@@ -186,25 +88,11 @@ class DiscoverController extends GetxController {
   RxDouble? selectedToLong = 0.0.obs;
   RxString? selectedFromAddress = "".obs;
   RxString? selectedToAddress = "".obs;
-  RxString transportDistanceText = "".obs;
   RxDouble roadDistanceKm = 0.0.obs;
   RxString selectedRideType = AppConstants.oneWay.obs;
   RxString selectedBookingFor = AppConstants.mySelf.obs;
   final myFriendPhoneController = TextEditingController();
 
-  /// Rental Services && Hotel Services
-  RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
-  RxList<HotelServiceData> hotelServices = <HotelServiceData>[].obs;
-
-  /// Unpaginated stay lists for the map view. Same separation rationale as
-  /// [earnServiceMapList] — list pagination state is left untouched.
-  RxList<RentalServiceData> rentalServicesMapList = <RentalServiceData>[].obs;
-  RxList<HotelServiceData> hotelServicesMapList = <HotelServiceData>[].obs;
-  Rx<ApiResponse> staysMapResponse = ApiResponse.initial('Initial').obs;
-  RxBool isRentalServiceLoading = false.obs;
-  int rentalServicePage = 1;
-  var isRentalServiceLoadingMore = false.obs;
-  bool hasMoreRentalServiceData = true;
 
   // --- Fare-call queue state ---
   RxBool isFareCallInProgress = false.obs;
@@ -263,8 +151,6 @@ class DiscoverController extends GetxController {
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
-  Rxn<OnboardingCategoryModel> selectedStayCategory =
-  Rxn<OnboardingCategoryModel>();
   RxString selectedParcelCategory = "Document".obs;
   final receiversNameController = TextEditingController();
   final receiversNumberController = TextEditingController();
@@ -288,18 +174,6 @@ class DiscoverController extends GetxController {
     parcelDetailsList.remove(value);
   }
 
-  var selectedRoomType = "".obs;
-
-  List<String> getDynamicRoomTypes(HotelServiceData hotelData) {
-    final rooms = hotelData.rooms ?? [];
-
-    return rooms
-        .map((e) => e.type ?? "")
-        .where((t) => t.isNotEmpty)
-        .toSet()
-        .toList();
-  }
-
   void onSelectRider(RiderUser rider) {
     if (selectedRiders.any((r) => r.riderId == rider.riderId)) {
       selectedRiders.removeWhere((r) => r.riderId == rider.riderId);
@@ -314,21 +188,7 @@ class DiscoverController extends GetxController {
     }
   }
 
-  /// Consultant Service
-  Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData =
-  Rx<OnboardingCategoryModel?>(null);
-  Rx<OnboardingCategoryModel?> selectedEducationServiceData =
-  Rx<OnboardingCategoryModel?>(null);
 
-  Rx<OnboardingCategoryModel?> selectedFoodServiceData =
-  Rx<OnboardingCategoryModel?>(null);
-
-  /// Products
-  RxList<GetProductData> productDataList = <GetProductData>[].obs;
-  RxBool isProductDataLoadingMore = false.obs;
-  RxBool isProductDataFirstLoading = false.obs;
-  int productDataPage = 1;
-  bool productDataHasMore = true;
 
   // final List<CollapsibleGridModel> discoverOptions = [
   //   CollapsibleGridModel(
@@ -397,973 +257,6 @@ class DiscoverController extends GetxController {
   // ];
   // final selectedOption = Rxn<CollapsibleGridModel>();
 
-  ///GET STORE PRODUCT ONLY....
-  Future<void> getAllProductNearBy(
-      {ProviderType? providerType,
-        String? productCategory,
-        bool isLoadMore = false,
-        String? query}) async {
-    if (isLoadMore) {
-      if (isProductDataLoadingMore.value || !productDataHasMore) return;
-      isProductDataLoadingMore.value = true;
-    } else {
-      isProductDataFirstLoading.value = true;
-      productDataPage = 1;
-      productDataHasMore = true;
-      productDataList.clear();
-
-      // /// fetch local data not for search
-      // if(query == null){
-      //   final cachedProduct = await HiveServices().getAllStoreProduct(userId);
-      //   if (cachedProduct != null && cachedProduct.isNotEmpty) {
-      //     productDataList.assignAll(cachedProduct);
-      //     isProductDataFirstLoading.value = false;
-      //   }
-      // }
-    }
-
-    try {
-      log('lat--> ${LocationService.lat}, lng--> ${LocationService.lng}');
-
-      const int limit = 20;
-
-      // Build query parameters dynamically
-      final Map<String, dynamic> queryParams = {
-        ApiKeys.page: productDataPage,
-        ApiKeys.limit: limit,
-        ApiKeys.maxDistance: kmRadius5000,
-      };
-      double lat = LocationService.lat != 0.0 ? LocationService.lat : 0.0;
-      double long = LocationService.lng != 0.0 ? LocationService.lng : 0.0;
-
-      if ((lat != 0.0) && (long != 0.0)) {
-        queryParams[ApiKeys.latitude] = lat;
-        queryParams[ApiKeys.longitude] = long;
-      }
-      if (providerType != null)
-        queryParams[ApiKeys.ownerType] = providerType.title;
-      if (productCategory != null) queryParams[ApiKeys.key] = productCategory;
-
-      final response;
-      if (query != null) {
-        response =
-        await StoreRepo().productSearchFilterRepo(queryParams: queryParams);
-      } else {
-        if (productCategory != null) {
-          response =
-          await StoreRepo().productFilterRepo(queryParams: queryParams);
-        } else {
-          response =
-          await StoreRepo().homePageProductRepo(queryParams: queryParams);
-        }
-      }
-
-      if (response.isSuccess) {
-        productsResponse.value = ApiResponse.complete(response);
-        final getOwnProductModel =
-        GetProductModel.fromJson(response.response?.data);
-
-        final List<GetProductData> newData = getOwnProductModel.data;
-
-        if (newData.isNotEmpty) {
-          if (isLoadMore) {
-            productDataList.addAll(newData);
-          } else {
-            productDataList.assignAll(newData);
-            log('product data length--> ${productDataList.length}');
-            log('loggggg 1--> ${productDataList[0].product.business_name}');
-
-            if (query == null) {
-              await HiveServices().saveAllStoreProduct(productDataList, userId);
-            }
-          }
-          productDataPage++;
-        }
-      } else {
-        productDataHasMore = false;
-        productsResponse.value = ApiResponse.error('error');
-      }
-    } catch (e, s) {
-      log('stack trace --> $s');
-      productsResponse.value = ApiResponse.error('error');
-    } finally {
-      if (isLoadMore) {
-        isProductDataLoadingMore.value = false;
-      } else {
-        isProductDataFirstLoading.value = false;
-      }
-    }
-  }
-
-  /// Service-enquiry submission used by the Discover self-profession
-  /// "Enquire" form. **Dummy for now** — it simulates a successful network
-  /// round-trip so the form → chat flow works end-to-end. Swap the body for
-  /// the real `DiscoverRepo` call once the backend endpoint exists (which,
-  /// like the grocery order flow, should also create the in-chat enquiry card
-  /// + emit a socket event so it surfaces on the provider's side).
-  /// Backend `earn-service/service-enquiries` endpoints are live, so the real
-  /// REST calls run. Set to `true` only to fall back to a simulated success
-  /// (e.g. for local UI testing without the backend).
-  static const bool _useServiceEnquiryStub = false;
-
-  RxBool isServiceEnquiryLoading = false.obs;
-
-  /// [selections] is keyed by the enquiry group api key
-  /// (`serviceType` / `typesOfWork` / `servicesOffered`); each value is the
-  /// list of options the customer ticked. Sent as-is in the request body.
-  Future<bool> submitServiceEnquiry({
-    required String providerId,
-    required Map<String, List<String>> selections,
-    required String note,
-    List<String> photoPaths = const [],
-  }) async {
-    try {
-      isServiceEnquiryLoading.value = true;
-      AppLoader.show();
-
-      if (_useServiceEnquiryStub) {
-        await Future.delayed(const Duration(milliseconds: 600));
-        return true;
-      }
-
-      // Only non-empty arrays (filtered upstream) + a non-empty note are sent,
-      // mirroring the server-side "at least one selection or a note" gating.
-      final body = <String, dynamic>{
-        ApiKeys.provider_id: providerId,
-        ...selections,
-        if (note.trim().isNotEmpty) ApiKeys.note: note.trim(),
-      };
-      final response = await DiscoverRepo()
-          .sendServiceEnquiry(params: body, photoPaths: photoPaths);
-      if (!response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
-    } finally {
-      AppLoader.hide();
-      isServiceEnquiryLoading.value = false;
-    }
-  }
-
-  /// Segment query key → enquiry-body apiKey + display title for the dynamic
-  /// enquiry options. The segments are fetched from the predefined-category API
-  /// per the provider's profession so the customer picks profession-relevant
-  /// choices (electrician / plumber / …) instead of static data.
-  static const List<Map<String, String>> _enquiryOptionSegments = [
-    {'segment': 'serviceTypes', 'apiKey': 'serviceType', 'title': 'Service Type'},
-    {'segment': 'typesOfWork', 'apiKey': 'typesOfWork', 'title': 'Type of Work'},
-    {
-      'segment': 'workCategories',
-      'apiKey': 'workCategories',
-      'title': 'Work Categories'
-    },
-    {
-      'segment': 'servicesOffered',
-      'apiKey': 'servicesOffered',
-      'title': 'Services Offered'
-    },
-  ];
-
-  /// Per-profession cache so the enquiry sheet never refetches the same
-  /// profession — across providers, tab switches, and re-opens. Keyed by the
-  /// category slug (e.g. ELECTRICIAN). [_enquiryOptionsInflight] dedupes
-  /// concurrent callers (e.g. a prefetch racing with an open) onto one request.
-  final Map<String, List<Map<String, dynamic>>> _enquiryOptionsCache = {};
-  final Map<String, Future<List<Map<String, dynamic>>>>
-      _enquiryOptionsInflight = {};
-
-  /// Warm the cache for a profession [category] without awaiting — called when
-  /// a profession tab loads so the Enquire sheet opens instantly later and the
-  /// same profession is never fetched twice.
-  void prefetchEnquiryOptions(String? category) {
-    final key = (category ?? '').trim();
-    if (key.isEmpty || _enquiryOptionsCache.containsKey(key)) return;
-    fetchEnquiryOptions(key);
-  }
-
-  /// Returns the predefined option catalog for a provider's profession
-  /// [category] as `{apiKey, title, options}` groups. Cached: a profession is
-  /// fetched at most once per session. An empty [category] yields an empty list.
-  Future<List<Map<String, dynamic>>> fetchEnquiryOptions(String category) async {
-    final key = category.trim();
-    if (key.isEmpty) return [];
-
-    final cached = _enquiryOptionsCache[key];
-    if (cached != null) return cached;
-    final inflight = _enquiryOptionsInflight[key];
-    if (inflight != null) return inflight;
-
-    final future = _fetchEnquiryOptionsFromApi(key);
-    _enquiryOptionsInflight[key] = future;
-    try {
-      final result = await future;
-      _enquiryOptionsCache[key] = result;
-      return result;
-    } finally {
-      _enquiryOptionsInflight.remove(key);
-    }
-  }
-
-  /// ONE network call — no `segment` param, so the backend returns the whole
-  /// predefined catalog for the profession; we split it client-side into the
-  /// enquiry segments.
-  Future<List<Map<String, dynamic>>> _fetchEnquiryOptionsFromApi(
-      String category) async {
-    Map<String, List<String>> bySegment = const {};
-    try {
-      final response = await DiscoverRepo().fetchPredefinedCategory(
-        professionCategory: category,
-        queryParams: const {},
-      );
-      if (response.isSuccess) {
-        bySegment = _parseAllPredefinedSegments(response.response?.data);
-      }
-    } catch (_) {}
-
-    final out = <Map<String, dynamic>>[];
-    for (final seg in _enquiryOptionSegments) {
-      final items = (bySegment[seg['segment']] ?? const <String>[])
-          .where((e) => e.trim().isNotEmpty)
-          .toList();
-      if (items.isNotEmpty) {
-        out.add({
-          'apiKey': seg['apiKey']!,
-          'title': seg['title']!,
-          'options': items,
-        });
-      }
-    }
-    return out;
-  }
-
-  /// Splits the all-segments predefined response into a `segment → options`
-  /// map. The response is a flat document keyed by segment, e.g.:
-  /// `{ "category":"LABOUR", "serviceTypes":[], "typesOfWork":[…],
-  ///    "workCategories":[…], "servicesOffered":[…], "expertise":[…] }`.
-  /// (A `data` envelope is unwrapped if present.)
-  Map<String, List<String>> _parseAllPredefinedSegments(dynamic data) {
-    final result = <String, List<String>>{};
-    dynamic root = data;
-    if (root is Map && root['data'] is Map) root = root['data'];
-    if (root is! Map) return result;
-    for (final seg in _enquiryOptionSegments) {
-      final v = root[seg['segment']];
-      if (v is List) {
-        result[seg['segment']!] = v.map((e) => e.toString()).toList();
-      }
-    }
-    return result;
-  }
-
-  // ── Professional-consultant enquiry options ─────────────────────────
-  // Consultants use a different predefined endpoint
-  // (`earn-service/predefined-professional/<slug>`) that returns a single
-  // `servicesOffered` segment. Cached per profession slug, same as self-work.
-  final Map<String, List<Map<String, dynamic>>> _consultantOptionsCache = {};
-  final Map<String, Future<List<Map<String, dynamic>>>>
-      _consultantOptionsInflight = {};
-
-  void prefetchConsultantEnquiryOptions(String? professionSlug) {
-    final key = (professionSlug ?? '').trim();
-    if (key.isEmpty || _consultantOptionsCache.containsKey(key)) return;
-    fetchConsultantEnquiryOptions(key);
-  }
-
-  /// Returns the consultant's predefined option groups (`Services Offered`)
-  /// as `{apiKey, title, options}` maps. Cached per profession slug.
-  Future<List<Map<String, dynamic>>> fetchConsultantEnquiryOptions(
-      String professionSlug) async {
-    final key = professionSlug.trim();
-    if (key.isEmpty) return [];
-
-    final cached = _consultantOptionsCache[key];
-    if (cached != null) return cached;
-    final inflight = _consultantOptionsInflight[key];
-    if (inflight != null) return inflight;
-
-    final future = _fetchConsultantOptionsFromApi(key);
-    _consultantOptionsInflight[key] = future;
-    try {
-      final result = await future;
-      _consultantOptionsCache[key] = result;
-      return result;
-    } finally {
-      _consultantOptionsInflight.remove(key);
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchConsultantOptionsFromApi(
-      String professionSlug) async {
-    var servicesOffered = const <String>[];
-    try {
-      final response =
-          await DiscoverRepo().fetchPredefinedProfession(professionSlug: professionSlug);
-      if (response.isSuccess) {
-        dynamic root = response.response?.data;
-        if (root is Map && root['data'] is Map) root = root['data'];
-        if (root is Map && root['servicesOffered'] is List) {
-          servicesOffered =
-              (root['servicesOffered'] as List).map((e) => e.toString()).toList();
-        }
-      }
-    } catch (_) {}
-
-    final items = servicesOffered.where((e) => e.trim().isNotEmpty).toList();
-    if (items.isEmpty) return [];
-    return [
-      {'apiKey': 'servicesOffered', 'title': 'Services Offered', 'options': items},
-    ];
-  }
-
-  /// Provider accepts / declines a service enquiry from the in-chat card.
-  /// [status] is 'accepted' or 'declined'. Returns true on success.
-  Future<bool> updateServiceEnquiryStatus({
-    required String enquiryId,
-    required String status,
-  }) async {
-    if (_useServiceEnquiryStub) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      return true;
-    }
-    try {
-      final response = await DiscoverRepo().updateServiceEnquiryStatus(
-        enquiryId: enquiryId,
-        params: {ApiKeys.status: status},
-      );
-      if (!response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
-    }
-  }
-
-  // ── Freshness guards (skip refetch on screen re-entry) ──────────────
-  // Keyed by the request params so changing the category/type refetches,
-  // while a back-and-return for the same selection reuses the loaded list.
-  final FetchCache _earnServiceCache = FetchCache();
-  final FetchCache _profConCache = FetchCache();
-  final FetchCache _rentalCache = FetchCache();
-
-  /// Radius (km) the earn-services search is scoped to — tightened to a real
-  /// "near you" area (was 1500 km, which is national-scale). The v2 Book-Home-
-  /// Services flow is location-first, so a tight radius is the point.
-  static final int _earnServiceRadiusKm = kmRadius200;
-
-  // ── Earn-discover location override (v2 entry screen) ─────────────────────
-  // The entry screen lets the user pick WHERE they want a service — the device
-  // location OR a searched place. That choice scopes the earn-services search
-  // for this flow only; it deliberately does NOT mutate the global
-  // `LocationService`, so unrelated screens keep their own location. Null here
-  // means "no explicit pick" → fall back to the global fix (device location).
-  double? earnDiscoverLat;
-  double? earnDiscoverLng;
-
-  /// Human-readable label for the picked location (e.g. "Lucknow, Uttar
-  /// Pradesh"), shown in the entry field + results header pill.
-  final RxString earnDiscoverLocationLabel = ''.obs;
-
-  /// Set the location the earn-services search should scope to. Pass all-null
-  /// to clear the override and fall back to the device fix.
-  void setEarnDiscoverLocation({double? lat, double? lng, String? label}) {
-    earnDiscoverLat = lat;
-    earnDiscoverLng = lng;
-    earnDiscoverLocationLabel.value = label ?? '';
-  }
-
-  /// The lat/lng the earn search resolves to: the explicit pick when set,
-  /// otherwise the global device fix.
-  double get _earnLat => earnDiscoverLat ?? LocationService.lat;
-  double get _earnLng => earnDiscoverLng ?? LocationService.lng;
-
-  // ── Local "saved provider" toggle (favorite star on the card) ─────────────
-  // There is no saved-providers backend yet, so this is an in-memory, session-
-  // only set that just fills the star. Persisting it is a future backend task.
-  final RxSet<String> locallySavedProviderIds = <String>{}.obs;
-
-  bool isProviderLocallySaved(String? id) =>
-      id != null && locallySavedProviderIds.contains(id);
-
-  void toggleProviderLocalSave(String? id) {
-    if (id == null || id.isEmpty) return;
-    if (locallySavedProviderIds.contains(id)) {
-      locallySavedProviderIds.remove(id);
-    } else {
-      locallySavedProviderIds.add(id);
-    }
-  }
-
-  /// Adds `lat` / `lng` / `radius` to an earn-services request — but only with
-  /// a real fix. `LocationService` reports 0,0 before the first fix resolves
-  /// (or when permission is denied), and sending that would scope the search
-  /// to the middle of the ocean and return nothing; omitting the params lets
-  /// the backend fall back to its unscoped behaviour instead.
-  void _addLocationParams(Map<String, dynamic> queryParams) {
-    final lat = _earnLat;
-    final lng = _earnLng;
-    if (lat == 0 && lng == 0) return;
-    queryParams[ApiKeys.lat] = lat;
-    queryParams[ApiKeys.lng] = lng;
-    queryParams[ApiKeys.radius] = _earnServiceRadiusKm;
-  }
-
-  /// Includes the coarse location: the results are now radius-scoped, so a
-  /// re-entry from a materially different place must refetch rather than reuse
-  /// the previous area's list. Rounded to ~1 km (2 dp) so ordinary GPS jitter
-  /// doesn't invalidate the cache on every screen open. Uses the picked
-  /// override when set so switching location forces a fresh fetch.
-  String get _earnServiceSignature =>
-      'earn|${selectedEarnServiceData.value?.slugId ?? ''}'
-      '|${_earnLat.toStringAsFixed(2)}'
-      ',${_earnLng.toStringAsFixed(2)}';
-  String get _profConSignature =>
-      'profCon|${selectedProfessionalConsultantData.value?.slugId ?? ''}';
-
-  /// Fetch self-work services only when the cached list is missing/stale for
-  /// the current category. Use on screen entry; category taps call
-  /// [fetchEarnServices] directly to force a refresh.
-  Future<void> fetchEarnServicesIfNeeded(
-      {required String earnServiceType, required String subType}) async {
-    if (_earnServiceCache.isFresh(_earnServiceSignature,
-        hasData: earnServiceList.isNotEmpty)) {
-      return;
-    }
-    await fetchEarnServices(
-        earnServiceType: earnServiceType, subType: subType);
-  }
-
-  /// Freshness-guarded variant of [fetchProfessionalConsultantServices].
-  Future<void> fetchProfessionalConsultantServicesIfNeeded() async {
-    if (_profConCache.isFresh(_profConSignature,
-        hasData: professionalConsDataList.isNotEmpty)) {
-      return;
-    }
-    await fetchProfessionalConsultantServices();
-  }
-
-  /// Freshness-guarded variant of [fetchRentalServices].
-  Future<void> fetchRentalServicesIfNeeded(
-      {required RentalServiceType rentalServiceType}) async {
-    final sig = 'rental|${rentalServiceType.apiValue}';
-    if (_rentalCache.isFresh(sig, hasData: rentalServices.isNotEmpty)) return;
-    await fetchRentalServices(rentalServiceType: rentalServiceType);
-  }
-
-  /// fetch Earn service
-  Future<void> fetchEarnServices(
-      {required String earnServiceType,
-        required String subType,
-        bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isEarnServiceLoadingMore.value || !hasMoreEarnServiceData) {
-        return;
-      }
-      isEarnServiceLoadingMore.value = true;
-    } else {
-      earnServiceList.clear();
-      isEarnServiceLoading.value = true;
-      earnServicePage = 1;
-      hasMoreEarnServiceData = true;
-    }
-
-    final Map<String, dynamic> queryParams = {
-      ApiKeys.type: earnServiceType,
-      ApiKeys.subType: subType,
-      ApiKeys.page: earnServicePage,
-      ApiKeys.limit: limit,
-    };
-    // Location-scope the search so the list is providers near the user rather
-    // than every provider in the country. Sent only when we actually have a
-    // fix — posting 0,0 would scope the search to the Gulf of Guinea and come
-    // back empty.
-    _addLocationParams(queryParams);
-    if (selectedEarnServiceData.value != null) {
-      queryParams[ApiKeys.category] = selectedEarnServiceData.value?.slugId;
-    }
-
-    // Silently warm the enquiry-options cache for this profession so the
-    // Enquire bottom sheet opens instantly and the same profession is never
-    // fetched again (across providers / tab switches).
-    if (!isLoadMore) {
-      prefetchEnquiryOptions(selectedEarnServiceData.value?.slugId);
-    }
-
-    // Response-time trace for the earn-services list — uncomment to measure
-    // again. Wraps the repo call only, so it reports the network round-trip +
-    // decode, NOT the distance pass below. See
-    // docs/backend/EARN_SERVICES_MAP_PERFORMANCE_GUIDE.md.
-    // final sw = Stopwatch()..start();
-    ResponseModel response =
-    await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
-    // sw.stop();
-    // log('EARN_SERVICES_API: list took ${sw.elapsedMilliseconds}ms '
-    //     '(page=$earnServicePage, category=${selectedEarnServiceData.value?.slugId ?? '-'}, '
-    //     'lat=${queryParams[ApiKeys.lat] ?? '-'}, lng=${queryParams[ApiKeys.lng] ?? '-'}, '
-    //     'radius=${queryParams[ApiKeys.radius] ?? '-'}, success=${response.isSuccess})');
-
-    try {
-      if (response.isSuccess) {
-        selfProfessionServiceResponse.value = ApiResponse.complete(response);
-
-        final responseModel =
-        ServiceModelResponse.fromJson(response.response?.data);
-
-        List<ServiceData> tempNewItems = [];
-
-        for (var service in responseModel.services ?? []) {
-          if (service.data != null && service.data!.isNotEmpty) {
-            for (ServiceData item in service.data!) {
-              // Distance comes from the server (`distanceKm`) now that the
-              // request carries lat/lng. Only fall back to the shared
-              // [calculateDistance] when it didn't — that reads the fix
-              // LocationService already holds.
-              //
-              // This used to `await getDistanceInKm(...)` per item, and that
-              // helper asks the platform for a FRESH best-accuracy GPS fix on
-              // every call: 20 serial fixes ran AFTER the response landed, so
-              // the list kept spinning long after the data was in memory.
-              if (item.distance == null) {
-                final lat = item.userLocation?.lat?.toDouble();
-                final lng = item.userLocation?.lon?.toDouble();
-                if (lat != null && lng != null && !(lat == 0 && lng == 0)) {
-                  item.distance = calculateDistance(lat, lng);
-                }
-              }
-              tempNewItems.add(item);
-            }
-          }
-        }
-
-        if (tempNewItems.length < limit) {
-          hasMoreEarnServiceData = false;
-        }
-
-        if (isLoadMore) {
-          earnServiceList.addAll(tempNewItems);
-        } else {
-          earnServiceList.assignAll(tempNewItems);
-          _earnServiceCache.mark(_earnServiceSignature);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          earnServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          selfProfessionServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      }
-    } catch (e, s) {
-      print('stack trace --> $s');
-      selfProfessionServiceResponse.value = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (isLoadMore) {
-        isEarnServiceLoadingMore.value = false;
-      } else {
-        isEarnServiceLoading.value = false;
-      }
-    }
-  }
-
-  /// Loads ALL earn services (unpaginated) for the map view. Uses the same
-  /// `fetchSelfWorkServices` endpoint as the list, but with a high limit
-  /// and no pagination so every provider with valid lat/lng can be
-  /// rendered as a map marker. Distance is intentionally not recomputed
-  /// here — it's only useful in the list view and would slow this call
-  /// down significantly when there are hundreds of providers.
-  Future<void> fetchAllEarnServicesForMap({
-    required String earnServiceType,
-    required String subType,
-  }) async {
-    earnServiceMapResponse.value = ApiResponse.initial('Initial');
-
-    final queryParams = <String, dynamic>{
-      ApiKeys.type: earnServiceType,
-      ApiKeys.subType: subType,
-      ApiKeys.page: 1,
-      ApiKeys.limit: 1000,
-    };
-    _addLocationParams(queryParams);
-    if (selectedEarnServiceData.value != null) {
-      queryParams[ApiKeys.category] = selectedEarnServiceData.value?.slugId;
-    }
-
-    try {
-      // Response-time trace — uncomment alongside the one in
-      // [fetchEarnServices] when profiling this endpoint.
-      // final sw = Stopwatch()..start();
-      final response =
-      await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
-      // sw.stop();
-      // log('EARN_SERVICES_API: map took ${sw.elapsedMilliseconds}ms '
-      //     '(limit=1000, category=${selectedEarnServiceData.value?.slugId ?? '-'}, '
-      //     'lat=${queryParams[ApiKeys.lat] ?? '-'}, lng=${queryParams[ApiKeys.lng] ?? '-'}, '
-      //     'radius=${queryParams[ApiKeys.radius] ?? '-'}, success=${response.isSuccess})');
-      if (!response.isSuccess) {
-        earnServiceMapResponse.value =
-            ApiResponse.error(response.message ?? 'error');
-        return;
-      }
-      final responseModel =
-      ServiceModelResponse.fromJson(response.response?.data);
-      final all = <ServiceData>[];
-      for (final service in responseModel.services ?? []) {
-        if (service.data != null) {
-          all.addAll(service.data!);
-        }
-      }
-      earnServiceMapList.assignAll(all);
-      earnServiceMapResponse.value = ApiResponse.complete(response);
-    } catch (e) {
-      earnServiceMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  /// Loads ALL professional consultants (unpaginated) for the v2 map view.
-  /// Same `professionalSearch` endpoint as the list, with a high limit and no
-  /// pagination so every consultant with usable coords can become a marker.
-  ///
-  /// Deliberately sends NO lat/lng/radius: unlike the self-work endpoint, the
-  /// consultant search is not location-scoped server-side (it returns no
-  /// `distanceKm` either — the screens compute distance client-side). Adding
-  /// params the API doesn't read would only invite confusion.
-  Future<void> fetchAllProfessionalConsForMap() async {
-    professionalConsMapResponse.value = ApiResponse.initial('Initial');
-
-    final queryParams = <String, dynamic>{
-      if (selectedProfessionalConsultantData.value?.slugId != null)
-        "profession": selectedProfessionalConsultantData.value?.slugId,
-      ApiKeys.page: 1,
-      ApiKeys.limit: 1000,
-    };
-
-    try {
-      final response = await DiscoverRepo()
-          .fetchProfessionalConsServices(queryParams: queryParams);
-      if (!response.isSuccess) {
-        professionalConsMapResponse.value =
-            ApiResponse.error(response.message ?? 'error');
-        return;
-      }
-      final responseModel =
-          ProfessionalConsResModel.fromJson(response.response?.data);
-      professionalConsMapList.assignAll(responseModel.data ?? []);
-      professionalConsMapResponse.value = ApiResponse.complete(response);
-    } catch (e) {
-      professionalConsMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  /// fetch Earn service
-  Future<void> fetchFoodRestaurantService({bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isFoodRestaurantLoadingMore.value || !hasMoreFoodRestaurantData) {
-        return;
-      }
-      isFoodRestaurantLoadingMore.value = true;
-    } else {
-      foodRestaurantDataList.clear();
-      isFoodRestaurantLoading.value = true;
-      foodRestaurantServicePage = 1;
-      hasMoreFoodRestaurantData = true;
-    }
-
-    ResponseModel response = await SchoolRepo().getSearchFoodRepo(
-        reqParm: selectedFoodServiceData.value?.slugId ?? "");
-
-    try {
-      if (response.isSuccess) {
-        // foodRestaurantServiceResponse.value = ApiResponse.complete(response);
-        final responseModel =
-        FoodRestaurantServiceModel.fromJson(response.response?.data);
-
-        List<FoodData> tempNewItems = responseModel.data ?? [];
-        if (tempNewItems.length < limit) {
-          hasMoreFoodRestaurantData = false;
-        }
-
-        if (isLoadMore) {
-          foodRestaurantDataList.addAll(tempNewItems);
-        } else {
-          foodRestaurantDataList.assignAll(tempNewItems);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          foodRestaurantServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          // foodRestaurantServiceResponse.value = ApiResponse.error('error');
-        }
-      }
-    } catch (e, s) {
-      print('stack trace --> $s');
-      // foodRestaurantServiceResponse.value = ApiResponse.error('error');
-    } finally {
-      if (isLoadMore) {
-        isFoodRestaurantLoadingMore.value = false;
-      } else {
-        isFoodRestaurantLoading.value = false;
-      }
-    }
-  }
-
-  /// Fetches education-category businesses (colleges, schools, etc.) using the
-  /// shared `business/filter` endpoint. The category slug
-  /// (e.g. `COLLEGE_UNIVERSITY`) comes from [selectedEducationServiceData].
-  ///
-  /// The endpoint returns business records (see [BusinessFilterResModel]).
-  /// Each is adapted into a [SchoolDetailsData] via [_businessToSchoolDetail]
-  /// so the existing UI (`AllEducationServiceScreen`, `DiscoverSchoolHomeScreen`,
-  /// `SchoolAboutUsController`) keeps working without a parallel rewrite —
-  /// they all consume `schoolDetailsDataDataList`.
-  Future<void> fetchEducationServiceServices({bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isEducationServiceLoadingMore.value || !hasMoreEducationServiceData) {
-        return;
-      }
-      isEducationServiceLoadingMore.value = true;
-    } else {
-      // NOT cleared here. `assignAll` below already replaces the list in one
-      // atomic step when the response lands, so this only ever blanked the
-      // screen for the length of a round trip — and a blank list has no scroll
-      // extent, so the viewport collapses to one screen and the position is
-      // clamped to zero. Every non-paging caller paid for that: switching
-      // category, retrying after an empty result, and submitting a rating
-      // (which reloads) all threw the reader back to the top.
-      isEducationServiceLoading.value = true;
-      educationServicePage = 1;
-      hasMoreEducationServiceData = true;
-    }
-
-    final Map<String, dynamic> queryParams = {
-      if (selectedEducationServiceData.value?.slugId != null)
-        ApiKeys.category: selectedEducationServiceData.value?.slugId,
-      if (selectedEducationServiceData.value?.slugId == null)
-        "typeOfBusiness": "Siksha",
-      ApiKeys.page: educationServicePage,
-      ApiKeys.limit: limit,
-    };
-
-    try {
-      final ResponseModel response = await DiscoverRepo()
-          .fetchBusinessFilterRepo(queryParams: queryParams);
-
-      if (response.isSuccess) {
-        final responseModel =
-        BusinessFilterResModel.fromJson(response.response?.data);
-
-        final List<BusinessFilterData> rawItems = responseModel.data ?? [];
-        final List<SchoolDetailsData> tempNewItems =
-        rawItems.map((b) => b.toSchoolDetail()).toList();
-
-        // Pagination: prefer the server's totalPages signal when available,
-        // and fall back to the page-size heuristic used elsewhere in this
-        // controller for consistency.
-        final pagination = responseModel.pagination;
-        if (pagination?.totalPages != null && pagination?.page != null) {
-          if (pagination!.page! >= pagination.totalPages!) {
-            hasMoreEducationServiceData = false;
-          }
-        } else if (tempNewItems.length < limit) {
-          hasMoreEducationServiceData = false;
-        }
-
-        if (isLoadMore) {
-          schoolDetailsDataDataList.addAll(tempNewItems);
-        } else {
-          schoolDetailsDataDataList.assignAll(tempNewItems);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          educationServicePage++;
-        }
-      }
-    } catch (e, s) {
-      print('stack trace --> $s');
-    } finally {
-      if (isLoadMore) {
-        isEducationServiceLoadingMore.value = false;
-      } else {
-        isEducationServiceLoading.value = false;
-      }
-    }
-  }
-
-  Future<void> fetchProfessionalConsultantServices(
-      {bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isProfConServiceLoadingMore.value || !hasMoreProfConServiceData) {
-        return;
-      }
-      isProfConServiceLoadingMore.value = true;
-    } else {
-      professionalConsDataList.clear();
-      isProfConServiceLoading.value = true;
-      profConsServicePage = 1;
-      hasMoreProfConServiceData = true;
-    }
-
-    final Map<String, dynamic> queryParams = {
-      if (selectedProfessionalConsultantData.value?.slugId != null)
-        "profession": selectedProfessionalConsultantData.value?.slugId,
-      ApiKeys.page: profConsServicePage,
-      ApiKeys.limit: limit,
-    };
-
-    // Silently warm the consultant enquiry-options cache for this profession so
-    // the Enquire sheet opens instantly and the same profession isn't refetched.
-    if (!isLoadMore) {
-      prefetchConsultantEnquiryOptions(
-          selectedProfessionalConsultantData.value?.slugId);
-    }
-
-    ResponseModel response = await DiscoverRepo()
-        .fetchProfessionalConsServices(queryParams: queryParams);
-
-    try {
-      if (response.isSuccess) {
-        profConProfessionServiceResponse.value = ApiResponse.complete(response);
-        final responseModel =
-        ProfessionalConsResModel.fromJson(response.response?.data);
-
-        List<ProfessionalConsData> tempNewItems = responseModel.data ?? [];
-        if (tempNewItems.length < limit) {
-          hasMoreProfConServiceData = false;
-        }
-
-        if (isLoadMore) {
-          professionalConsDataList.addAll(tempNewItems);
-        } else {
-          professionalConsDataList.assignAll(tempNewItems);
-          _profConCache.mark(_profConSignature);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          profConsServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          profConProfessionServiceResponse.value = ApiResponse.error('error');
-        }
-      }
-    } catch (e, s) {
-      print('stack trace --> $s');
-      profConProfessionServiceResponse.value = ApiResponse.error('error');
-    } finally {
-      if (isLoadMore) {
-        isProfConServiceLoadingMore.value = false;
-      } else {
-        isProfConServiceLoading.value = false;
-      }
-    }
-  }
-
-  /// Fetch ONE self-employed earn-service by its owner [userId] for the visit
-  /// flow (where we only have an author id, not a list item). Parses
-  /// defensively because the by-user endpoint's envelope isn't pinned down:
-  /// it may return the list `{services:[{data:[...]}]}` shape, a `{data:{…}}`
-  /// wrapper, or the bare service object.
-  Future<ServiceData?> getEarnServiceByUserId(String userId) async {
-    try {
-      final res = await DiscoverRepo().fetchEarnServiceByUserId(userId);
-      if (!res.isSuccess) return null;
-      final data = res.response?.data;
-      if (data is! Map<String, dynamic>) return null;
-
-      // The by-user endpoint (`earn-service/services/user/{id}`) returns RAW
-      // service documents, not the grouped Discover-list envelope:
-      //   { "services": [ { _id, providerDetails:{…owner…}, expertise:[],
-      //                      serviceType:[], timings:[], availability, … } ] }
-      // The owner sits under `providerDetails` and the service arrays sit at
-      // the top level of each document — a different shape from the list
-      // response ({ services:[{profession, data:[ServiceData]}], professions }).
-      // Feeding it to ServiceModelResponse threw (its `data[]` is absent and
-      // `professions` is missing), so the old code fell through to null and the
-      // screen showed "No data found". Remap the first document into the flat
-      // ServiceData the screen renders instead.
-      final services = data['services'];
-      if (services is List) {
-        for (final doc in services) {
-          if (doc is Map<String, dynamic>) {
-            return _serviceDataFromEarnDoc(doc);
-          }
-        }
-        return null;
-      }
-
-      final inner = data['data'];
-      if (inner is Map<String, dynamic>) return ServiceData.fromJson(inner);
-      if (inner is List && inner.isNotEmpty) {
-        return ServiceData.fromJson(inner.first);
-      }
-      return ServiceData.fromJson(data);
-    } catch (e, s) {
-      log('getEarnServiceByUserId error: $e\n$s');
-      return null;
-    }
-  }
-
-  /// Maps ONE raw earn-service document (from `earn-service/services/user/{id}`)
-  /// into the flat [ServiceData] the discover self-employee screen expects.
-  /// The owner is nested under `providerDetails` (whose keys already match the
-  /// user-level fields ServiceData reads), the service detail arrays live at
-  /// the document's top level (so they map straight into the nested `service`
-  /// [ServiceInfo]), photos sit on the document, and price is the migrated
-  /// top-level `priceRange{min,max}` + `feeType` folded back into `priceData`.
-  ServiceData _serviceDataFromEarnDoc(Map<String, dynamic> doc) {
-    final provider = (doc['providerDetails'] as Map<String, dynamic>?) ??
-        const <String, dynamic>{};
-    final merged = <String, dynamic>{
-      // Owner / user-level fields — providerDetails uses the same JSON keys
-      // ServiceData.fromJson reads (id, name, contact_no, profile_image,
-      // skills, projects, experiences, …), so a spread hydrates them directly.
-      ...provider,
-      'category': doc['category'],
-      // Gallery photos live on the service document, not the provider.
-      'serviceMedia': {'photos': doc['photos'] ?? const <String>[]},
-      // ServiceInfo reads timings / expertise / serviceType / serviceOffered /
-      // typesOfWork / workCategories / whyChooseMe / facilities / availability
-      // straight off the service document.
-      'service': doc,
-      // Price migrated to a top-level priceRange{min,max} + feeType; fold it
-      // back into the priceData shape PriceData.fromJson understands.
-      if (doc['priceRange'] != null || doc['feeType'] != null)
-        'priceData': {
-          'feeType': doc['feeType'],
-          'priceRange': doc['priceRange'],
-        },
-    };
-    return ServiceData.fromJson(merged);
-  }
-
-  /// Fetch ONE professional/consultant by [userId] (search filtered to one,
-  /// first result) for the visit flow.
-  Future<ProfessionalConsData?> getProfessionalByUserId(String userId) async {
-    try {
-      final res = await DiscoverRepo().fetchProfessionalByUserId(userId);
-      if (!res.isSuccess) return null;
-      final parsed = ProfessionalConsResModel.fromJson(res.response?.data);
-      final list = parsed.data ?? [];
-      return list.isNotEmpty ? list.first : null;
-    } catch (e, s) {
-      log('getProfessionalByUserId error: $e\n$s');
-      return null;
-    }
-  }
-
   Future<String> getOrderTypeString() async {
     switch (selectedHorizontalTab.value) {
       case 0:
@@ -1388,7 +281,7 @@ class DiscoverController extends GetxController {
       }
       return null;
     } catch (e) {
-      print("Post code from coordinates error: $e");
+      debugLog("Post code from coordinates error: $e");
       return null;
     }
   }
@@ -1417,7 +310,7 @@ class DiscoverController extends GetxController {
         }
       }
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       final pincode = await getPostCodeFromCoordinates(
         position.latitude,
@@ -1425,7 +318,7 @@ class DiscoverController extends GetxController {
       );
       return pincode ?? '';
     } catch (e) {
-      print("Current location post code error: $e");
+      debugLog("Current location post code error: $e");
       return '';
     }
   }
@@ -1860,7 +753,7 @@ class DiscoverController extends GetxController {
     final socket = ChatSocketService();
 
     socket.listenEvent('ride:broadcast:searching', (data) {
-      print('[BROADCAST] ride:broadcast:searching → $data');
+      debugLog('[BROADCAST] ride:broadcast:searching → $data');
       // Fan out FIRST. `ChatSocketService.listenEvent` replaces any existing
       // handler for an event name, so an order card cannot register its own
       // `ride:broadcast:*` listener without silently killing this one. These
@@ -1888,7 +781,7 @@ class DiscoverController extends GetxController {
     // poll hydrates the real one, and a placeholder would be what the tracking
     // card renders if the full payload never lands.
     socket.listenEvent('ride:broadcast:accepted', (data) {
-      print('[BROADCAST] ride:broadcast:accepted → $data');
+      debugLog('[BROADCAST] ride:broadcast:accepted → $data');
       OrderBroadcastController.instance.onAccepted(data);
       if (_isStaleFareCallEvent(data)) return;
       final riderId = (data is Map ? data['riderId'] : null)?.toString() ?? '';
@@ -1900,7 +793,7 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:broadcast:exhausted', (data) {
-      print('[BROADCAST] ride:broadcast:exhausted → $data');
+      debugLog('[BROADCAST] ride:broadcast:exhausted → $data');
       OrderBroadcastController.instance.onExhausted(data);
       if (_isStaleFareCallEvent(data)) return;
       _markMultiShopBroadcastExhausted();
@@ -2310,7 +1203,7 @@ class DiscoverController extends GetxController {
     if (evOrderId.isEmpty || currentOrderId.isEmpty) return false;
     final stale = evOrderId != currentOrderId;
     if (stale) {
-      print('[FARE_CALL_QUEUE] ⚠️ dropping stale event for order $evOrderId '
+      debugLog('[FARE_CALL_QUEUE] ⚠️ dropping stale event for order $evOrderId '
           '(active order is $currentOrderId)');
     }
     return stale;
@@ -2321,7 +1214,7 @@ class DiscoverController extends GetxController {
     final socket = ChatSocketService();
 
     socket.listenEvent('ride:queue:calling', (data) {
-      print('[FARE_CALL_QUEUE] ride:queue:calling → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:queue:calling → $data');
       // A broadcast order is a silent wave race — there is no rider-by-rider
       // WebRTC call to join. Auto-joining one here would open a call room for
       // a ride the customer never dialled.
@@ -2346,13 +1239,13 @@ class DiscoverController extends GetxController {
         iceServers = [];
       }
 
-      print(
+      debugLog(
           '[FARE_CALL_DEBUG] ride:queue:calling → callId=$callId, roomId=$roomId, riderId=$riderId, iceServers count=${iceServers.length}');
-      print('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
+      debugLog('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
 
       if (callId.isNotEmpty && roomId.isNotEmpty && riderId.isNotEmpty) {
         final callController = CallController.instance;
-        print(
+        debugLog(
             '[FARE_CALL_DEBUG] ride:queue:calling → CallController current status=${callController.callStatus.value}');
         callController.joinFareCallAsCustomer(
           fareCallId: callId,
@@ -2362,13 +1255,13 @@ class DiscoverController extends GetxController {
           iceServers: iceServers,
         );
       } else {
-        print(
+        debugLog(
             '[FARE_CALL_DEBUG] ride:queue:calling → ⚠️ MISSING DATA: callId=$callId, roomId=$roomId, riderId=$riderId — cannot join call!');
       }
     });
 
     socket.listenEvent('ride:queue:accepted', (data) {
-      print('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
       // Stale-order guard: a delayed accepted event from a PREVIOUS order
       // (cancelled mid-queue, then rebooked) must not touch the current
       // ride's state — most critically the OTPs. Overwriting the new order's
@@ -2417,14 +1310,14 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:queue:exhausted', (data) {
-      print('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
       isFareCallInProgress.value = false;
       fareCallAcceptedRiderInfo.value = null;
       commonSnackBar(message: 'No riders available. Please try again.');
     });
 
     socket.listenEvent('ride:started', (data) {
-      print('[FARE_CALL_QUEUE] ride:started → $data');
+      debugLog('[FARE_CALL_QUEUE] ride:started → $data');
       // Stale-order guard: a delayed started event for a previous order must
       // not flip the CURRENT ride to "started" (which hides the pickup OTP
       // card before the rider ever verified it).
@@ -2435,7 +1328,7 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:completed', (data) {
-      print('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
+      debugLog('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
       // Stale-order guard — see ride:started above.
       if (_isStaleFareCallEvent(data)) return;
       isFareCallRideCompleted.value = true;
@@ -2532,7 +1425,7 @@ class DiscoverController extends GetxController {
               fareCallDeliveryOtp.value = deliveryOtp;
               fareCallOtpOrderId = orderId;
             }
-            print('[FARE_CALL_QUEUE] ride-started detected via status poll '
+            debugLog('[FARE_CALL_QUEUE] ride-started detected via status poll '
                 '(status=$status) → isFareCallRideStarted=true');
           }
           // Keep polling — we still need to catch completion.
@@ -2556,7 +1449,7 @@ class DiscoverController extends GetxController {
       Get.find<RideNavigationOverlayController>().clearRideData();
     }
     OngoingRideStore.clear();
-    print('[FARE_CALL_QUEUE] ride-completed detected via status poll → '
+    debugLog('[FARE_CALL_QUEUE] ride-completed detected via status poll → '
         'isFareCallRideCompleted=true');
   }
 
@@ -2672,234 +1565,6 @@ class DiscoverController extends GetxController {
     OngoingRideStore.clear();
   }
 
-  /// Loads ALL rentals (unpaginated) for the map view.
-  Future<void> fetchAllRentalsForMap({
-    required RentalServiceType rentalServiceType,
-  }) async {
-    staysMapResponse.value = ApiResponse.initial('Initial');
-    final queryParams = <String, dynamic>{
-      ApiKeys.type: rentalServiceType.apiValue,
-      ApiKeys.radius: kmRadius1500,
-      ApiKeys.page: 1,
-      ApiKeys.limit: 1000,
-    };
-    try {
-      final response =
-      await DiscoverRepo().getRentalService(queryParams: queryParams);
-      if (!response.isSuccess) {
-        staysMapResponse.value = ApiResponse.error(response.message ?? 'error');
-        return;
-      }
-      final model = RentalServiceResponse.fromJson(response.response!.data);
-      rentalServicesMapList.assignAll(model.data ?? []);
-      hotelServicesMapList.clear();
-      staysMapResponse.value = ApiResponse.complete(response);
-    } catch (e) {
-      staysMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  /// Loads ALL hotels (unpaginated) for the map view.
-  Future<void> fetchAllHotelsForMap({required String category}) async {
-    staysMapResponse.value = ApiResponse.initial('Initial');
-    final queryParams = <String, dynamic>{
-      "categoryOfBusiness":category,
-      // ApiKeys.category: category,
-      ApiKeys.page: 1,
-      ApiKeys.limit: 1000,
-    };
-    try {
-      final response =
-      await DiscoverRepo().fetchHotelSearchRepo(queryParams: queryParams);
-      if (!response.isSuccess) {
-        staysMapResponse.value = ApiResponse.error(response.message ?? 'error');
-        return;
-      }
-      final model = HotelSearchModelResponse.fromJson(response.response!.data);
-      hotelServicesMapList.assignAll(model.data ?? []);
-      rentalServicesMapList.clear();
-      staysMapResponse.value = ApiResponse.complete(response);
-    } catch (e) {
-      staysMapResponse.value = ApiResponse.error(e.toString());
-    }
-  }
-
-  Future<void> fetchRentalServices(
-      {required RentalServiceType rentalServiceType,
-        bool isLoadMore = false}) async {
-    try {
-      if (isLoadMore) {
-        log('more rental data -- $hasMoreRentalServiceData');
-        if (isRentalServiceLoadingMore.value || !hasMoreRentalServiceData) {
-          return;
-        }
-        isRentalServiceLoadingMore.value = true;
-      } else {
-        rentalServices.clear();
-        isRentalServiceLoading.value = true;
-        rentalServicePage = 1;
-        hasMoreRentalServiceData = true;
-      }
-
-      Map<String, dynamic> queryParams = {
-        ApiKeys.type: rentalServiceType.apiValue,
-        // ApiKeys.lat: lat,
-        // ApiKeys.lng: lng,
-        ApiKeys.radius: kmRadius1500,
-        ApiKeys.page: rentalServicePage,
-        ApiKeys.limit: limit,
-      };
-
-      final response = await DiscoverRepo().getRentalService(
-        queryParams: queryParams,
-      );
-
-      if (response.isSuccess) {
-        rentalServiceResponse.value = ApiResponse.complete(response);
-
-        final responseModel =
-        RentalServiceResponse.fromJson(response.response!.data);
-
-        final List<RentalServiceData> tempNewItems = responseModel.data ?? [];
-
-        if (tempNewItems.length < limit) {
-          hasMoreRentalServiceData = false;
-        }
-
-        if (isLoadMore) {
-          rentalServices.addAll(tempNewItems);
-        } else {
-          rentalServices.assignAll(tempNewItems);
-          _rentalCache.mark('rental|${rentalServiceType.apiValue}');
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          rentalServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          rentalServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      }
-    } catch (e) {
-      rentalServiceResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-      // commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (isLoadMore) {
-        isRentalServiceLoadingMore.value = false;
-      } else {
-        isRentalServiceLoading.value = false;
-      }
-    }
-  }
-
-  Future<void> fetchHotelServices(
-      {required String category, bool isLoadMore = false}) async {
-    try {
-      if (isLoadMore) {
-        log('more rental data -- $hasMoreRentalServiceData');
-        if (isRentalServiceLoadingMore.value || !hasMoreRentalServiceData) {
-          return;
-        }
-        isRentalServiceLoadingMore.value = true;
-      } else {
-        hotelServices.clear();
-        isRentalServiceLoading.value = true;
-        rentalServicePage = 1;
-        hasMoreRentalServiceData = true;
-      }
-
-      Map<String, dynamic> queryParams = {
-        "categoryOfBusiness":category,
-
-        // ApiKeys.category: category,
-        ApiKeys.page: rentalServicePage,
-        ApiKeys.limit: limit,
-      };
-
-      final response = await DiscoverRepo().fetchHotelSearchRepo(
-        queryParams: queryParams,
-      );
-
-      if (response.isSuccess) {
-        rentalServiceResponse.value = ApiResponse.complete(response);
-
-        final responseModel =
-        HotelSearchModelResponse.fromJson(response.response!.data);
-
-        final List<HotelServiceData> tempNewItems = responseModel.data ?? [];
-
-        if (tempNewItems.length < limit) {
-          hasMoreRentalServiceData = false;
-        }
-
-        if (isLoadMore) {
-          hotelServices.addAll(tempNewItems);
-        } else {
-          hotelServices.assignAll(tempNewItems);
-        }
-
-        if (tempNewItems.isNotEmpty) {
-          rentalServicePage++;
-        }
-      } else {
-        if (!isLoadMore) {
-          rentalServiceResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      }
-    } catch (e) {
-      rentalServiceResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      if (isLoadMore) {
-        isRentalServiceLoadingMore.value = false;
-      } else {
-        isRentalServiceLoading.value = false;
-      }
-    }
-  }
-
-  /// Fetches a single hotel (profile + rooms) by its owner [businessId].
-  ///
-  /// Backs the `https://beapp.in/app/hotel/<businessId>` deep link, which
-  /// opens [HotelDiscoverHomeScreen] — that screen needs a fully-hydrated
-  /// [HotelServiceData], not just an id. Uses the hotel search endpoint
-  /// filtered to the one business (mirroring [fetchProfessionalByUserId]) and
-  /// matches the result client-side so an unfiltered response can't return the
-  /// wrong hotel. Returns null when nothing matches.
-  Future<HotelServiceData?> fetchHotelByBusinessId(String businessId) async {
-    try {
-      final response = await DiscoverRepo().fetchHotelSearchRepo(
-        queryParams: {
-          ApiKeys.businessId: businessId,
-          ApiKeys.page: 1,
-          ApiKeys.limit: 50,
-        },
-      );
-      if (!response.isSuccess) return null;
-      final model = HotelSearchModelResponse.fromJson(response.response!.data);
-      final list = model.data ?? [];
-      if (list.isEmpty) return null;
-      for (final hotel in list) {
-        if (hotel.businessId == businessId ||
-            hotel.profile?.businessId == businessId) {
-          return hotel;
-        }
-      }
-      // Only fall back to the sole result when the endpoint already narrowed
-      // it down — never guess from a multi-item, unfiltered list.
-      return list.length == 1 ? list.first : null;
-    } catch (e) {
-      log('fetchHotelByBusinessId error: $e');
-      return null;
-    }
-  }
 }
 
 class ParcelCategoryModel {

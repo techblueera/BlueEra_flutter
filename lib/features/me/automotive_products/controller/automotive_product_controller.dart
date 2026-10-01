@@ -39,6 +39,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
 import '../model/automotive_sub_category_root_category_response.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotiveAddProductViaAiRequest {
   final String? productName;
@@ -508,7 +509,7 @@ class AutomotiveProductController extends GetxController{
   }
 
   bool _validate(ProviderType providerType) {
-    if(step1Images.length < 1) {
+    if(step1Images.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseTakeMinimumOneProductImage.tr);
       return false;
     }
@@ -589,7 +590,7 @@ class AutomotiveProductController extends GetxController{
         generateAiProductContentResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print('stack trace-- $s');
+      debugLog('stack trace-- $s');
       generateAiProductContentResponse.value = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
     }
@@ -785,7 +786,7 @@ class AutomotiveProductController extends GetxController{
         createProductResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print('stack trace-- $s');
+      debugLog('stack trace-- $s');
       createProductResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -1008,7 +1009,7 @@ class AutomotiveProductController extends GetxController{
   void navigateToInventorySectionAfterAddProduct() {
 
     Get.until((route) {
-      print("🔍 Scanning route → ${route.settings.name}");
+      debugLog("🔍 Scanning route → ${route.settings.name}");
 
       // STOP when this route matches
       if(route.settings.name == RouteHelper.getAutomotivePartsScreenRoute()) return route.settings.name == RouteHelper.getAutomotivePartsScreenRoute();
@@ -1384,11 +1385,11 @@ class AutomotiveProductController extends GetxController{
         final singleProductModel = AutomotiveSingleProductModel.fromJson(response.response!.data);
         singleProductData.value = singleProductModel.data;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         singleProductDetailsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isSingleProductLoading.value = false;
       singleProductDetailsResponse.value = ApiResponse.error('error');

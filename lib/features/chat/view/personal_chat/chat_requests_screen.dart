@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/ChatRequestsListModel.dart';
@@ -34,7 +33,7 @@ class ChatRequestsScreen extends StatefulWidget {
 
 class _ChatRequestsScreenState extends State<ChatRequestsScreen>
     with SingleTickerProviderStateMixin {
-  final ChatViewController _controller = getOrPut(() => ChatViewController());
+  final ChatViewController _controller = ChatViewController.to;
   late final TabController _tabController;
 
   @override

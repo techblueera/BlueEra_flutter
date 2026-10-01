@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
@@ -21,7 +20,7 @@ class AdminAllTopSellingProductsScreen extends StatefulWidget {
 class _AdminAllTopSellingProductsScreenState
     extends State<AdminAllTopSellingProductsScreen> {
   final InventoryController controller =
-      getOrPut<InventoryController>(() => InventoryController());
+      InventoryController.to;
   final ScrollController _scrollController = ScrollController();
 
   @override

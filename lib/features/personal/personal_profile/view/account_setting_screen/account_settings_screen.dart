@@ -403,7 +403,7 @@ Widget buildToggleSwitch({
     child: Switch(
       value: value.value,
       onChanged: (val) => onChanged(),
-      activeColor: AppColors.primaryColor,
+      activeThumbColor: AppColors.primaryColor,
       activeTrackColor: AppColors.primaryColor.withValues(alpha: 0.3),
       inactiveTrackColor: Colors.grey[300],
       inactiveThumbColor: Colors.grey[400],
@@ -420,7 +420,7 @@ Widget buildToggleSwitchChip({
     child: Switch(
       value: value.value,
       onChanged: (val) => onChanged(),
-      activeColor: AppColors.white,
+      activeThumbColor: AppColors.white,
       activeTrackColor: AppColors.primaryColor,
       inactiveTrackColor: Colors.grey[300],
       inactiveThumbColor: Colors.grey[400],

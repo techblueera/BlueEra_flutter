@@ -27,6 +27,7 @@ import '../model/symbol_interaction_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../repo/symbol_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 enum PostVisibility { public, private, custom }
 
@@ -200,7 +201,7 @@ class AddChatSymbolController extends GetxController {
     final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: path));
 
     if (trimmedPath != null) {
-      print("✅ Trimmed Video Path: $trimmedPath");
+      debugLog("✅ Trimmed Video Path: $trimmedPath");
       choosePostType(SymbolPostType.video);
       await setVideoFile(File(trimmedPath));
     }
@@ -357,7 +358,7 @@ class AddChatSymbolController extends GetxController {
         if (selectedSymbolPostType.value == SymbolPostType.text ||
             selectedSymbolPostType.value == SymbolPostType.link)
           ApiKeys.backgroundColor:
-              "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
+              "#${selectedBgColor.value.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
         if (selectedSymbolPostType.value == SymbolPostType.text)
           ApiKeys.fontFamily: selectedFontFamily.value,
         if (selectedSymbolPostType.value == SymbolPostType.text)

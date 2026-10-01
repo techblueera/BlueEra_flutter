@@ -1,11 +1,10 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/profession_consultant_discover_screen_v2.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -25,8 +24,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// a "Where you Want?" location selector (device location OR a searched place),
 /// and a profession grid.
 ///
-/// Picking a category stamps the chosen location onto [DiscoverController] as a
-/// per-flow override (see [DiscoverController.setEarnDiscoverLocation]) — the
+/// Picking a category stamps the chosen location onto [ProfessionalDiscoverController] as a
+/// per-flow override (see [ProfessionalDiscoverController.setEarnDiscoverLocation]) — the
 /// global [LocationService] is left untouched — then pushes the results list
 /// ([ProfessionConsultantDiscoverScreenV2]) scoped to that place, which repeats
 /// the same map-backdrop + draggable-sheet shape for continuity.
@@ -34,7 +33,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// Note the consultant search endpoint is not location-scoped server-side, so
 /// the picked place drives the map camera, the header pill and the client-side
 /// distance/Nearest sort rather than the query itself. See
-/// [DiscoverController.fetchAllProfessionalConsForMap].
+/// [ProfessionalDiscoverController.fetchAllProfessionalConsForMap].
 class ProfessionConsultantDiscoverEntryScreen extends StatefulWidget {
   final List<ProfessionTypeData> professionalConsultantCategories;
 
@@ -50,7 +49,7 @@ class ProfessionConsultantDiscoverEntryScreen extends StatefulWidget {
 
 class _ProfessionConsultantDiscoverEntryScreenState
     extends State<ProfessionConsultantDiscoverEntryScreen> {
-  final _controller = getOrPut(() => DiscoverController());
+  final _controller = ProfessionalDiscoverController.to;
 
   GoogleMapController? _mapController;
 

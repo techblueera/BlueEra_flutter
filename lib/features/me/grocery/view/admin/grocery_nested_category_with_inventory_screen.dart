@@ -206,11 +206,11 @@ class _GroceryNestedCategoryWithInventoryScreenState
                     SizedBox(width: SizeConfig.size8),
                     CustomText(
                       choice.name?.tr,
-                      color: choice == _argArrGroceryCatKey
+                      color: choice.key == _argArrGroceryCatKey
                           ? AppColors
                               .primaryColor // Use your AppColors for consistency
                           : AppColors.black,
-                      fontWeight: choice == _argArrGroceryCatKey
+                      fontWeight: choice.key == _argArrGroceryCatKey
                           ? FontWeight.bold
                           : FontWeight.normal,
                     )

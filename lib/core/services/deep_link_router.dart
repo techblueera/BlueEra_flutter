@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
+import 'package:BlueEra/features/me/laboratory/binding/visited_lab_binding.dart';
 import 'dart:async';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
@@ -8,7 +10,6 @@ import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
@@ -40,6 +41,7 @@ import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Routes an incoming deeplink / QR URL to the screen it names.
 ///
@@ -172,7 +174,7 @@ class DeepLinkRouter {
       }
 
       final segments = uri.pathSegments; // e.g., [app, post, 123]
-      print("segments==== ${segments}");
+      debugLog("segments==== ${segments}");
 
       // Education (school) share/QR links carry an extra `education` segment:
       //   https://beapp.in/app/business/education/<id>
@@ -419,7 +421,7 @@ class DeepLinkRouter {
     else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | product | profile | …
         final id = segments[2];
-print("type==== ${type}");
+debugLog("type==== ${type}");
 
         // `chat/new` is the one id slot that is NOT an ObjectId.
         //
@@ -556,7 +558,7 @@ print("type==== ${type}");
             // It also fills in the owner's avatar and contact number, which
             // the link does not carry, so the app bar is not half-empty.
             if (isNewChat) {
-              final opened = await getOrPut(() => ChatViewController())
+              final opened = await ChatViewController.to
                   .checkChatConnectionAndOpenChat(
                 userId: chatUserId,
                 name: chatName.isNotEmpty ? chatName : null,
@@ -627,7 +629,7 @@ print("type==== ${type}");
         }
       }
     } on Exception catch (e) {
-      print(e.toString());
+      debugLog(e.toString());
     }
   }
 
@@ -712,7 +714,8 @@ print("type==== ${type}");
   /// lab list ([LabProfilesListScreen]).
   static void _openLaboratory(String id) {
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-    Get.to(() => LabDetailScreen(businessId: id));
+    Get.to(() => LabDetailScreen(businessId: id),
+        binding: VisitedLabBinding(businessId: id));
   }
 
   /// Opens [FinanceDetailScreen] for a finance business reached via deep link /
@@ -829,7 +832,7 @@ print("type==== ${type}");
         // `service` opens the screen already hydrated; if the fetch returns
         // null we still hand over `userId` so the screen self-fetches and
         // shows its own loader/empty state.
-        final controller = getOrPut(() => DiscoverController());
+        final controller = ProfessionalDiscoverController.to;
         final ServiceData? service =
             await controller.getEarnServiceByUserId(id);
         Get.to(() => SelfEmployeeViewDiscoverScreen(
@@ -854,7 +857,7 @@ print("type==== ${type}");
   /// business reached via deep link / QR scan
   /// (`https://beapp.in/app/business/services/<userId>`). The link carries the
   /// owner (user) id used when the listing was shared. The screen fetches its
-  /// own [ProfessionalConsData] via `DiscoverController.getProfessionalByUserId`
+  /// own [ProfessionalConsData] via `ProfessionalDiscoverController.getProfessionalByUserId`
   /// in its initState (registering the controller itself), so passing the id as
   /// `userId` is enough to hydrate the full view — mirroring the in-app tap flow
   /// from the Discover professionals list.

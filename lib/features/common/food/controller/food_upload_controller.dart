@@ -22,6 +22,7 @@ import '../view/add_food_screen.dart';
 import '../../reel/repo/channel_repo.dart';
 import '../model/get_food_details_model.dart';
 import '../model/upload_food_load_url_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PriceOption {
   TextEditingController labelController;
@@ -202,7 +203,7 @@ class FoodUploadController extends GetxController {
         ApiKeys.images: imageByPart,
       };
 
-      final ResponseModel responseModel = await FoodAiRepo().aiFoodGenerateRepo(params: reqParm); ;
+      final ResponseModel responseModel = await FoodAiRepo().aiFoodGenerateRepo(params: reqParm);
 
       if (responseModel.isSuccess) {
         foodAiResponseModel.value =
@@ -425,11 +426,11 @@ class FoodUploadController extends GetxController {
         final singleFoodDetailsModel = GetFoodDetailsModel.fromJson(response.response!.data);
         singleFoodServiceData.value = singleFoodDetailsModel;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         singleFoodServiceDataResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       singleFoodServiceDataResponse.value = ApiResponse.error('error');
     } finally {
       isSingleFoodServiceLoading.value = false;

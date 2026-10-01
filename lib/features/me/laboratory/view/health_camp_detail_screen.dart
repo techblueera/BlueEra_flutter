@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
-import 'package:BlueEra/features/me/laboratory/repo/health_camp_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/health_camp_form_screen.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -16,15 +15,10 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
+/// The lab owner's health camp: shows it, or the empty state with a CTA to
+/// create one.
 class HealthCampDetailScreen extends StatefulWidget {
-  final bool isOwnProfile;
-  final String? labId;
-
-  const HealthCampDetailScreen({
-    super.key,
-    this.isOwnProfile = true,
-    this.labId,
-  });
+  const HealthCampDetailScreen({super.key});
 
   @override
   State<HealthCampDetailScreen> createState() => _HealthCampDetailScreenState();
@@ -34,65 +28,16 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
   HealthCampController? controller;
   bool _isDescExpanded = false;
 
-  // For another lab's camp (read-only mode).
-  HealthCamp? _otherCamp;
-  bool _isOtherLoading = false;
-
   @override
   void initState() {
     super.initState();
-    if (widget.isOwnProfile) {
-      if (!Get.isRegistered<HealthCampController>()) {
-        controller = Get.put(HealthCampController(), permanent: true);
-      } else {
-        controller = Get.find<HealthCampController>();
-      }
-      controller!.fetchCampFullDetails();
-    } else {
-      _fetchOtherUserCamp();
-    }
-  }
-
-  Future<void> _fetchOtherUserCamp() async {
-    setState(() => _isOtherLoading = true);
-    try {
-      final res = await HealthCampRepo().getHealthCampsByLab(widget.labId!);
-      if (res.isSuccess) {
-        final List data = res.getExtraData('data') ?? [];
-        if (data.isNotEmpty && mounted) {
-          setState(() => _otherCamp = HealthCamp.fromJson(data.last));
-        }
-      }
-    } catch (e) {
-      debugPrint("Error fetching other user camp: $e");
-    } finally {
-      if (mounted) setState(() => _isOtherLoading = false);
-    }
+    controller = HealthCampController.to;
+    controller!.fetchCampFullDetails();
   }
 
   @override
   Widget build(BuildContext context) {
-    return widget.isOwnProfile
-        ? _buildOwnProfileScreen()
-        : _buildOtherProfileScreen();
-  }
-
-  // ---------- Other lab (read-only) ----------------------------------------
-
-  Widget _buildOtherProfileScreen() {
-    return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.healthCamp.tr),
-      body: _isOtherLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _otherCamp == null
-              ? Center(
-                  child: CustomText(
-                    AppStrings.noHealthCampsFound.tr,
-                    color: AppColors.greyA5,
-                  ),
-                )
-              : _buildCampBody(_otherCamp!),
-    );
+    return _buildOwnProfileScreen();
   }
 
   // ---------- Own lab (editable) -------------------------------------------

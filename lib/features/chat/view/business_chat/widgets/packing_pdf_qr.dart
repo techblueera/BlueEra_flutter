@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:ui' as ui;
 
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
@@ -64,7 +63,7 @@ Future<PackingPaymentQr?> buildShopOwnerPaymentQr({
 /// The QR image the owner uploaded via the "My Payment QR" sheet.
 Future<PackingPaymentQr?> _registeredScanner() async {
   try {
-    final controller = getOrPut(() => PaymentQrController());
+    final controller = PaymentQrController.to;
     if (controller.myQrs.isEmpty) {
       await controller.loadMyQrs();
     }

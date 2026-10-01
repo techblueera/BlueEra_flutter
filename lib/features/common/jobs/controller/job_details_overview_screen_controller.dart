@@ -76,11 +76,6 @@ class JobDetailsOverviewController extends GetxController {
     documentPath?.value = "";
   }
 
-  @override
-  void onClose() {
-
-    super.onClose();
-  }
 
 
   void showSuccessfulDialog() {

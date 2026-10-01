@@ -13,6 +13,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/Discover/controller/rider_location_poll_controller.dart';
 import '../../call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class TrackRiderLiveLocationPage extends StatefulWidget {
   const TrackRiderLiveLocationPage(
@@ -243,7 +244,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
       } else {
         // Null means throttled or failed — keep whatever line is already drawn
         // rather than clearing the map.
-        print("NO ROUTE THIS TICK: ${result?.errorMessage ?? 'throttled'}");
+        debugLog("NO ROUTE THIS TICK: ${result?.errorMessage ?? 'throttled'}");
       }
     } finally {
       _fetchingRoute = false;
@@ -438,7 +439,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
       );
     });
     } catch (e) {
-      print('Error updating live location: $e');
+      debugLog('Error updating live location: $e');
     }
   }
 

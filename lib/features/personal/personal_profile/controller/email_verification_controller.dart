@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class EmailVerificationController extends GetxController {
   ApiResponse verifyEmailResponse = ApiResponse.initial('Initial');
@@ -28,10 +29,10 @@ class EmailVerificationController extends GetxController {
         endpoint,
         showProgress: true,
         onError: (error) {
-          print("Email verification failed: $error");
+          debugLog("Email verification failed: $error");
         },
         onSuccess: (res) {
-          print("Email verification response: ${res.response?.data}");
+          debugLog("Email verification response: ${res.response?.data}");
         },
       );
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class LocationModel {
   final double? latitude;
@@ -43,7 +44,7 @@ Future<void> openGoogleMaps({LocationModel? locationModel}) async {
     }
     commonSnackBar(message: "No valid location or address found for this job.");
   } catch (e) {
-    print('Error opening Google Maps: $e');
+    debugLog('Error opening Google Maps: $e');
     commonSnackBar(message: 'Could not open Google Maps: $e');
   } finally {
     safeBack(); // Always close loading dialog

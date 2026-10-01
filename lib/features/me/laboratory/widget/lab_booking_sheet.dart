@@ -9,59 +9,14 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_booking_controller.dart';
-import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
+import 'package:BlueEra/features/me/laboratory/model/lab_booking_models.dart';
+import 'package:BlueEra/features/me/laboratory/service/lab_test_catalog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Snapshot of the laboratory being booked with. Denormalised so the
-/// sheet header (and the eventual chat card) renders without a fetch.
-class LabBookingListing {
-  final String laboratoryId; // LaboratoryProfile._id — required by API
-  final String ownerId; // opens the customer↔lab chat after submit
-  final String labName;
-  final String? labImage;
-  final String? location;
-
-  const LabBookingListing({
-    required this.laboratoryId,
-    required this.ownerId,
-    required this.labName,
-    this.labImage,
-    this.location,
-  });
-}
-
-/// One selectable test in the picker — slim projection of [PathologyTest]
-/// so the widget doesn't couple to the model tree. Server-side snapshots
-/// name/price/reportHours from the `PathologyTest._id`, so only `id` is
-/// mandatory on the wire.
-class LabBookingTestOption {
-  final String id;
-  final String name;
-  final int? price;
-  final int? reportHours;
-  final String? category;
-
-  const LabBookingTestOption({
-    required this.id,
-    required this.name,
-    this.price,
-    this.reportHours,
-    this.category,
-  });
-
-  factory LabBookingTestOption.fromPathology(PathologyTest t) =>
-      LabBookingTestOption(
-        id: (t.id ?? '').trim(),
-        name: (t.testName ?? '').trim(),
-        price: t.customerPrice,
-        reportHours: t.estimatedReportHours,
-        category: t.collection,
-      );
-}
+export 'package:BlueEra/features/me/laboratory/model/lab_booking_models.dart';
 
 /// Customer-side bottom sheet for the lab-**booking** flow
 /// (`POST /laboratory-bookings`). Opened from:
@@ -74,60 +29,11 @@ class LabBookingTestOption {
 class LabBookingSheet {
   LabBookingSheet._();
 
-  /// Session cache of a lab's tests, keyed by laboratoryId. Filled by
-  /// callers that already have the catalog (e.g. the lab detail screen)
-  /// so the enquiry-first flow — where the sheet is opened from a chat
-  /// card that doesn't itself hold the tests — can still render a real
-  /// picker instead of an empty state.
-  static final Map<String, List<LabBookingTestOption>> _testsCache = {};
-
+  /// Remembers a lab's tests so the enquiry-first flow can show a real
+  /// picker. See [LabTestCatalog].
   static void cacheTestsForLab(
-      String laboratoryId, List<LabBookingTestOption> tests) {
-    final id = laboratoryId.trim();
-    if (id.isEmpty) return;
-    if (tests.isEmpty) {
-      // Don't blow away a good cache with an empty list.
-      if (!_testsCache.containsKey(id)) _testsCache[id] = const [];
-    } else {
-      _testsCache[id] = List.unmodifiable(tests);
-    }
-    log('[LAB_BOOKING] cacheTestsForLab labId=$id '
-        'tests=${tests.length} (cache size=${_testsCache.length})');
-  }
-
-  /// On-demand fetch for the enquiry-first flow (cold start from a chat
-  /// card): hits `getPathologyTestsByLab(labId, '')` and maps into the
-  /// slim option shape.
-  static Future<List<LabBookingTestOption>> _fetchTestsForLab({
-    required String laboratoryId,
-  }) async {
-    final key = laboratoryId.trim();
-    if (key.isEmpty) return const [];
-    final cached = _testsCache[key];
-    if (cached != null && cached.isNotEmpty) return cached;
-    try {
-      final res = await LabTestRepo().getPathologyTestsByLab(key, '');
-      if (!res.isSuccess) {
-        log('[LAB_BOOKING] _fetchTestsForLab labId=$key '
-            'failed: ${res.message}');
-        return const [];
-      }
-      final data = res.response?.data;
-      final list = (data is Map ? data['data'] : null);
-      if (list is! List) return const [];
-      final options = list
-          .whereType<Map>()
-          .map((m) => LabBookingTestOption.fromPathology(
-              PathologyTest.fromJson(Map<String, dynamic>.from(m))))
-          .where((o) => o.id.isNotEmpty)
-          .toList();
-      cacheTestsForLab(key, options);
-      return options;
-    } catch (e, s) {
-      log('[LAB_BOOKING] _fetchTestsForLab error labId=$key: $e\n$s');
-      return const [];
-    }
-  }
+          String laboratoryId, List<LabBookingTestOption> tests) =>
+      LabTestCatalog.remember(laboratoryId, tests);
 
   static void open(
     BuildContext context, {
@@ -141,7 +47,7 @@ class LabBookingSheet {
       return;
     }
     final key = listing.laboratoryId.trim();
-    final cached = _testsCache[key];
+    final cached = LabTestCatalog.cached(key);
     final tests = (availableTests != null && availableTests.isNotEmpty)
         ? availableTests
         : (cached ?? const <LabBookingTestOption>[]);
@@ -195,7 +101,7 @@ class LabBookingSheet {
     );
     if (bookingId == null) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
       name: listing.labName,
@@ -263,9 +169,7 @@ class _LabBookingFormState extends State<_LabBookingForm> {
 
   Future<void> _loadTests() async {
     setState(() => _isLoadingTests = true);
-    final fetched = await LabBookingSheet._fetchTestsForLab(
-      laboratoryId: widget.listing.laboratoryId,
-    );
+    final fetched = await LabTestCatalog().fetch(widget.listing.laboratoryId);
     if (!mounted) return;
     setState(() {
       _tests = fetched;

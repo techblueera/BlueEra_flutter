@@ -232,11 +232,11 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           bool isInventoryInStack = false;
 
           // First check entire stack WITHOUT popping it
-          Get.routeTree.routes.forEach((route) {
+          for (var route in Get.routeTree.routes) {
             if (route.name == RouteHelper.getProductScreenRoute()) {
               isInventoryInStack = true;
             }
-          });
+          }
 
           // Case 1: Inventory exists → pop until product
           if (isInventoryInStack) {

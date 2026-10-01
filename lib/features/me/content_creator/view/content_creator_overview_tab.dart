@@ -63,7 +63,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
 
   final _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-  final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
+  final _personalCtrl = PersonalCreateProfileController.to;
   final _earnCtrl = getOrPut(() => EarnArtistController());
 
   @override

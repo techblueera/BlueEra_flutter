@@ -58,8 +58,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
     return StatefulBuilder(
       builder: (context, setState) {
         // ✅ Start timer only once
-        if (timer == null) {
-          timer = Timer.periodic(const Duration(seconds: 1), (t) {
+        timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
             if (remainingSeconds > 0) {
               setState(() => remainingSeconds--);
             } else {
@@ -70,7 +69,6 @@ class WaitingForPaymentDialog extends StatelessWidget {
               );
             }
           });
-        }
 
         String formatTime(int seconds) {
           int minutes = seconds ~/ 60;

@@ -1,4 +1,3 @@
-import 'dart:convert'; // Added for jsonEncode
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart'; // Fixed import path for ApiKeys
@@ -6,17 +5,13 @@ import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
-import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step3.dart';
-import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step_4.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -27,171 +22,33 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Step 1 of the job flow. Opened through
+/// [RouteHelper.getCreateJobPostScreenRoute], whose CreateJobPostBinding
+/// provides the flow's controllers.
 class CreateJobPostScreen extends StatefulWidget {
-  final bool isEditMode;
-  final String jobId;
-  final String createJobVia;
-
-  const CreateJobPostScreen({
-    super.key,
-    this.isEditMode = false,
-    this.jobId = '',
-    this.createJobVia = '',
-  });
+  const CreateJobPostScreen({super.key});
 
   @override
   State<CreateJobPostScreen> createState() => _CreateJobPostScreenState();
 }
 
 class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
-  late CreateJobPostController createJobPostController;
+  final createJobPostController = Get.find<CreateJobPostController>();
+  Worker? _formLoaded;
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize controller with proper disposal of existing instance
-    deleteIfRegistered<CreateJobPostController>();
-    // Steps 3 and 4 register their own controllers, but they belong to this
-    // flow like the main one: a new post must not open with the previous
-    // post's walk-in, dates and preferences.
-    deleteIfRegistered<JobPostStep3Controller>();
-    deleteIfRegistered<JobPostStep4Controller>();
-    createJobPostController = Get.put(CreateJobPostController());
-
-    // Always reset controller state first to ensure clean state
-    createJobPostController.resetControllerState();
-
-    // Only fetch job details if in edit mode and jobId is provided
-    if (widget.isEditMode && widget.jobId.isNotEmpty) {
-      print('Will fetch job details for jobId: ${widget.jobId}');
-
-      // Fetch job details and populate form fields
-      createJobPostController.fetchJobDetails(widget.jobId).then((_) {
-        // Populate form fields
-        createJobPostController.addressEditController.text =
-            createJobPostController
-                    .jobDetails.value?.job?.location?.addressString ??
-                "";
-        createJobPostController.companyNameController.text =
-            createJobPostController.jobDetails.value?.job?.companyName ?? "";
-        createJobPostController.companyAddressController.text =
-            createJobPostController
-                    .jobDetails.value?.job?.location?.addressString ??
-                "";
-        createJobPostController.jobTitleController.text =
-            createJobPostController.jobDetails.value?.job?.jobTitle ?? "";
-        createJobPostController.departmentController.text =
-            createJobPostController.jobDetails.value?.job?.department ?? "";
-        createJobPostController.jobDescriptionController.text =
-            createJobPostController.jobDetails.value?.job?.jobDescription ?? "";
-        createJobPostController.jobType.value =
-            createJobPostController.jobDetails.value?.job?.jobType ?? "";
-        createJobPostController.workMode.value =
-            createJobPostController.jobDetails.value?.job?.workMode ?? "";
-        createJobPostController.payType.value =
-            createJobPostController.jobDetails.value?.job?.compensation?.type ??
-                "";
-        createJobPostController.maxSalaryController.text =
-            createJobPostController
-                    .jobDetails.value?.job?.compensation?.maxSalary
-                    .toString() ??
-                "";
-        createJobPostController.minSalaryController.text =
-            createJobPostController
-                    .jobDetails.value?.job?.compensation?.minSalary
-                    .toString() ??
-                "";
-
-        // Initialize benefits (compensation perks)
-        if (createJobPostController.jobDetails.value?.job?.benefits != null &&
-            createJobPostController
-                .jobDetails.value!.job!.benefits!.isNotEmpty) {
-          createJobPostController.selectedCompensationPerks.clear();
-          createJobPostController.selectedCompensationPerks
-              .addAll(createJobPostController.jobDetails.value!.job!.benefits!);
-          createJobPostController.selectedJobDescriptionPerks.addAll(
-              createJobPostController.jobDetails.value!.job!.jobHighlights!);
-        } else {
-          createJobPostController.selectedCompensationPerks.clear();
-        }
-
-        try {
-          // Extract the JSON string from benefits[0][0]
-          final rawJsonString =
-              createJobPostController.jobDetails.value?.job?.benefits![0][0];
-
-          // Decode the string into a List<dynamic>
-          final decoded = jsonDecode(rawJsonString ?? "");
-
-          // Convert List<dynamic> to List<String>
-          final stringList = List<String>.from(decoded);
-
-          // Update your controller
-          createJobPostController.selectedCompensationPerks
-            ..clear()
-            ..addAll(stringList);
-        } catch (e) {
-          createJobPostController.selectedCompensationPerks.clear();
-
-          if (createJobPostController.jobDetails.value?.job?.jobHighlights !=
-                  null &&
-              createJobPostController
-                  .jobDetails.value!.job!.jobHighlights!.isNotEmpty) {
-            createJobPostController.selectedJobDescriptionPerks.clear();
-            createJobPostController.selectedJobDescriptionPerks.addAll(
-                createJobPostController.jobDetails.value!.job!.jobHighlights!);
-          } else {
-            createJobPostController.selectedJobDescriptionPerks.clear();
-          }
-
-          // Force UI update only if widget is still mounted
-          if (mounted) {
-// Mark data as loaded
-            setState(() {});
-          }
-        }
-      }).catchError((error) {});
-    } else {}
-
-    // Use addPostFrameCallback to ensure the controller is properly initialized
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Always set the edit mode based on widget parameter
-      createJobPostController.isEditMode.value = widget.isEditMode;
-
-      // Set job ID if in edit mode and jobId is provided
-      if (widget.isEditMode && widget.jobId.isNotEmpty) {
-        createJobPostController.jobID.value = widget.jobId;
-      } else {
-        // Reset controller state when not in edit mode
-        createJobPostController.resetControllerState();
-      }
-
-      // No longer using reactive listeners since we're using setState
-
-      // Debug logging
+    // An edit loads the job asynchronously; widgets that read the controller
+    // outside Obx need a rebuild once the form is filled.
+    _formLoaded = ever(createJobPostController.formRevision, (_) {
+      if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
-    // Dispose text controllers
-    if (Get.isRegistered<CreateJobPostController>()) {
-      createJobPostController.companyNameController.dispose();
-      createJobPostController.companyAddressController.dispose();
-      createJobPostController.jobTitleController.dispose();
-      createJobPostController.departmentController.dispose();
-      createJobPostController.minSalaryController.dispose();
-      createJobPostController.maxSalaryController.dispose();
-      createJobPostController.jobHighlightsController.dispose();
-      createJobPostController.jobDescriptionController.dispose();
-
-      // Clean up controller to prevent memory leaks
-      deleteIfRegistered<CreateJobPostController>();
-    }
-    deleteIfRegistered<JobPostStep3Controller>();
-    deleteIfRegistered<JobPostStep4Controller>();
-
+    _formLoaded?.dispose();
     super.dispose();
   }
 
@@ -710,7 +567,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                     children: [
                       Expanded(
                           child: CustomBtn(
-                        onTap: () {
+                        onTap: () async {
                           // Validate required fields including image
                           if (!createJobPostController.isEditMode.value &&
                               (_imagePath == null || _imagePath!.isEmpty)) {
@@ -846,56 +703,10 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             return;
                           }
 
-                          if (createJobPostController.isEditMode.value) {
-                            // In edit mode, call update API with job data
-                            final Map<String, dynamic> params = {
-                              ApiKeys.jobTitle: createJobPostController
-                                  .jobTitleController.text,
-                              ApiKeys.companyName: createJobPostController
-                                  .companyNameController.text,
-                              ApiKeys.jobType:
-                                  createJobPostController.jobType.value,
-                              ApiKeys.workMode:
-                                  createJobPostController.workMode.value,
-                              ApiKeys.department: createJobPostController
-                                  .departmentController.text,
-                              ApiKeys.jobDescription: createJobPostController
-                                  .jobDescriptionController.text,
-                              ApiKeys.benefits: jsonEncode(
-                                  createJobPostController
-                                      .selectedCompensationPerks),
-                              ApiKeys.jobHighlights: jsonEncode(
-                                  createJobPostController
-                                      .selectedJobDescriptionPerks),
-                              ApiKeys.compensationType:
-                                  createJobPostController.payType.value,
-                              ApiKeys.compensationMinSalary: int.tryParse(
-                                      createJobPostController
-                                          .minSalaryController.text) ??
-                                  0,
-                              ApiKeys.compensationMaxSalary: int.tryParse(
-                                      createJobPostController
-                                          .maxSalaryController.text) ??
-                                  0,
-                              ApiKeys.locationLatitude: createJobPostController
-                                      .startLocationLat?.value ??
-                                  0.0,
-                              ApiKeys.locationLongitude: createJobPostController
-                                      .startLocationLng?.value ??
-                                  0.0,
-                              ApiKeys.locationAddress: createJobPostController
-                                  .addressEditController.text,
-                              ApiKeys.postedBy: userId,
-                            };
-
-                            createJobPostController.updateJobPostDetailsApi(
-                              jobId: createJobPostController.jobID.value,
-                              params: params,
-                            );
-                          } else {
-                            createJobPostController.postJobApi(
-                                imagePath: _imagePath,
-                                createJobVia: widget.createJobVia);
+                          if (await createJobPostController.submitDetails(
+                              imagePath: _imagePath)) {
+                            Get.toNamed(
+                                RouteHelper.getCreateJobPostStep2Route());
                           }
                         },
                         title: createJobPostController.isEditMode.value

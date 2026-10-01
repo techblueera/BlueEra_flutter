@@ -48,7 +48,7 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer>
     } else if (widget.isFromFile == true && widget.filePath != null) {
       _controller = VideoPlayerController.file(widget.filePath!);
     } else {
-      _controller = VideoPlayerController.network(widget.videoUrl);
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
     }
 
     _controller.initialize().then((_) {

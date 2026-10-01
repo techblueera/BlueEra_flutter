@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -35,7 +33,8 @@ class QuickRiderBookScreen extends StatefulWidget {
 }
 
 class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
-  final _discoverController = getOrPut(() => DiscoverController());
+  final _discoverController = DiscoverController.to;
+  final _places = PlaceLookupService();
   final TextEditingController _searchController = TextEditingController();
 
   GoogleMapController? _mapController;
@@ -149,31 +148,12 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
       _isLoadingPredictions = true;
       _showPredictions = true;
     });
-    try {
-      final res = await PlaceRepo().autoCompleteSearch(query: query);
-      if (!mounted) return;
-      if (res.statusCode == 200) {
-        final data = res.response?.data;
-        final json = (data['predictions'] as List?) ?? [];
-        setState(() {
-          _predictions = PlacePrediction.fromList(json);
-          _isLoadingPredictions = false;
-        });
-      } else {
-        setState(() {
-          _predictions = [];
-          _isLoadingPredictions = false;
-        });
-      }
-    } catch (e) {
-      log('quick-book autocomplete error: $e');
-      if (mounted) {
-        setState(() {
-          _predictions = [];
-          _isLoadingPredictions = false;
-        });
-      }
-    }
+    final results = await _places.search(query);
+    if (!mounted) return;
+    setState(() {
+      _predictions = results;
+      _isLoadingPredictions = false;
+    });
   }
 
   Future<void> _selectPrediction(PlacePrediction prediction) async {
@@ -184,34 +164,23 @@ class _QuickRiderBookScreenState extends State<QuickRiderBookScreen> {
       _isResolvingDrop = true;
       _dropAddress = null;
     });
-    try {
-      final res = await PlaceRepo()
-          .getCompletePlaceDetails(placeId: prediction.placeId ?? '');
-      final details = PlaceDetailsResponse.fromJson(res.response?.data);
-      final loc = details.result?.geometry?.location;
-      final lat = loc?.lat;
-      final lng = loc?.lng;
-      if (lat == null || lng == null) {
-        commonSnackBar(message: 'Could not resolve that place, try another.');
-        if (mounted) setState(() => _isResolvingDrop = false);
-        return;
-      }
-      final target = LatLng(lat, lng);
-      // Move the map to the picked place; the centre pin now sits on it. Use the
-      // prediction's own description as the drop address (richer than a reverse
-      // geocode of the point).
-      _mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 16.0));
-      if (!mounted) return;
-      setState(() {
-        _dropLatLng = target;
-        _dropAddress = prediction.description ?? _dropAddress;
-        _isResolvingDrop = false;
-      });
-    } catch (e) {
-      log('quick-book place details error: $e');
-      if (mounted) setState(() => _isResolvingDrop = false);
+    final resolved = await _places.resolve(prediction.placeId);
+    if (resolved == null) {
       commonSnackBar(message: 'Could not resolve that place, try another.');
+      if (mounted) setState(() => _isResolvingDrop = false);
+      return;
     }
+    final target = LatLng(resolved.lat, resolved.lng);
+    // Move the map to the picked place; the centre pin now sits on it. Use the
+    // prediction's own description as the drop address (richer than a reverse
+    // geocode of the point).
+    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(target, 16.0));
+    if (!mounted) return;
+    setState(() {
+      _dropLatLng = target;
+      _dropAddress = prediction.description ?? _dropAddress;
+      _isResolvingDrop = false;
+    });
   }
 
   // ─── Booking ────────────────────────────────────────────────────────────

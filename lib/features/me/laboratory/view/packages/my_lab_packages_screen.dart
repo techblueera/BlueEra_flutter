@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_package_model.dart';
@@ -43,7 +42,7 @@ class _MyLabPackagesScreenState extends State<MyLabPackagesScreen> {
   static const Color _accent = AppColors.primaryColor;
 
   late final LabPackageController _pkgCtrl =
-      getOrPut(() => LabPackageController());
+      LabPackageController.to;
 
   @override
   void initState() {

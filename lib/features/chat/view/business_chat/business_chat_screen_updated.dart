@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
@@ -60,9 +59,9 @@ class BusinessChatScreenUpdated extends StatefulWidget {
 
 class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
     with WidgetsBindingObserver {
-  final chatViewController = getOrPut(() => ChatViewController());
-  final bottomBarController = getOrPut(() => BottomBarController());
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatViewController = ChatViewController.to;
+  final bottomBarController = BottomBarController.to;
+  final chatThemeController = ChatThemeController.to;
 
   final TextEditingController editingController = TextEditingController();
 

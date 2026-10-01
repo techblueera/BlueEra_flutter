@@ -11,7 +11,15 @@ import 'package:get/get.dart';
 /// specimen / collection / gender / package pickers) used by the test form
 /// and listing screens.
 class LabTestController extends GetxController {
-  final LabTestRepo _repo = LabTestRepo();
+  /// The signed-in lab's shared instance, registered on first use. Permanent:
+  /// the lab screens and tabs share it; logout deletes it.
+  static LabTestController get to => Get.isRegistered<LabTestController>()
+      ? Get.find<LabTestController>()
+      : Get.put(LabTestController(), permanent: true);
+
+  LabTestController({LabTestRepo? repo}) : _repo = repo ?? LabTestRepo();
+
+  final LabTestRepo _repo;
 
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
@@ -182,6 +190,31 @@ class LabTestController extends GetxController {
       logs("LabTestController.fetchPopularTests ERROR $e");
     } finally {
       isLoadingPopular.value = false;
+    }
+  }
+
+  /// Why the last [fetchAllTests] failed, or null.
+  String? allTestsError;
+
+  /// Every test this lab offers, across all categories (for the category
+  /// filter and the package test picker). Returns null when the fetch fails,
+  /// with the reason in [allTestsError].
+  Future<List<PathologyTest>?> fetchAllTests() async {
+    allTestsError = null;
+    try {
+      final ResponseModel res = await _repo.getPathologyTests('');
+      if (!res.isSuccess) {
+        allTestsError = res.message ?? 'Failed to load tests';
+        return null;
+      }
+      final List data = res.getExtraData('data') ?? [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(PathologyTest.fromJson)
+          .toList();
+    } catch (e) {
+      allTestsError = '$e';
+      return null;
     }
   }
 

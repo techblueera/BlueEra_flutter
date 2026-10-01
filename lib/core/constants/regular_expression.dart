@@ -161,6 +161,14 @@ class ValidationMethod {
     return RegExp(RegularExpressionUtils.linkRegex).hasMatch(url);
   }
 
+  /// An `https://` URL made only of URL-safe characters.
+  static final RegExp _httpsUrl =
+      RegExp(r"^https://[a-zA-Z0-9\-._~:/?#\[\]@!$&'()*+,;=%]+$");
+
+  /// Whether [url] is an HTTPS URL. The AI-chat link fields accept nothing
+  /// else.
+  static bool isHttpsUrl(String url) => _httpsUrl.hasMatch(url);
+
   static String? urlValidation(value, {bool isOptional = true}) {
     if (value == null || value.trim().isEmpty) {
       if (isOptional) return null;

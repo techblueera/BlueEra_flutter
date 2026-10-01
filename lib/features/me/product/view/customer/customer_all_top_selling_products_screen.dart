@@ -29,7 +29,7 @@ class CustomerAllTopSellingProductsScreen extends StatefulWidget {
 }
 
 class _CustomerAllTopSellingProductsScreenState extends State<CustomerAllTopSellingProductsScreen> {
-  final InventoryController controller = getOrPut<InventoryController>(() => InventoryController());
+  final InventoryController controller = InventoryController.to;
   final ScrollController _scrollController = ScrollController();
 
   late final ProductSelfPickupController _cartController;

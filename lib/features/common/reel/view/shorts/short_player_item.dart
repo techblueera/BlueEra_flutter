@@ -4,14 +4,12 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
+import 'package:BlueEra/features/common/reel/service/video_actions.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -31,6 +29,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -1042,18 +1041,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     }
     final wasFollowing = _isFollowing;
     setState(() => _isFollowing = !wasFollowing);
-    try {
-      final res = wasFollowing
-          ? await UserRepo().unfollowUser(followUserId: authorId)
-          : await UserRepo().followUser(followUserId: authorId);
-      if (!res.isSuccess) {
-        if (mounted) setState(() => _isFollowing = wasFollowing);
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isFollowing = wasFollowing);
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
+    final ok =
+        await VideoActions().setFollowing(authorId, follow: !wasFollowing);
+    if (!ok && mounted) setState(() => _isFollowing = wasFollowing);
   }
 
   Widget _buildBackButton() {
@@ -1234,7 +1224,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         subject: title,
       ));
     } catch (e) {
-      print("Video share failed: $e");
+      debugLog("Video share failed: $e");
     } finally {
       _isShortSharing = false; // Reset flag
     }

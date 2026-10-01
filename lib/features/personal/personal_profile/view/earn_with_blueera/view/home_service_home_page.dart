@@ -43,7 +43,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   @override
   void initState() {
     super.initState();
-    earnProfileController = getOrPut(() => EarnProfileController());
+    earnProfileController = EarnProfileController.to;
     serviceController = getOrPut(() => ServiceController());
     _fetchHomeServices();
   }

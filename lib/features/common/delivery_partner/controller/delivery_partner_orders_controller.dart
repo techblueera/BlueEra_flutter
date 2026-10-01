@@ -94,7 +94,7 @@ class DeliverPartnerOrdersController extends GetxController {
     log('[RIDER_ORDERS_STREAM] opening SSE connection…');
     ordersListResponse.value =
         ApiResponse.complete('');
-    stream = await getOrderFromUserStream();
+    stream = getOrderFromUserStream();
     subscription = stream.listen((event) {
       if (event is List) {
         log('[RIDER_ORDERS_STREAM] event received → ${event.length} order(s)');

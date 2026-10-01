@@ -53,9 +53,7 @@ class FeedVideoCard extends StatefulWidget {
 }
 
 class _FeedVideoCardState extends State<FeedVideoCard> {
-  final videoManager = Get.isRegistered<SimplePriorityVideoManager>()
-      ? Get.find<SimplePriorityVideoManager>()
-      : Get.put(SimplePriorityVideoManager());
+  final videoManager = SimplePriorityVideoManager.to;
 
   Post get post => widget.post;
 

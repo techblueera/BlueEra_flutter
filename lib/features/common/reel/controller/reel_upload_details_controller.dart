@@ -13,7 +13,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/features/common/reel/models/video_meta_data_response.dart';
@@ -23,6 +22,7 @@ import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ReelUploadDetailsController extends GetxController {
   ApiResponse uploadInitResponse = ApiResponse.initial('Initial');
@@ -239,7 +239,7 @@ class ReelUploadDetailsController extends GetxController {
             ));
           }
           if (isBusinessUser()) {
-            print('business userr herere..');
+            debugLog('business userr herere..');
             Get.to(() => BusinessOwnProfileScreen(
               selectedIndex: (video == Video.short) ? 4 : 5,
               sortBy: SortBy.UnderProgress,

@@ -20,6 +20,13 @@ import '../repo/wallet_repo.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class WalletController extends GetxController {
+  /// The signed-in account's instance, registered on first use. Permanent:
+  /// the drawer, wallet and share surfaces share it for the session; logout
+  /// deletes it (LogoutHelper._resetWalletAndReferralControllers).
+  static WalletController get to => Get.isRegistered<WalletController>()
+      ? Get.find<WalletController>()
+      : Get.put(WalletController(), permanent: true);
+
   // See-All list (supports status/type filters + pagination).
   Rx<WalletTransactionResponseModalClass> walletTransactionResponseModalClass=WalletTransactionResponseModalClass().obs;
 

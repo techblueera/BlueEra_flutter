@@ -213,13 +213,13 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
     final chat = ChatViewController.inventoryAiChatListSearchModule;
     Get.to(() => AiCommonSearchScreen(
           chatType: AppConstants.askInventory_Chat_Type,
-          profileImage: chat?.sender?.profileImage,
-          name: chat?.sender?.name,
-          contactNo: chat?.sender?.contactNo,
+          profileImage: chat.sender?.profileImage,
+          name: chat.sender?.name,
+          contactNo: chat.sender?.contactNo,
           conversationId: '',
           userId: '',
           businessId: '',
-          type: chat?.sender?.accountType,
+          type: chat.sender?.accountType,
           isInitialMessage: false,
         ));
   }

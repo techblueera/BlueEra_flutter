@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -223,7 +222,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     _replyFocusNode.unfocus();
 
     final chatViewController =
-        getOrPut(() => ChatViewController());
+        ChatViewController.to;
     final params = <String, dynamic>{
       ApiKeys.message_type: 'reply_to_symbol',
       ApiKeys.message: text,

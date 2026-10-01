@@ -2191,9 +2191,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isGroupAppBar == null&&isFromAiChat!=true)
         Builder(
           builder: (ctx) {
-            final flagCtrl = Get.isRegistered<ChatFlagController>()
-                ? Get.find<ChatFlagController>()
-                : Get.put(ChatFlagController());
+            final flagCtrl = ChatFlagController.to;
             return Obx(() {
               final existingFlag = flagCtrl.getFlagForConversation(conversationId);
               return InkWell(
@@ -2391,9 +2389,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 showExitGroupDialog(conversationId ?? '');
               } else if(value == "pin_group"){
                 // Pin/unpin from the conversation list.
-                final pinCtrl = Get.isRegistered<ChatPinArchiveController>()
-                    ? Get.find<ChatPinArchiveController>()
-                    : Get.put(ChatPinArchiveController());
+                final pinCtrl = ChatPinArchiveController.to;
                 pinCtrl.togglePin(conversationId ?? '');
                 commonSnackBar(message: "Group pin updated");
               }

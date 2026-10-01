@@ -68,7 +68,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     super.initState();
     tiffinController = getOrPut(() => TiffinController());
     foodController = getOrPut(() => HomeMadeFoodController());
-    earnProfileController = getOrPut(() => EarnProfileController());
+    earnProfileController = EarnProfileController.to;
     tiffinController.fetchAllMeals();
     foodController.fetchAllItems();
   }

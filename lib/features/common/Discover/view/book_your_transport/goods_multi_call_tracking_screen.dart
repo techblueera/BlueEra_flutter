@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
@@ -50,7 +49,7 @@ class GoodsMultiCallTrackingScreen extends StatefulWidget {
 class _GoodsMultiCallTrackingScreenState
     extends State<GoodsMultiCallTrackingScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
   late final CallController _callController;
 
   late AnimationController _pulseController;
@@ -601,8 +600,8 @@ class _GoodsMultiCallTrackingScreenState
     // restored (and re-verified via the order-status API) on relaunch.
     _persistOngoingRide();
     // Pop all screens until the bottom navigation bar
-    final bottomBarController = Get.put(BottomBarController());
-    final chatViewController = getOrPut(() => ChatViewController());
+    final bottomBarController = BottomBarController.to;
+    final chatViewController = ChatViewController.to;
     chatViewController.selectedChatTabIndex.value=1;
     bottomBarController.onChangeIndex(2);
     Get.until((route) =>
@@ -615,7 +614,7 @@ class _GoodsMultiCallTrackingScreenState
   /// call. This screen stays in the navigation stack underneath, so the
   /// WebRTC call keeps running and Back from Connect returns to it.
   void _goToConnectInquiry() {
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.selectedChatTabIndex.value = 1;
     Get.toNamed(RouteHelper.getHomeScreenRoute());
   }

@@ -1,10 +1,11 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/category_filter.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
@@ -12,7 +13,6 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
@@ -142,10 +142,7 @@ class ProfessionConsultantDiscoverScreenV2 extends StatefulWidget {
 
 class _ProfessionConsultantDiscoverScreenV2State
     extends State<ProfessionConsultantDiscoverScreenV2> {
-  final controller = getOrPut(() => DiscoverController());
-
-  /// Custom pin for the backdrop map — rendered once, reused for every marker.
-  BitmapDescriptor? _markerIcon;
+  final controller = ProfessionalDiscoverController.to;
 
   static const LatLng _fallbackCenter = LatLng(28.6139, 77.2090); // Delhi
 
@@ -172,9 +169,6 @@ class _ProfessionConsultantDiscoverScreenV2State
     // category; category taps on the entry screen force a fresh fetch.
     controller.fetchProfessionalConsultantServicesIfNeeded();
     _ensureOrigin();
-    DiscoverMarkerIcons.circle(icon: Icons.work_outline_rounded).then((d) {
-      if (mounted) setState(() => _markerIcon = d);
-    });
   }
 
   /// Establishes the distance origin: the location picked on the entry screen
@@ -340,21 +334,6 @@ class _ProfessionConsultantDiscoverScreenV2State
       pins.add((lat: lat, lng: lng));
     }
     return pins;
-  }
-
-  Set<Marker> _backdropMarkers() {
-    final markers = <Marker>{};
-    for (final c in controller.professionalConsDataList) {
-      final lat = _toDouble(c.userDetails?.userLocation?.lat);
-      final lng = _toDouble(c.userDetails?.userLocation?.lon);
-      if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
-      markers.add(Marker(
-        markerId: MarkerId(c.id ?? c.userId ?? '${c.userDetails?.name}_$lat,$lng'),
-        position: LatLng(lat, lng),
-        icon: _markerIcon ?? BitmapDescriptor.defaultMarker,
-      ));
-    }
-    return markers;
   }
 
   void _openFullMap() {
@@ -1592,7 +1571,7 @@ class _PinnedFilterBar extends SliverPersistentHeaderDelegate {
 
 /// Full-screen map page reached by tapping the backdrop (or the expand button)
 /// on [ProfessionConsultantDiscoverScreenV2]. Loads every consultant
-/// (unpaginated) via [DiscoverController.fetchAllProfessionalConsForMap] and
+/// (unpaginated) via [ProfessionalDiscoverController.fetchAllProfessionalConsForMap] and
 /// renders them through `google_maps_flutter`'s built-in clustering so 100+ pins
 /// stay smooth — nearby consultants collapse into a count badge that splits open
 /// on zoom-in.
@@ -1615,7 +1594,7 @@ class _ProfessionConsultantMapScreenV2State
   GoogleMapController? _mapController;
   BitmapDescriptor? _serviceIcon;
 
-  final DiscoverController _ctrl = Get.find<DiscoverController>();
+  final _ctrl = ProfessionalDiscoverController.to;
   static const ClusterManagerId _clusterManagerId =
       ClusterManagerId('profession_consultants_v2');
 

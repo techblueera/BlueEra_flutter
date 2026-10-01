@@ -1,6 +1,6 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/model/place_details.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -35,10 +35,10 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VehicleRentalService extends StatefulWidget {
   const VehicleRentalService({super.key});
@@ -48,12 +48,12 @@ class VehicleRentalService extends StatefulWidget {
 }
 
 class _VehicleRentalServiceState extends State<VehicleRentalService> {
-  final controller = getOrPut(() => VehicleRentalServiceController());
+  final controller = Get.find<VehicleRentalServiceController>();
   final langController = getOrPut(() => LanguageListController(), permanent: true);
-  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
+  final multipleImageSectionController = Get.find<CommonMultipleImageSectionController>();
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
   final emailVerificationController = getOrPut(() => EmailVerificationController());
-  final myDocumentsController = getOrPut(() => MyDocumentsController());
+  final myDocumentsController = MyDocumentsController.to;
 
   final viewProfileController = Get.find<ViewPersonalDetailsController>();
 
@@ -75,7 +75,6 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
   @override
   void dispose() {
-    deleteIfRegistered<VehicleRentalServiceController>();
     super.dispose();
   }
 
@@ -174,12 +173,13 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                             onTap: () async {
                               final result = await CommonMobileOtpDialog().show(context);
 
-                              if (result == true) {
+                              // The dialog returns the verified new number, or null when cancelled.
+                              if (result != null) {
                                 //  OTP successfully verified
-                                print("OTP verification successful");
+                                debugLog("OTP verification successful");
                               } else {
                                 // Either cancelled or verification failed
-                                print("OTP verification failed or cancelled");
+                                debugLog("OTP verification failed or cancelled");
                               }
 
                             },
@@ -288,40 +288,19 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                               title: AppStrings.homeLocation,
                               hintText: AppStrings.egLucknowGomtiNagar,
                               onSelected: (placeId, lat, lng, address) async {
-                                print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                                debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                                 controller.locationCtrl.text = address;
                                 controller.currentAddress.value = address;
                                 controller.latitude = lat;
                                 controller.longitude = lng;
 
-                                controller.isFetchingAddressDetails.value = true;
-
-                                // Fetch and auto-fill details
-                                try {
-                                  final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-                                  final detailsData = detailsResponse.response?.data;
-
-                                  final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                                  final components = placeDetails.result?.addressComponents ?? [];
-
-                                  String postalCode = '';
-
-                                  for (var comp in components) {
-                                    final types = comp.types ?? [];
-                                    if (types.contains('locality')) {
-                                    } else if (types.contains('administrative_area_level_1')) {
-                                    } else if (types.contains('postal_code')) {
-                                      postalCode = comp.longName ?? '';
-                                    }
-                                  }
-
-                                  controller.pinCodeCtrl.text = postalCode;
-
-                                } catch (e) {
-                                  print("Error fetching place details: $e");
-                                }finally {
-                                  controller.isFetchingAddressDetails.value = false;
-                                }
+                              },
+                              // The field hands over the Place Details it already fetched; the
+                              // postal code comes from there (kept as-is if that fetch failed).
+                              onPlaceDetails: (_, __, details) {
+                                if (details == null) return;
+                                controller.pinCodeCtrl.text =
+                                    PlaceLookupService.postalCodeIn(details) ?? '';
                               },
                             ),
                           ),
@@ -705,7 +684,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                       title: AppStrings.pickupLocation,
                       hintText: AppStrings.egSubhasPalliGomtiNagar,
                       onSelected: (placeId, lat, lng, address) async {
-                        print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                        debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                         controller.pickUpLocationCtrl.text = address;
                         controller.pickUpLocationAddress.value = address;
                         controller.pickUpLocationLatitude = lat;
@@ -847,7 +826,11 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
 
             CustomBtn(
               title: AppStrings.postNowButton,
-              onTap: controller.validateStepFive,
+              onTap: () {
+                if (controller.validateStepFive()) {
+                  Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+                }
+              },
               radius: 10.0,
               bgColor: AppColors.primaryColor,
             )

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -44,8 +43,8 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
   @override
   void initState() {
     super.initState();
-    earnProfileController = getOrPut(() => EarnProfileController());
-    earnServiceController = getOrPut(() => EarnServiceController());
+    earnProfileController = EarnProfileController.to;
+    earnServiceController = EarnServiceController.to;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       earnServiceController.fetchOwnProducts();
     });

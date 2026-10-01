@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_local_gallery.dart';
@@ -78,7 +77,7 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
     }
   }
 
-  final _controller = getOrPut(() => EarnProfileController());
+  final _controller = EarnProfileController.to;
 
   Future<void> _onCreate() async {
     if (!_formKey.currentState!.validate()) return;

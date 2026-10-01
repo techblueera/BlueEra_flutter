@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -11,7 +10,6 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_package_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/packages/my_lab_packages_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -58,8 +56,7 @@ class AddLabPackageScreen extends StatefulWidget {
 
 class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
   late final LabPackageController _pkgCtrl =
-      getOrPut(() => LabPackageController());
-  final LabTestRepo _testRepo = LabTestRepo();
+      LabPackageController.to;
 
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -160,15 +157,11 @@ class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
     try {
       // Empty groupCategory → unfiltered lab-scoped list (see
       // LabTestController.fetchPopularTests for the same convention).
-      final res = await _testRepo.getPathologyTests('');
-      if (res.isSuccess) {
-        final List data = res.getExtraData('data') ?? [];
-        _allTestsCache = data
-            .whereType<Map<String, dynamic>>()
-            .map(PathologyTest.fromJson)
-            .toList();
+      final tests = await LabTestController.to.fetchAllTests();
+      if (tests != null) {
+        _allTestsCache = tests;
       } else {
-        _allTestsError = res.message ?? 'Failed to load tests';
+        _allTestsError = LabTestController.to.allTestsError;
       }
     } catch (e) {
       _allTestsError = '$e';

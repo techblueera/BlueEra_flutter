@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
+import 'package:BlueEra/features/common/post/widget/return_to_feed.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -15,9 +15,7 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class PhotoPostReviewScreen extends StatelessWidget {
-  final PostVia? postVia;
-
-  PhotoPostReviewScreen({Key? key, this.postVia}) : super(key: key);
+  PhotoPostReviewScreen({Key? key}) : super(key: key);
 
   final controller = Get.find<PhotoPostController>();
   final tagUserController = Get.find<TagUserController>();
@@ -326,7 +324,9 @@ class PhotoPostReviewScreen extends StatelessWidget {
           Expanded(
             child: PositiveCustomBtn(
                 onTap: () async {
-                  await controller.submitPost(postVia);
+                  if (await controller.submitPost()) {
+                    returnToFeedAfterPosting();
+                  }
                 },
                 title: AppStrings.postNow),
           ),

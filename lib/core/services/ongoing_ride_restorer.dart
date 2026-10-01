@@ -39,7 +39,7 @@ class OngoingRideRestorer {
     if (snap[OngoingRideStore.flowKey] != OngoingRideStore.flowRideBooking) {
       return false;
     }
-    return getOrPut(() => RideBookingController()).restoreOngoingRide();
+    return RideBookingController.to.restoreOngoingRide();
   }
 
   /// Restore the snapshot if there is one and nothing is being tracked yet.
@@ -89,7 +89,7 @@ class OngoingRideRestorer {
       );
 
       // 2) Re-seed DiscoverController so opening the card resumes live tracking.
-      final dc = getOrPut(() => DiscoverController());
+      final dc = DiscoverController.to;
       final riderId = (snap['riderId'] ?? '').toString();
       if (riderId.isNotEmpty) dc.fareCallAcceptedRiderId.value = riderId;
       dc.fareCallAcceptedRiderInfo.value = {

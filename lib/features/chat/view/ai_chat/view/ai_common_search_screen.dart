@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -6,7 +7,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -70,8 +70,8 @@ class AiCommonSearchScreen extends StatefulWidget {
 }
 
 class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
-  final chatViewController = getOrPut(() => ChatViewController());
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatViewController = ChatViewController.to;
+  final chatThemeController = ChatThemeController.to;
   final TextEditingController editingController = TextEditingController();
   final _scrollController = ScrollController();
 
@@ -859,7 +859,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                         minLines: 1,
                         maxLines: 5,
                         onChanged: (value) {
-                          if (!value.isEmpty) {
+                          if (value.isNotEmpty) {
                             chatViewController.isTextFieldEmpty.value =
                             true;
                           } else {
@@ -909,8 +909,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
                           if (value == null || value.isEmpty) {
                             return AppStrings.pleaseEnterAUrl.tr;
                           }
-                          final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
-                          if (!httpsUrlRegex.hasMatch(value)) {
+                          if (!ValidationMethod.isHttpsUrl(value)) {
                             return AppStrings.onlyHttpsUrlsAllowed.tr;
                           }
                           return null;

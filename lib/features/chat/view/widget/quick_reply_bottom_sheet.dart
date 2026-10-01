@@ -9,6 +9,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 Future<void> showHiveBottomSheet(BuildContext context,String userId,String conversationId,bool isInitialFlow) async {
   await Hive.initFlutter();
@@ -109,7 +110,7 @@ Future<void> showHiveBottomSheet(BuildContext context,String userId,String conve
                                   ApiKeys.message_type: "text",
                                 };
                               }
-                              print('SEND PAYLOAD (text): '+data.toString());
+                              debugLog('SEND PAYLOAD (text): '+data.toString());
                               sendMessageToUser(
                                   data: data, isInitial: isInitialFlow);
 
@@ -205,7 +206,7 @@ Future<void> showHiveBottomSheet(BuildContext context,String userId,String conve
                             ApiKeys.message_type: "text",
                           };
                         }
-                        print('SEND PAYLOAD (text): '+data.toString());
+                        debugLog('SEND PAYLOAD (text): '+data.toString());
                         sendMessageToUser(
                             data: data, isInitial: isInitialFlow);
 

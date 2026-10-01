@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -251,9 +250,9 @@ class MedicalCartController extends GetxController {
     // Self-pickup: drop the user on Discover (index 1) instead of the chat
     // screen — the placed pharmacy order surfaces there in the "Orders in
     // 12 Hrs." rail, which the chat-list refresh below feeds.
-    final bottom = getOrPut(() => BottomBarController());
+    final bottom = BottomBarController.to;
     bottom.onChangeIndex(1);
-    final chat = getOrPut(() => ChatViewController());
+    final chat = ChatViewController.to;
     Get.until(
       (route) => route.settings.name == RouteConstant.BottomNavigationBarScreen,
     );

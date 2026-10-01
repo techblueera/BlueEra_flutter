@@ -27,7 +27,7 @@ class CreateProfileScreen extends StatefulWidget {
 
 class _CreateProfileScreenState extends State<CreateProfileScreen> {
   final personalCreateProfileController =
-      Get.put(PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
   final emailVerificationController = Get.put(EmailVerificationController());
   final ViewPersonalDetailsController viewPersonalDetailsController =
       Get.find<ViewPersonalDetailsController>();

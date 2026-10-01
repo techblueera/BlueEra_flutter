@@ -2,14 +2,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
-import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
+import 'package:BlueEra/features/chat/auth/service/rider_association_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class RiderAssociationMsgCard extends StatefulWidget {
   final Messages message;
@@ -268,10 +266,7 @@ class _RiderAssociationMsgCardState extends State<RiderAssociationMsgCard> {
                       label: 'Reject',
                       color: AppColors.redBE,
                       icon: Icons.close_rounded,
-                      onTap: () => _respondToRequest(
-                        association.associationId ?? '',
-                        'reject',
-                      ),
+                      onTap: () => _respondToRequest('reject'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -281,10 +276,7 @@ class _RiderAssociationMsgCardState extends State<RiderAssociationMsgCard> {
                       color: AppColors.green1A,
                       icon: Icons.check_rounded,
                       filled: true,
-                      onTap: () => _respondToRequest(
-                        association.associationId ?? '',
-                        'accept',
-                      ),
+                      onTap: () => _respondToRequest('accept'),
                     ),
                   ),
                 ],
@@ -353,20 +345,10 @@ class _RiderAssociationMsgCardState extends State<RiderAssociationMsgCard> {
     );
   }
 
-  Future<void> _respondToRequest(String associationId, String action) async {
-    if (associationId.isEmpty) return;
-    final response = await DeliveryPartnerRepo().respondToAssociationRepo(
-      associationId: associationId,
-      action: action,
-    );
-    if (response.isSuccess) {
-      final newStatus = action == 'accept' ? 'accepted' : 'rejected';
-      widget.message.metadata?.riderAssociation?.status = newStatus;
-      _onStatusChanged(newStatus);
-      if (Get.isRegistered<DeliveryPartnerController>()) {
-        Get.find<DeliveryPartnerController>().update();
-      }
-    }
+  Future<void> _respondToRequest(String action) async {
+    final newStatus =
+        await RiderAssociationService().respond(widget.message, action);
+    if (newStatus != null) _onStatusChanged(newStatus);
   }
 
   Color _statusColor(String status) {
@@ -596,22 +578,10 @@ class _RiderDetailsSheet extends StatelessWidget {
   }
 
   Future<void> _respond(BuildContext context, String action) async {
-    final associationId = association.associationId ?? '';
-    if (associationId.isEmpty) return;
-
-    final response = await DeliveryPartnerRepo().respondToAssociationRepo(
-      associationId: associationId,
-      action: action,
-    );
-    if (response.isSuccess) {
-      final newStatus = action == 'accept' ? 'accepted' : 'rejected';
-      message.metadata?.riderAssociation?.status = newStatus;
-      onStatusChanged?.call(newStatus);
-      if (Get.isRegistered<DeliveryPartnerController>()) {
-        Get.find<DeliveryPartnerController>().update();
-      }
-      if (context.mounted) Navigator.pop(context);
-    }
+    final newStatus = await RiderAssociationService().respond(message, action);
+    if (newStatus == null) return;
+    onStatusChanged?.call(newStatus);
+    if (context.mounted) Navigator.pop(context);
   }
 
   Widget _detailRow({

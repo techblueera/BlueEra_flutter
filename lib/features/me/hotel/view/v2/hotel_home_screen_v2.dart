@@ -59,7 +59,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   // School, Medical, Lab, Other) and the Order tab in
   // `professionals_main.dart`.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
@@ -67,7 +67,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   @override
   void initState() {

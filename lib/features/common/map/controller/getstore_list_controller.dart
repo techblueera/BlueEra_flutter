@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../model/store_list_model.dart';
 import '../repo/store_repo.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class StoreController extends GetxController {
   RxList<StoreDataModel> allStore = <StoreDataModel>[].obs;
@@ -17,12 +18,12 @@ class StoreController extends GetxController {
         );
         allStore.value = stores;
         update();
-        print("dngksafjb ${allStore.length}");
+        debugLog("dngksafjb ${allStore.length}");
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -38,10 +39,10 @@ class StoreController extends GetxController {
         );
         allStore.value = places;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      debugLog("Error: $e");
     } finally {
       isLoading.value = false;
     }

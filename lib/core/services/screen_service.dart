@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ScreenService {
   static const MethodChannel _channel = MethodChannel('com.bluehr.video/keep_screen_on');
@@ -8,7 +9,7 @@ class ScreenService {
     try {
       await _channel.invokeMethod('keepOn');
     } catch (e) {
-      print("Error enabling keepOn: $e");
+      debugLog("Error enabling keepOn: $e");
     }
   }
 
@@ -17,7 +18,7 @@ class ScreenService {
     try {
       await _channel.invokeMethod('keepOff');
     } catch (e) {
-      print("Error disabling keepOn: $e");
+      debugLog("Error disabling keepOn: $e");
     }
   }
 }

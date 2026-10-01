@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -28,7 +27,6 @@ import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 // Commented rather than deleted: with the import live but the widget only
 // named inside a comment, the analyzer reports it as an unused import.
 // import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/common/address/address_picker.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
@@ -44,8 +42,7 @@ import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
 import 'package:BlueEra/features/common/inactivity/widget/inactivity_warning_banner.dart';
-import 'package:BlueEra/features/common/reel/models/channel_model.dart';
-import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/common/reel/service/own_channel_service.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/content_creator/content_creator_main.dart';
@@ -95,7 +92,6 @@ import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/call_controller.dart';
-import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -153,13 +149,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   int chatNotificationCount = 0;
   final ValueNotifier<bool> bottomBarVisibleNotifier = ValueNotifier(true);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final bottomBarController = Get.put(BottomBarController());
-  final chatViewController = getOrPut(() => ChatViewController());
+  final bottomBarController = BottomBarController.to;
+  final chatViewController = ChatViewController.to;
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-  final inventoryController = Get.put(InventoryController());
+  final inventoryController = InventoryController.to;
   final orderController = getOrPut(() => DeliverPartnerOrdersController(), permanent: true);
-  final dialogService = Get.put(DialogService());
+  final dialogService = getOrPut(() => DialogService(), permanent: true);
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -202,7 +198,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       _getAllCategories();
       _heavyInitDone = true;
     }
-    _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
     _initializeChatMediaFolders();
@@ -796,10 +791,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  void _initializeControllers() {
-    getOrPut(() => ChatThemeController());
-  }
-
   Future<void> _initializeUserData() async {
     AppNotificationHandler().getInitialMsg();
     AppNotificationHandler().onMsgOpen();
@@ -812,26 +803,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Future<void> _initializeIndividualUser() async {
     await Future.delayed(Duration(seconds: 2));
-
-    if (channelId.isNotEmpty) return;
-
-    final channelModel = await getChannelDetails();
-    if (channelModel?.data == null) return;
-
-    final data = channelModel!.data;
-    channelId = data.id;
-    channelName = data.name;
-    channelOwner = data.username;
-    // channelOwner = data.ownership.claimedBy;
-
-    await Future.wait([
-      SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.channel_Id, channelId),
-      SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.channelName, channelName),
-      SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.channelOwner, channelOwner),
-    ]);
+    await OwnChannelService().rememberOwnChannel(userId);
   }
 
   void _initializeSocketConnections() {
@@ -1158,21 +1130,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  // GET CHANNEL DETAILS...
-  Future<ChannelModel?> getChannelDetails() async {
-    try {
-      ResponseModel response =
-          await ChannelRepo().getChannelDetails(channelOrUserId: userId);
-
-      if (response.statusCode == 200) {
-        return ChannelModel.fromJson(response.response?.data);
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
-    }
-  }
 
   @override
   void dispose() {

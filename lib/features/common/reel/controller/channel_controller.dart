@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChannelController extends GetxController{
   ApiResponse followUnFollowChannelResponse = ApiResponse.initial('Initial');
@@ -225,7 +226,7 @@ class ChannelController extends GetxController{
   Future<void> reportChannel({required String channelId, required String reason}) async {
     try {
       Map<String, dynamic> params = {ApiKeys.reason : reason};
-      ResponseModel response = await ChannelRepo().channelReport(channelId: channelId, params: params);;
+      ResponseModel response = await ChannelRepo().channelReport(channelId: channelId, params: params);
 
       if (response.isSuccess) {
         ReportChannelResponse = ApiResponse.complete(response);
@@ -333,7 +334,7 @@ class ChannelController extends GetxController{
         ownChannelProductsResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       ownChannelProductsResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {

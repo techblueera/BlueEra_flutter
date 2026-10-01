@@ -258,7 +258,7 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     FocusScope.of(context).unfocus();
     if (chatThemeController.isMessageSelectionActive.value) {
       chatThemeController.selectMoreMessage(
-          widget.message.forwardId == null ? widget.message.id : widget.message.forwardId);
+          widget.message.forwardId ?? widget.message.id);
       return;
     }
 

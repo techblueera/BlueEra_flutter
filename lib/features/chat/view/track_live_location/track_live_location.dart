@@ -12,7 +12,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../widgets/cached_avatar_widget.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -36,8 +35,8 @@ class TrackLiveLocationPage extends StatefulWidget {
 
 class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   GoogleMapController? mapController;
-  final chatThemeController = getOrPut(() => ChatThemeController());
-  final chatViewController = getOrPut(() => ChatViewController());
+  final chatThemeController = ChatThemeController.to;
+  final chatViewController = ChatViewController.to;
   LatLng? currentLatLng;
   Timer? _expiryTimer;
   bool _isExpired = false;

@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class TagPeopleScreen extends StatefulWidget {
   final Map<String, String>? previouslySelectedItems;
@@ -56,7 +57,7 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
     if (query.isEmpty) {
       // Restore original list
       tagPeopleController.filteredUsers.assignAll(tagPeopleController.usersData);
-      print("Reset to full list: ${tagPeopleController.filteredUsers.length}");
+      debugLog("Reset to full list: ${tagPeopleController.filteredUsers.length}");
       return;
     }
 
@@ -68,7 +69,7 @@ class _TagPeopleScreenState extends State<TagPeopleScreen> {
       return targetText.toLowerCase().contains(query.toLowerCase());
     }).toList();
 
-    print("Found results: ${result.length}");
+    debugLog("Found results: ${result.length}");
     tagPeopleController.filteredUsers.assignAll(result);
   }
 

@@ -45,11 +45,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<LabTestController>()) {
-      controller = Get.put(LabTestController(), permanent: true);
-    } else {
-      controller = Get.find<LabTestController>();
-    }
+    controller = LabTestController.to;
     // Tab 0 = manually-added tests, Tab 1 = catalog. Kept in this order so
     // owners land on their own tests first.
     _tabController = TabController(length: 2, vsync: this);

@@ -35,7 +35,6 @@ import 'package:BlueEra/features/common/auth/model/single_business_category_resp
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
@@ -48,6 +47,7 @@ import 'package:BlueEra/core/services/location/geocoding_compat.dart';
 import 'package:get/get.dart';
 
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AuthController extends GetxController {
   final Rx<ApiResponse> mobileNoOtpSendResponse =
@@ -550,7 +550,8 @@ class AuthController extends GetxController {
     unawaited(AppNotificationHandler.flushPendingTokenSync());
     _reportAuthToAnalytics(AppConstants.guest);
     logs('GUEST LOGIN === session persisted, userId=$userId');
-    Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
+    Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: 1});
   }
 
   /// Persists the two ids the verify-otp response carries — `data._id` (the
@@ -1192,7 +1193,8 @@ class AuthController extends GetxController {
           await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
+          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
+              arguments: {ApiKeys.initialIndex: 1});
           clearAllData();
           createGuestProfileResponse.value = ApiResponse.complete(response);
           commonSnackBar(message: response.message ?? AppStrings.success);
@@ -1336,7 +1338,7 @@ class AuthController extends GetxController {
       // A parse that throws leaves the list empty exactly like a failed
       // request, so it is reported exactly like one.
       individualFieldsError.value = AppStrings.globalSearchSomethingWentWrong;
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
       isIndividualFieldLoading.value = false;
     }

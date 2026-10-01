@@ -18,6 +18,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ServiceController extends GetxController {
   Rx<ApiResponse> serviceAiResponse
@@ -218,7 +219,7 @@ class ServiceController extends GetxController {
         } else if (responseData is Map && responseData['_id'] != null) {
           newServices = [GetServiceModel.fromJson(responseData)];
         } else {
-          print(" Unexpected API structure: $responseData");
+          debugLog(" Unexpected API structure: $responseData");
         }
 
         if (newServices.isNotEmpty) {
@@ -235,7 +236,7 @@ class ServiceController extends GetxController {
         }
 
         getServiceResponse.value = ApiResponse.complete(response);
-        print("Loaded ${newServices.length} services | Total: ${serviceDataList.length}");
+        debugLog("Loaded ${newServices.length} services | Total: ${serviceDataList.length}");
       } else {
         getServiceResponse.value = ApiResponse.error('error');
       }
@@ -277,7 +278,7 @@ class ServiceController extends GetxController {
         // viewPersonalDetailsController.getEarnServiceStatus();
         // }
 
-        print('Total: ${serviceDataList.length}');
+        debugLog('Total: ${serviceDataList.length}');
       } else {
         deleteServiceResponse.value = ApiResponse.error('error');
       }
@@ -302,11 +303,11 @@ class ServiceController extends GetxController {
         final singleServiceDetailsModel = GetServiceModel.fromJson(response.response!.data);
         singleServiceData.value = singleServiceDetailsModel;
       } else {
-        print("API failed with status: ${response.statusCode}");
+        debugLog("API failed with status: ${response.statusCode}");
         singleServiceDataResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
       singleServiceDataResponse.value = ApiResponse.error('error');
     } finally {
       isSingleServiceLoading.value = false;

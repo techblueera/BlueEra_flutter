@@ -55,14 +55,16 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
     _initializeData();
 
     // Listeners for all controllers to trigger validation
-    [
+    for (var controller in [
       courseNameEditController,
       admissionProcessEditController,
       eligibilityEditController,
       courseFeeEditController,
       courseDurationEditController,
       descriptionEditController
-    ].forEach((controller) => controller.addListener(_runValidation));
+    ]) {
+      controller.addListener(_runValidation);
+    }
   }
 
   void _initializeData() {

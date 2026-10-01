@@ -86,7 +86,9 @@ class _JobDetailsOverviewScreenState extends State<JobDetailsOverviewScreen> {
   @override
   void dispose() {
     // Dispose all answer controllers
-    answerControllers.values.forEach((controller) => controller.dispose());
+    for (var controller in answerControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 

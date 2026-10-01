@@ -91,19 +91,6 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
   List<String> get _photos => _b?.photos ?? const [];
   String get _note => (_b?.note ?? '').trim();
 
-  String get _subtitle {
-    final parts = <String>[];
-    final dateStr = _fmtDate(_b?.appointmentDate);
-    if (dateStr.isNotEmpty) parts.add(dateStr);
-    final doctor = (_b?.doctorName ?? '').trim();
-    if (doctor.isNotEmpty) parts.add(doctor);
-    if (_photos.isNotEmpty) {
-      parts.add(
-          '${_photos.length} ${_photos.length == 1 ? AppStrings.photoLabel.tr : AppStrings.photosLabel.tr}');
-    }
-    return parts.isEmpty ? 'Hospital Appointment' : parts.join(' · ');
-  }
-
   /// Non-empty grid tiles in display order. Hospital layout stays
   /// date / time / patient / fee; lab swaps fee → price and adds
   /// report hours + collection mode (+ address when HOME) per doc §3.

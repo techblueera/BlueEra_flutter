@@ -6,7 +6,6 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_contr
 import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/packages/create_your_own_packages_screen.dart';
@@ -43,43 +42,26 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
   /// separate from [LabTestController.tests] (which gets overwritten by
   /// per-category screens) and from [LabTestController.popularTests]
   /// (which is capped at 5).
-  final LabTestRepo _testRepo = LabTestRepo();
   List<PathologyTest> _allTests = const <PathologyTest>[];
   bool _loadedAllTests = false;
 
   @override
   void initState() {
     super.initState();
-    _testController = Get.isRegistered<LabTestController>()
-        ? Get.find<LabTestController>()
-        : Get.put(LabTestController(), permanent: true);
-    _packageController = Get.isRegistered<LabPackageController>()
-        ? Get.find<LabPackageController>()
-        : Get.put(LabPackageController(), permanent: true);
+    _testController = LabTestController.to;
+    _packageController = LabPackageController.to;
     _testController.fetchPopularTests();
     _packageController.fetchMyPackages();
     _fetchAllTestsForFilter();
   }
 
   Future<void> _fetchAllTestsForFilter() async {
-    try {
-      final res = await _testRepo.getPathologyTests('');
-      if (!mounted) return;
-      if (res.isSuccess) {
-        final List data = res.getExtraData('data') ?? [];
-        setState(() {
-          _allTests = data
-              .whereType<Map<String, dynamic>>()
-              .map(PathologyTest.fromJson)
-              .toList();
-          _loadedAllTests = true;
-        });
-      } else {
-        setState(() => _loadedAllTests = true);
-      }
-    } catch (_) {
-      if (mounted) setState(() => _loadedAllTests = true);
-    }
+    final tests = await LabTestController.to.fetchAllTests();
+    if (!mounted) return;
+    setState(() {
+      if (tests != null) _allTests = tests;
+      _loadedAllTests = true;
+    });
   }
 
   /// Which of the six `groupCategory` values actually have at least one

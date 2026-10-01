@@ -11,13 +11,10 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
-import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:BlueEra/features/common/reel/models/generate_presigned_url.dart';
 import 'package:BlueEra/features/common/reel/models/video_category_response.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
@@ -33,21 +30,36 @@ import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:http_parser/http_parser.dart' as htp;
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
+/// State and actions for a message (lekha) post: creating one, editing one,
+/// or reposting someone else's. Registered by MessagePostBinding.
 class MessagePostController extends GetxController {
-  /// ADD MSG POST
-  Rx<ApiResponse> addPostMessage = ApiResponse.initial('Initial').obs;
+  MessagePostController(
+      {required PostRepo repo,
+      TagUserController? tagUsers,
+      this.editPost,
+      this.repostOf,
+      this.postVia})
+      : _repo = repo,
+        _tagUsers = tagUsers;
+
+  final PostRepo _repo;
+
+  /// Null for a repost, which has no tagging.
+  final TagUserController? _tagUsers;
+  final Post? editPost;
+  final Post? repostOf;
+  final PostVia? postVia;
+
+  bool get isMsgPostEdit => editPost != null;
 
   RxBool isLoading = false.obs;
 
   RxString postText = ''.obs;
-  RxString messageText = ''.obs;
   RxString messageTitle = ''.obs;
   RxBool isAddLink = false.obs;
   RxBool isAddTitle = true.obs;
-  RxList<User>? taggedSelectedUsersList = <User>[].obs;
-
-  // RxList<File> selectedFiles = <File>[].obs;
 
   final postTitleController = TextEditingController().obs;
   final postTextDataController = TextEditingController().obs;
@@ -55,146 +67,172 @@ class MessagePostController extends GetxController {
   final natureOfPostController = TextEditingController().obs;
   final imageTopicsTextEditControllar = TextEditingController().obs;
   final referenceLinkController = TextEditingController().obs;
-  bool isMsgPostEdit = false;
-  String? postId;
 
-  ///ADD MESSAGE POST...
-  Future<void> editMsgPostController({
-    required Map<String, dynamic>? bodyReq,
-  }) async {
+  String get _taggedUserIds =>
+      _tagUsers?.selectedUsers.map((user) => user.id.toString()).join(',') ??
+      '';
+
+  @override
+  void onInit() {
+    super.onInit();
+    final post = editPost;
+    if (post == null) return;
+    uploadImageList.addAll(post.media ?? []);
+    postText.value = post.message ?? "";
+    postTextDataController.value.text = post.message ?? "";
+    descriptionMessage.value.text = post.subTitle ?? "";
+    natureOfPostController.value.text = post.natureOfPost ?? "";
+    if (post.referenceLink?.isNotEmpty ?? false) {
+      isAddLink.value = true;
+      referenceLinkController.value.text = post.referenceLink ?? "";
+    }
+  }
+
+  @override
+  void onClose() {
+    postTitleController.value.dispose();
+    postTextDataController.value.dispose();
+    descriptionMessage.value.dispose();
+    natureOfPostController.value.dispose();
+    imageTopicsTextEditControllar.value.dispose();
+    referenceLinkController.value.dispose();
+    super.onClose();
+  }
+
+  /// The message to show when the lekha is too short to post, or null.
+  String? validateDescription() {
+    if (descriptionMessage.value.text.trim().length < 30) {
+      return 'Description must be at least 30 characters long';
+    }
+    return null;
+  }
+
+  /// Publishes the new post, or saves the one being edited. Returns true
+  /// when it was saved; the caller decides where to go next.
+  Future<bool> submit() async {
+    if (isLoading.value) return false;
+    isLoading.value = true;
     try {
-      ResponseModel responseModel = isMsgPostEdit
-          ? await PostRepo().updatePostRepo(
-              postId: postId,
-              bodyReq: bodyReq,
-              isMultiPartPost: true,
-            )
-          : await PostRepo().addPostRepo(
-              bodyReq: bodyReq,
-              isMultiPartPost: true,
-            );
+      return isMsgPostEdit ? await _updatePost() : await uploadMessagePost();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> _updatePost() async {
+    try {
+      final ResponseModel responseModel = await _repo.updatePostRepo(
+        postId: editPost?.id,
+        bodyReq: {
+          ApiKeys.type: AppConstants.MESSAGE_POST,
+          ApiKeys.sub_title: descriptionMessage.value.text.trim(),
+          ApiKeys.tagged_users: _taggedUserIds,
+        },
+        isMultiPartPost: true,
+      );
       final data = responseModel.response?.data;
-      clearData();
-      if (responseModel.isSuccess) {
-        // Logged BEFORE the `isMsgPostEdit = false` reset on the next line —
-        // reading the flag after it would report every edit as a create.
-        AnalyticsService.I.log(
-          isMsgPostEdit ? 'post_edited' : 'post_created',
-          AnalyticsService.params({
-            'post_type': AppConstants.MESSAGE_POST,
-            'nature_of_post': natureOfPostController.value.text,
-            'creation_mode': 'new',
-          }),
-        );
-        isMsgPostEdit = false;
-        commonSnackBar(message: data['message'] ?? AppStrings.success);
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
-            true;
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
-        addPostMessage.value = ApiResponse.complete(responseModel);
-      } else {
+      if (!responseModel.isSuccess) {
         commonSnackBar(
             message: data['message'] ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      AnalyticsService.I.log(
+        'post_edited',
+        AnalyticsService.params({
+          'post_type': AppConstants.MESSAGE_POST,
+          'nature_of_post': natureOfPostController.value.text,
+          'creation_mode': 'new',
+        }),
+      );
+      commonSnackBar(message: data['message'] ?? AppStrings.success);
+      return true;
     } catch (e) {
       logs("ERROR 89 ${e.toString()}");
-      addPostMessage.value = ApiResponse.error('error');
+      return false;
     }
   }
 
-  ///ADD MESSAGE POST...
-  Future<void> addMsgPostControllerNew({
-    required dioObj.FormData bodyReq,
-  }) async {
+  Future<bool> _publish(dioObj.FormData formData) async {
     try {
-      ResponseModel responseModel = await PostRepo().addPostNewRepo(
-        formData: bodyReq,
-      );
+      final ResponseModel responseModel =
+          await _repo.addPostNewRepo(formData: formData);
       final data = responseModel.response?.data;
-      if (responseModel.isSuccess) {
-        AnalyticsService.I.log(
-          'post_created',
-          AnalyticsService.params({
-            'post_type': AppConstants.MESSAGE_POST,
-            'nature_of_post': natureOfPostController.value.text,
-            'creation_mode': 'new',
-          }),
-        );
-        commonSnackBar(message: data['message'] ?? AppStrings.success);
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
-            true;
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
-        addPostMessage.value = ApiResponse.complete(responseModel);
-        clearData();
-      } else {
+      if (!responseModel.isSuccess) {
         commonSnackBar(
             message: data['message'] ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      AnalyticsService.I.log(
+        'post_created',
+        AnalyticsService.params({
+          'post_type': AppConstants.MESSAGE_POST,
+          'nature_of_post': natureOfPostController.value.text,
+          'creation_mode': 'new',
+        }),
+      );
+      commonSnackBar(message: data['message'] ?? AppStrings.success);
+      return true;
     } catch (e) {
       logs("ERROR 117 ${e.toString()}");
-      addPostMessage.value = ApiResponse.error('error');
+      return false;
     }
   }
 
-  ///RePost  MESSAGE POST...
-  Future<void> rePostMsgPostControllerNew({
-    required dioObj.FormData bodyReq,
-  }) async {
+  /// Reposts [repostOf] with the user's own message and photos. Returns true
+  /// when it was posted.
+  Future<bool> repost() async {
+    if (isLoading.value) return false;
+    isLoading.value = true;
     try {
-      ResponseModel responseModel = await PostRepo().addPostNewRepo(
-        formData: bodyReq,
-      );
+      final position = await getCurrentLocation();
+      final formData = dioObj.FormData();
+      for (final file in imagesList) {
+        formData.files.add(MapEntry(
+          ApiKeys.media,
+          await dioObj.MultipartFile.fromFile(file.path,
+              filename: file.path.split('/').last),
+        ));
+      }
+      formData.fields.add(MapEntry(ApiKeys.type, AppConstants.MESSAGE_POST));
+      formData.fields.add(MapEntry(ApiKeys.repostId, repostOf?.id ?? ""));
+      formData.fields.add(MapEntry(ApiKeys.postVia, postVia?.name ?? "profile"));
+      if (descriptionMessage.value.text.isNotEmpty) {
+        formData.fields.add(
+            MapEntry(ApiKeys.sub_title, descriptionMessage.value.text));
+      }
+      if (position != null) {
+        formData.fields
+            .add(MapEntry(ApiKeys.latitude, position.latitude.toString()));
+        formData.fields
+            .add(MapEntry(ApiKeys.longitude, position.longitude.toString()));
+      }
+
+      final ResponseModel responseModel =
+          await _repo.addPostNewRepo(formData: formData);
       final data = responseModel.response?.data;
-      clearRepostData();
-      if (responseModel.isSuccess) {
-        // A repost DOES create a post, but it is not authored content —
-        // `creation_mode` keeps the two separable instead of silently
-        // inflating the authored-post count.
-        AnalyticsService.I.log(
-          'post_created',
-          AnalyticsService.params({
-            'post_type': AppConstants.MESSAGE_POST,
-            'creation_mode': 'repost',
-          }),
-        );
-        commonSnackBar(message: data['message'] ?? AppStrings.success);
-        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
-            true;
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
-        addPostMessage.value = ApiResponse.complete(responseModel);
-      } else {
+      if (!responseModel.isSuccess) {
         commonSnackBar(
             message: data['message'] ?? AppStrings.somethingWentWrong);
+        return false;
       }
+      // A repost DOES create a post, but it is not authored content —
+      // `creation_mode` keeps the two separable instead of silently
+      // inflating the authored-post count.
+      AnalyticsService.I.log(
+        'post_created',
+        AnalyticsService.params({
+          'post_type': AppConstants.MESSAGE_POST,
+          'creation_mode': 'repost',
+        }),
+      );
+      commonSnackBar(message: data['message'] ?? AppStrings.success);
+      return true;
     } catch (e) {
       logs("ERROR 145${e.toString()}");
-      addPostMessage.value = ApiResponse.error('error');
+      return false;
+    } finally {
+      isLoading.value = false;
     }
-  }
-
-  clearData() {
-    postTextDataController.value.clear();
-    descriptionMessage.value.clear();
-    referenceLinkController.value.clear();
-    messageText.value = "";
-    postText.value = "";
-    isAddLink.value = false;
-    isAiGeneratedVideo.value = false;
-    originalVideoSourcePath = null;
-    Get.find<TagUserController>().clearAllSelections();
-    Get.find<TagUserController>().selectedUsers.clear();
-  }
-
-  clearRepostData() {
-    descriptionMessage.value.clear();
-    messageText.value = "";
-    postText.value = "";
   }
 
   void removePhoto(int index) {
@@ -300,7 +338,11 @@ class MessagePostController extends GetxController {
     }
   }
 
-  Future<void> pickVideoMedia() async {
+  /// Picks a video, validates it and, when it is longer than
+  /// [maxVideoDuration], hands it to [trimVideo] (the trimmer screen, opened
+  /// by the view), which returns the trimmed file's path or null.
+  Future<void> pickVideoMedia(
+      {required Future<String?> Function(String videoPath) trimVideo}) async {
     selectedType.value = MediaType.video;
 
     // FilePickerResult? result = await ImagePicker.platform.(
@@ -351,10 +393,10 @@ class MessagePostController extends GetxController {
       return;
     }
 
-    final trimmedPath = await Get.to(() => VideoTrimmerPage(videoPath: path));
+    final trimmedPath = await trimVideo(path);
 
     if (trimmedPath != null) {
-      print("✅ Trimmed Video Path: $trimmedPath");
+      debugLog("✅ Trimmed Video Path: $trimmedPath");
       final videoTriFile = File(trimmedPath);
 
       // Validate the trimmer output before exposing it to the rest of the
@@ -458,12 +500,14 @@ class MessagePostController extends GetxController {
     }
   }
 
-  Future<void> uploadMessagePost({required PostVia? postVia}) async {
+  /// Uploads the picked media and publishes the post. Returns true when it
+  /// was posted.
+  Future<bool> uploadMessagePost() async {
     try {
       dio.FormData formData = dio.FormData();
       if (imagesList.length > 4) {
         commonSnackBar(message: "Max 4 images are allowed");
-        return;
+        return false;
       }
       if (selectedType.value == MediaType.video) {
         double progress = 0.0;
@@ -542,7 +586,7 @@ class MessagePostController extends GetxController {
         }
         // final size = await getVideoDimensions(videoFile.path);
         final size = await getImageDimensions(File(coverFile.path));
-        print('Width: ${size.width}, Height: ${size.height}');
+        debugLog('Width: ${size.width}, Height: ${size.height}');
         formData.fields
             .add(MapEntry(ApiKeys.media_width, size.width.toString()));
         formData.fields
@@ -552,14 +596,10 @@ class MessagePostController extends GetxController {
       if ((uploadInitVideoFile?.success == false ||
               uploadInitVideoFile?.success == null) &&
           (selectedType.value == MediaType.video)) {
-        return;
+        return false;
       }
       final position = await getCurrentLocation();
-      final tagUserController = Get.find<TagUserController>();
-
-      String? tagUserIds = tagUserController.selectedUsers
-          .map((user) => user.id.toString())
-          .join(',');
+      final tagUserIds = _taggedUserIds;
       if (selectedType.value == MediaType.image) {
         /// Add media files
         for (int i = 0; i < (imagesList.length); i++) {
@@ -582,7 +622,7 @@ class MessagePostController extends GetxController {
         if (imagesList.length == 1) {
           final size = await getImageDimensions(
               File(imagesList.firstOrNull?.path ?? ""));
-          print('Width: ${size.width}, Height: ${size.height}');
+          debugLog('Width: ${size.width}, Height: ${size.height}');
           formData.fields
               .add(MapEntry(ApiKeys.media_width, size.width.toString()));
           formData.fields
@@ -637,14 +677,13 @@ class MessagePostController extends GetxController {
       ///TAG IDS...
       if (tagUserIds.isNotEmpty)
         formData.fields.add(MapEntry(ApiKeys.tagged_users, tagUserIds));
-      await addMsgPostControllerNew(
-        bodyReq: formData,
-      );
+      return await _publish(formData);
     } catch (e) {
       logs("errorr === $e");
 
       /// ❌ On error also close dialog
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     } finally {
       UploadProgressDialog.close();
     }
@@ -659,7 +698,7 @@ class MessagePostController extends GetxController {
       {required Map<String, dynamic> queryParams,
       required bool isVideoUpload}) async {
     // try {
-    ResponseModel? response = await PostRepo().uploadMessagePostVideoRepo(
+    ResponseModel? response = await _repo.uploadMessagePostVideoRepo(
       queryParams: queryParams,
     );
 
@@ -690,7 +729,7 @@ class MessagePostController extends GetxController {
     required Function(double progress) onProgress,
   }) async {
     try {
-      ResponseModel? response = await PostRepo().uploadMessagePostVideoRepoToS3(
+      ResponseModel? response = await _repo.uploadMessagePostVideoRepoToS3(
           onProgress: onProgress,
           file: file,
           fileType: fileType,
@@ -784,7 +823,7 @@ class MessagePostController extends GetxController {
         ApiKeys.images: imageByPart,
       };
       ResponseModel responseModel =
-          await PostRepo().aiSocialPostGenerateRepo(queryParam: reqParm);
+          await _repo.aiSocialPostGenerateRepo(queryParam: reqParm);
       if (responseModel.isSuccess) {
         setSuggestions(responseModel.response?.data);
         isGenerated.value = false; // Re-enable button after success

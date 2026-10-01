@@ -380,5 +380,5 @@ void _openConnectLane(int lane) {
   if (Get.isRegistered<ChatViewController>()) {
     Get.find<ChatViewController>().onSelectChatTab(_connectSubTabFor(lane));
   }
-  getOrPut(() => BottomBarController()).currentIndex.value = _kConnectTabIndex;
+  BottomBarController.to.currentIndex.value = _kConnectTabIndex;
 }

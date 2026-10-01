@@ -1,6 +1,4 @@
 import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/journey_status_model.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -14,9 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
-import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
@@ -1132,23 +1128,4 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  ///GET CHANNEL DETAILS...
-
-  ///GET CHANNEL DETAILS...
-  Future<JourneyStatusModel?> getJourneyDetails() async {
-    try {
-      ResponseModel response = await TravelRepo().journeyStatusPost();
-
-      if (response.statusCode == 200) {
-        JourneyStatusModel journeyStatusModel =
-            JourneyStatusModel.fromJson(response.response?.data);
-        return journeyStatusModel;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
-    }
-  }
 }

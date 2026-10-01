@@ -9,6 +9,7 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/horizontal_tab_selector.dart';
 import 'controller/booking_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VideographyTutorialScreen extends StatefulWidget {
  final  String? videoId;
@@ -63,7 +64,7 @@ final controller = Get.put(BookingController());
     super.initState();
    
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print("datata${widget.channelId},${widget.videoId}");
+      debugLog("datata${widget.channelId},${widget.videoId}");
       controller.getReceivedvideoBookingList(channelId:widget.channelId,videoId: widget.videoId);
     });
   }
@@ -247,7 +248,7 @@ final controller = Get.put(BookingController());
                                     });
                                   } else if (value == 'Message') {
                                    
-                                    print('Message functionality to be implemented');
+                                    debugLog('Message functionality to be implemented');
                                   }
                                 },
                               )

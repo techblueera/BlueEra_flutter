@@ -1,19 +1,16 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/features/common/post/service/repost_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/image_post_feed_controller.dart';
 import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
+import 'package:BlueEra/features/common/post/binding/message_post_binding.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
-import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -208,20 +205,8 @@ class _ImagePostFeedItemState extends State<_ImagePostFeedItem> {
                   subtitle: AppStrings.sharePostWithFollowers,
                   onTap: () async {
                     safeBack();
-                    final ResponseModel res =
-                        await PostRepo().addRePostNewRepo(reqDataData: {
-                      ApiKeys.type: AppConstants.MESSAGE_POST,
-                      ApiKeys.repostId: _post.id,
-                    });
-                    if (res.isSuccess) {
+                    if (await quickRepost(_post.id)) {
                       widget.controller.incrementRepost(_post.id);
-                      commonSnackBar(
-                          message: AppStrings.repostedSuccessfully);
-                      Get.find<NavigationHelperController>()
-                          .shouldRefreshBottomBar
-                          .value = true;
-                    } else {
-                      commonSnackBar(message: AppStrings.alreadyReposted);
                     }
                   },
                 ),
@@ -235,10 +220,8 @@ class _ImagePostFeedItemState extends State<_ImagePostFeedItem> {
                   subtitle: AppStrings.addCommentBeforeShare,
                   onTap: () {
                     safeBack();
-                    Get.to(() => CreateMessagePostScreenRepost(
-                          isEdit: false,
-                          post: _post,
-                        ));
+                    Get.to(() => const CreateMessagePostScreenRepost(),
+                        binding: MessagePostBinding.repost(_post));
                   },
                 ),
               ],

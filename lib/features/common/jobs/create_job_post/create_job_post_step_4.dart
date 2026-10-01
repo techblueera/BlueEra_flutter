@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,6 +10,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JobPostStep4Controller extends GetxController {
   var confirmAvailability = true.obs;
@@ -31,7 +34,7 @@ class CreateJobPostStep4 extends StatefulWidget {
 }
 
 class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
-  final JobPostStep4Controller controller = Get.put(JobPostStep4Controller());
+  final controller = Get.find<JobPostStep4Controller>();
   final createJobPostController = Get.find<CreateJobPostController>();
   Worker? _jobDetailsWorker;
 
@@ -73,7 +76,7 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
       }
       setState(() {});
     } catch (e) {
-      print('Error initializing data from API: $e');
+      debugLog('Error initializing data from API: $e');
       // Set default values on error
     }
   }
@@ -220,10 +223,20 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
                         });
                       }
 
-                      await mainController.postJobStep4Api(
-                        jobId: mainController.jobID.value,
+                      final jobId = mainController.jobID.value;
+                      if (await mainController.postJobStep4Api(
+                        jobId: jobId,
                         customQuestions: customQuestions,
-                      );
+                      )) {
+                        Get.to(() => JobDetailScreen(
+                              isPostEdit: AppConstants.EDIT,
+                              isPostCreate: AppConstants.JOB_POST,
+                              jobId: jobId,
+                              isShowSaveJob: false,
+                              isPostDirection: '',
+                              isPostApply: '',
+                            ));
+                      }
                     },
                     title: AppStrings.continueTxt),
               )

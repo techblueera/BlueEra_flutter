@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 
 class ReminderBottomSheet extends StatefulWidget {
@@ -23,7 +22,7 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
   String? selectedOption;
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatThemeController = ChatThemeController.to;
 
   final List<String> quickOptions = [
     "1 Day",

@@ -9,7 +9,6 @@ import 'dart:typed_data';
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/common/inactivity/controller/inactivity_controller.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -66,6 +65,7 @@ import 'package:BlueEra/features/common/delivery_partner/controller/delivery_par
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -238,7 +238,7 @@ void onForegroundNotificationResponse(NotificationResponse response) {
       AppNotificationHandler._onTapNotificationFromStatusBar(data);
     }
   } catch (e, st) {
-    print('onForegroundNotificationResponse error: $e\n$st');
+    debugLog('onForegroundNotificationResponse error: $e\n$st');
   }
 }
 
@@ -352,7 +352,7 @@ Future<void> _handleBackgroundNotificationResponse(
         );
       }
     } catch (e) {
-      print('Incoming call decline API error: $e');
+      debugLog('Incoming call decline API error: $e');
     }
     // Also end the CallKit/native UI if it's still showing for this call.
     try {
@@ -416,7 +416,7 @@ Future<void> _handleBackgroundNotificationResponse(
       actionId.startsWith('view_conversation_')) {
     final senderId = data['senderId'] ?? '';
     if (senderId.isNotEmpty) {
-      final chatViewController = getOrPut(() => ChatViewController());
+      final chatViewController = ChatViewController.to;
 
       chatViewController.connectSocket();
       Future.delayed(const Duration(milliseconds: 200), () {
@@ -478,9 +478,9 @@ Future<void> _handleBackgroundNotificationResponse(
   if (actionId.startsWith('open_chat_')) {
     final chat = ChatViewController.personalAiChatModule;
     Get.to(() => AiChatScreen(
-          profileImage: chat?.sender?.profileImage,
-          name: chat?.sender?.name,
-          type: chat?.sender?.accountType,
+          profileImage: chat.sender?.profileImage,
+          name: chat.sender?.name,
+          type: chat.sender?.accountType,
         ));
     return;
   }
@@ -930,7 +930,7 @@ Future<void> _sendReplyViaApi({
       ),
     );
   } catch (e) {
-    print('Notification reply API error: $e');
+    debugLog('Notification reply API error: $e');
   }
 }
 
@@ -1212,7 +1212,7 @@ class AppNotificationHandler {
                   'incoming_call';
         }
       } catch (e) {
-        print('[iOS-checkNotificationLaunch] getInitialMessage error: $e');
+        debugLog('[iOS-checkNotificationLaunch] getInitialMessage error: $e');
       }
     }
   }
@@ -1277,7 +1277,7 @@ class AppNotificationHandler {
             _onTapNotificationFromStatusBar(data, fromColdStart: true);
           }
         } catch (e) {
-          print("Error parsing launch notification payload: $e");
+          debugLog("Error parsing launch notification payload: $e");
         } finally {
           // Signal that notification navigation is done (or failed)
           if (notificationNavigationCompleter != null &&
@@ -1357,7 +1357,7 @@ class AppNotificationHandler {
           }
         }
       } catch (e) {
-        print('[iOS-cold-start] deep-link routing error: $e');
+        debugLog('[iOS-cold-start] deep-link routing error: $e');
       } finally {
         // Always unblock the splash screen, even if routing failed — otherwise
         // it sits on the loader until its 5s safety timeout on every iOS
@@ -1722,7 +1722,7 @@ class AppNotificationHandler {
         await Future.delayed(interval);
       }
     } catch (e) {
-      print("===voip-token-poll=== error: $e");
+      debugLog("===voip-token-poll=== error: $e");
       return;
     }
 
@@ -1764,7 +1764,7 @@ class AppNotificationHandler {
         },
       );
     } catch (e) {
-      print("===voip-token-sync=== threw: $e");
+      debugLog("===voip-token-sync=== threw: $e");
     }
   }
 
@@ -1820,7 +1820,7 @@ class AppNotificationHandler {
           // the next launch / resume retry instead of assuming success — the
           // failure used to be printed and then forgotten forever, which is one
           // way a live user ends up with no token on the server.
-          print("===fcm-token-sync=== error: $e");
+          debugLog("===fcm-token-sync=== error: $e");
           _reportTokenState('failed', forced: force);
         },
         onSuccess: (_) {
@@ -1832,7 +1832,7 @@ class AppNotificationHandler {
         },
       );
     } catch (e) {
-      print("===fcm-token-sync=== threw: $e");
+      debugLog("===fcm-token-sync=== threw: $e");
     }
   }
 
@@ -2030,8 +2030,8 @@ class AppNotificationHandler {
       }
       return liveToken;
     } catch (e) {
-      print("=========fcm- Error :$e");
-      return cached();
+      debugLog("=========fcm- Error :$e");
+      return await cached();
     }
   }
 
@@ -2063,7 +2063,7 @@ class AppNotificationHandler {
       await FirebaseMessaging.instance.deleteToken();
       deleted = true;
     } catch (e) {
-      print("===fcm-refresh=== deleteToken error: $e");
+      debugLog("===fcm-refresh=== deleteToken error: $e");
     }
 
     // If deleteToken() failed, GMS is already in a bad state — calling
@@ -2083,7 +2083,7 @@ class AppNotificationHandler {
       try {
         newToken = await FirebaseMessaging.instance.getToken();
       } catch (e) {
-        print(
+        debugLog(
             "===fcm-refresh=== getToken error (attempt ${i + 1}/$maxAttempts): $e");
       }
       final hasNewToken = newToken != null && newToken.isNotEmpty;
@@ -2257,9 +2257,9 @@ class AppNotificationHandler {
     if (actionId.startsWith('open_chat_')) {
       final chat = ChatViewController.personalAiChatModule;
       Get.to(() => AiChatScreen(
-            profileImage: chat?.sender?.profileImage,
-            name: chat?.sender?.name,
-            type: chat?.sender?.accountType,
+            profileImage: chat.sender?.profileImage,
+            name: chat.sender?.name,
+            type: chat.sender?.accountType,
           ));
       return;
     }
@@ -3181,7 +3181,7 @@ class AppNotificationHandler {
     // device was offline can arrive minutes late, and ringing for a call that
     // is already over is worse than missing it. See [isStaleCallPush].
     if (isStaleCallPush(message)) {
-      print('[CALL_DEBUG] incoming_call push is stale, ignoring');
+      debugLog('[CALL_DEBUG] incoming_call push is stale, ignoring');
       return;
     }
     try {
@@ -3467,7 +3467,7 @@ class AppNotificationHandler {
 
     /// when app is in background and user tap on it.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('[iOS-tap] data= in ${message.data}');
+      debugLog('[iOS-tap] data= in ${message.data}');
       // Tapping the auto-go-live banner (app was backgrounded but alive)
       // re-asserts live state + restarts the location pinger, same as the
       // foreground path. See RIDER_GO_LIVE_GUIDE.md.
@@ -3517,7 +3517,7 @@ class AppNotificationHandler {
             await _onTapNotificationFromStatusBar(data, fromColdStart: true);
           }
         } catch (e) {
-          print('[iOS-initial-message] error: $e');
+          debugLog('[iOS-initial-message] error: $e');
         } finally {
           // Always unblock splash, even if routing failed or there was no
           // initial message. Otherwise splash sits on the loader for 5s
@@ -3529,7 +3529,7 @@ class AppNotificationHandler {
           }
         }
       }).catchError((e) {
-        print('[iOS-initial-message] outer error: $e');
+        debugLog('[iOS-initial-message] outer error: $e');
         if (notificationNavigationCompleter != null &&
             !notificationNavigationCompleter!.isCompleted) {
           notificationNavigationCompleter!.complete();
@@ -3839,9 +3839,9 @@ class AppNotificationHandler {
       case 'send_nightly_greeting':
         final chat = ChatViewController.personalAiChatModule;
         Get.to(() => AiChatScreen(
-              profileImage: chat?.sender?.profileImage,
-              name: chat?.sender?.name,
-              type: chat?.sender?.accountType,
+              profileImage: chat.sender?.profileImage,
+              name: chat.sender?.name,
+              type: chat.sender?.accountType,
             ));
         break;
 
@@ -4417,7 +4417,7 @@ class AppNotificationHandler {
   /// Helper to open chat with a user by their ID
   static void _openChatWithUser(String userId) {
     if (userId.isEmpty) return;
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     chatViewController.connectSocket();
     Future.delayed(const Duration(milliseconds: 200), () {
       chatViewController.checkChatConnectionAndOpenChat(userId: userId);
@@ -4444,7 +4444,7 @@ class AppNotificationHandler {
     // warm / list cached). Open it straight away.
     if (_openBlueEraChatFromList()) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
 
     // Killed-state tap. The personal chat list only arrives over the socket
     // AFTER the handshake, so the in-memory row above is always missing here.
@@ -4513,7 +4513,7 @@ class AppNotificationHandler {
   /// yet (e.g. the list hasn't finished loading on a cold start).
   static bool _openBlueEraChatFromList() {
     try {
-      final chatViewController = getOrPut(() => ChatViewController());
+      final chatViewController = ChatViewController.to;
       final ref = _blueEraRefFromChatList(
           chatViewController.getPersonalChatListModel?.value.chatList ??
               <ChatList?>[]);

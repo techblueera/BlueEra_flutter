@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/binding/stay_discover_binding.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
@@ -29,8 +30,11 @@ class HotelStayServiceCard extends StatelessWidget {
         getIcon: (item) =>
             apiCategoryIcon(apiCategories, item.slugId) ?? (item.icon ?? ''),
         onItemTap: (item) {
-          Get.to(() => AllStayServiceScreen(
-              stayCategories: stayItemsCategories, selectedStayCategory: item));
+          Get.to(
+              () => AllStayServiceScreen(
+                  stayCategories: stayItemsCategories,
+                  selectedStayCategory: item),
+              binding: StayDiscoverBinding());
         },
         // Folder tap → the same listing, opened on the first category. The screen
         // carries a header of every stay category, so nothing is lost by not

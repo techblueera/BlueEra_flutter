@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/routes/pending_pop.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:async';
@@ -34,6 +35,7 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar(
@@ -119,7 +121,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       if(newValue){
         _isEmojiVisible=false;
       }
-      print("Keyboard is now: ${isKeyboardVisible ? 'OPEN' : 'CLOSED'}");
+      debugLog("Keyboard is now: ${isKeyboardVisible ? 'OPEN' : 'CLOSED'}");
     }
   }
   Future<bool> _requestMicrophonePermission() async {
@@ -168,9 +170,9 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       });
 
       _startSpeechRecognition();
-      print("Recording started: $path");
+      debugLog("Recording started: $path");
     } catch (e) {
-      print("Failed to start recorder: $e");
+      debugLog("Failed to start recorder: $e");
     }
   }
 
@@ -185,7 +187,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       setState(() {
         isReadyToSend = true;
       });
-      print("Recording locked");
+      debugLog("Recording locked");
     } else if (dx < -100) {
       cancelRecording();
     }
@@ -203,9 +205,9 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         isPaused = false;
         _recordingDuration = Duration.zero;
       });
-      print("Recording stopped. File saved at: $path");
+      debugLog("Recording stopped. File saved at: $path");
     } catch (e) {
-      print("Error stopping recorder: $e");
+      debugLog("Error stopping recorder: $e");
     }
   }
 
@@ -219,9 +221,9 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       setState(() {
         isPaused = true;
       });
-      print("Recording paused");
+      debugLog("Recording paused");
     } catch (e) {
-      print("Error pausing recorder: $e");
+      debugLog("Error pausing recorder: $e");
     }
   }
 
@@ -240,9 +242,9 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         });
       });
       _startSpeechRecognition();
-      print("Recording resumed");
+      debugLog("Recording resumed");
     } catch (e) {
-      print("Error resuming recorder: $e");
+      debugLog("Error resuming recorder: $e");
     }
   }
 
@@ -259,7 +261,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         }
       }
     } catch (e) {
-      print("Error canceling recording: $e");
+      debugLog("Error canceling recording: $e");
     }
 
     if (!mounted) return;
@@ -271,13 +273,13 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       _recordingDuration = Duration.zero;
       _transcribedText = '';
     });
-    print("Recording canceled");
+    debugLog("Recording canceled");
   }
 
   Future<void> _startSpeechRecognition() async {
     if (!_isSpeechAvailable) {
       _isSpeechAvailable = await _speechToText.initialize(
-        onError: (error) => print("Speech error: ${error.errorMsg}"),
+        onError: (error) => debugLog("Speech error: ${error.errorMsg}"),
       );
     }
     if (_isSpeechAvailable) {
@@ -609,7 +611,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       };
     }
 
-    print('SEND PAYLOAD (audio-to-text): ' + data.toString());
+    debugLog('SEND PAYLOAD (audio-to-text): ' + data.toString());
     sendMessageToUser(data: data, isInitial: isInitialFlow);
   }
 
@@ -925,8 +927,8 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   child: Padding(
                                     padding: const EdgeInsets.only(bottom: 3.0),
                                     child: SvgPicture.asset(height: 22, width: 22, AppIconAssets
-                                        .chat_box_smile, color: AppColors
-                                        .chat_input_icon_color,),
+                                        .chat_box_smile, colorFilter: ColorFilter.mode(AppColors
+                                        .chat_input_icon_color, BlendMode.srcIn),),
                                   ),
                                 ),
                               ),
@@ -942,7 +944,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                 minLines: 1,
                                 maxLines: 5,
                                 onChanged: (value) {
-                                  if (!value.isEmpty) {
+                                  if (value.isNotEmpty) {
                                     chatViewController.isTextFieldEmpty.value =
                                     true;
                                     // Emit typing indicator (debounced)
@@ -980,8 +982,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter a URL';
                                   }
-                                  final httpsUrlRegex = RegExp('r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
-                                  if (!httpsUrlRegex.hasMatch(value)) {
+                                  if (!ValidationMethod.isHttpsUrl(value)) {
                                   return 'Only HTTPS URLs are allowed';
                                   }
                                   return null;
@@ -1018,7 +1019,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                           AppIconAssets.chat_pick_media,
                           height: 22,
                           width: 22,
-                          color: AppColors.chat_input_icon_color,
+                          colorFilter: ColorFilter.mode(AppColors.chat_input_icon_color, BlendMode.srcIn),
                         ),
                       ),
                     ),
@@ -1117,7 +1118,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                                     ApiKeys.message_type: "text",
                                   };
                                 }
-                                print('SEND PAYLOAD (text): '+data.toString());
+                                debugLog('SEND PAYLOAD (text): '+data.toString());
                                 sendMessageToUser(
                                     data: data, isInitial: isInitialFlow);
                               }
@@ -1143,7 +1144,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                               )
                                   : GestureDetector(
                                 onTap: () => startRecording(Offset.zero),
-                                child: SvgPicture.asset(AppIconAssets.chat_mic_icon, color: Colors.black),
+                                child: SvgPicture.asset(AppIconAssets.chat_mic_icon, colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn)),
                               ),
                             ),
                           ),
@@ -1239,7 +1240,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         ApiKeys.files: [audioPart],
       };
 
-      print('SEND PAYLOAD (audio): ' + data.toString());
+      debugLog('SEND PAYLOAD (audio): ' + data.toString());
       await sendMessageToUser(
         data: data,
         isInitial: isInitialFlow,
@@ -1490,7 +1491,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         ApiKeys.message_type: "audio",
         ApiKeys.files: [audioPart],
       };
-      print('SEND PAYLOAD (audio file): ' + data.toString());
+      debugLog('SEND PAYLOAD (audio file): ' + data.toString());
       sendMessageToUser(data: data, isInitial: isInitialFlow);
     }
   }
@@ -1547,7 +1548,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         ApiKeys.message_type: "document",
         ApiKeys.files: documentParts,
       };
-      print('SEND PAYLOAD (document): ' + data.toString());
+      debugLog('SEND PAYLOAD (document): ' + data.toString());
       sendMessageToUser(
           data: data, isInitial: isInitialFlow, fileName: fileddName);
     }
@@ -1636,7 +1637,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
       ApiKeys.latitude: latitude,
       ApiKeys.longitude: longitude,
     };
-    print('SEND PAYLOAD (location): '+data.toString());
+    debugLog('SEND PAYLOAD (location): '+data.toString());
     sendMessageToUser(data: data, isInitial: isInitialFlow);
   }
 
@@ -1662,7 +1663,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
           ApiKeys.shared_contact_name: '$displayName',
           ApiKeys.shared_contact_number: '$phoneNumber',
         };
-        print('SEND PAYLOAD (contact): '+contactData.toString());
+        debugLog('SEND PAYLOAD (contact): '+contactData.toString());
         sendMessageToUser(
             data: contactData, isInitial: isInitialFlow);
       } else {
@@ -1689,8 +1690,8 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
         files.add(File(pickedVideo.path));
       }
     } else {
-      final List<XFile>? pickedImages = await picker.pickMultiImage();
-      if (pickedImages != null && pickedImages.isNotEmpty) {
+      final List<XFile> pickedImages = await picker.pickMultiImage();
+      if (pickedImages.isNotEmpty) {
         files.addAll(pickedImages.map((xfile) => File(xfile.path)));
       }
     }

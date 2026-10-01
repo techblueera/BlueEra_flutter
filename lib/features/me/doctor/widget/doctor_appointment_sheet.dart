@@ -114,7 +114,7 @@ class DoctorAppointmentSheet {
     // the server-created booking card appears. `route_discover` forces the
     // BUSINESS lane — without it an existing personal thread with the same
     // user would win and the booking card would be in the other conversation.
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
       name: listing.doctorName,

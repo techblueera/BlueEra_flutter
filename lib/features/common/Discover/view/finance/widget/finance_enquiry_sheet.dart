@@ -275,7 +275,7 @@ class FinanceEnquirySheet {
     );
     if (enquiryId == null) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: ownerId,
       name: (data.profileName ?? '').trim(),

@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
@@ -20,10 +19,7 @@ class PhotoListingWidget extends StatelessWidget {
       appBar: CommonBackAppBar(
         title: "Edit photo",
         onBackTap: () {
-          Get.off(() => MessagePostPreviewScreenNew(
-                postVia: PostVia.profile,
-                isEdit: false,
-              ));
+          Get.off(() => const MessagePostPreviewScreenNew());
         },
       ),
       bottomNavigationBar: SafeArea(
@@ -37,15 +33,12 @@ class PhotoListingWidget extends StatelessWidget {
               onTap: () {
                 final msgController = Get.find<MessagePostController>();
 
-                if (msgController.imagesList.length < 1) {
+                if (msgController.imagesList.isEmpty) {
                   commonSnackBar(
                       message: "At least 1 photo or video is required");
                   return;
                 }
-                Get.off(() => MessagePostPreviewScreenNew(
-                      postVia: PostVia.profile,
-                      isEdit: false,
-                    ));
+                Get.off(() => const MessagePostPreviewScreenNew());
               },
               title: "Next"),
         ),

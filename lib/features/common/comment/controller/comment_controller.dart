@@ -251,7 +251,7 @@ class CommentController extends GetxController {
       required String postID,
       required CommentType commentPostType}) async {
     try {
-      var response;
+      ResponseModel? response;
       if (commentPostType == CommentType.video) {
         response = await CommentRepo().deleteVideoPostComment(
           commentID: commentId,
@@ -263,7 +263,7 @@ class CommentController extends GetxController {
         );
       }
 
-      if (response.isSuccess) {
+      if (response != null && response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
         if (commentPostType == CommentType.video) {
@@ -278,7 +278,7 @@ class CommentController extends GetxController {
         // If not found, search inside replies
       } else {
         commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+            message: response?.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);

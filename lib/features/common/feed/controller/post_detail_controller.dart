@@ -4,6 +4,7 @@ import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PostDetailController extends GetxController {
   String? postId;
@@ -34,7 +35,7 @@ class PostDetailController extends GetxController {
     if (postId != null && postId!.isNotEmpty) {
       postByID(id: postId!);
     } else {
-      print("⚠️ No postId found in navigation arguments or parameters");
+      debugLog("⚠️ No postId found in navigation arguments or parameters");
     }
   }
 

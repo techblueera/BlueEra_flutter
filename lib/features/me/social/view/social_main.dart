@@ -44,7 +44,7 @@ class SocialMainScreen extends StatefulWidget {
 class _SocialMainScreenState extends State<SocialMainScreen>
     with TickerProviderStateMixin {
   final _ctrl = Get.put(SocialHomeController());
-  final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
+  final _personalCtrl = PersonalCreateProfileController.to;
   final _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 

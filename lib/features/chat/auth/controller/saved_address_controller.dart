@@ -8,6 +8,13 @@ import '../model/saved_address_model.dart';
 /// drop-location sheet). Mirrors the Hive-JSON pattern of the other local-only
 /// chat controllers — nothing is sent to the server.
 class SavedAddressController extends GetxController {
+  /// One address book for the session, whichever sheet asks first; logout
+  /// drops it (its Hive box is wiped with the account).
+  static SavedAddressController get to =>
+      Get.isRegistered<SavedAddressController>()
+          ? Get.find<SavedAddressController>()
+          : Get.put(SavedAddressController(), permanent: true);
+
   static const String _boxName = 'savedAddressesBox';
   static const String _addressesKey = 'savedAddresses';
 
@@ -26,7 +33,6 @@ class SavedAddressController extends GetxController {
     }
     return await Hive.openBox<String>(_boxName);
   }
-
 
   Future<void> _load() async {
     final box = await _boxRef;

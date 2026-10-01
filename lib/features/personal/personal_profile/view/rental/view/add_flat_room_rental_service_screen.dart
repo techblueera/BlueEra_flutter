@@ -1,7 +1,7 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'dart:developer';
 
-import 'package:BlueEra/core/api/model/place_details.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -36,6 +36,7 @@ import 'package:BlueEra/widgets/time_selection_dropdown.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AddFlatRoomRentalServiceScreen extends StatefulWidget {
   const AddFlatRoomRentalServiceScreen({Key? key}) : super(key: key);
@@ -45,10 +46,10 @@ class AddFlatRoomRentalServiceScreen extends StatefulWidget {
 }
 
 class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServiceScreen> {
-  final controller = getOrPut(() => AddFlatRentalServiceController());
+  final controller = Get.find<AddFlatRentalServiceController>();
   final langController = getOrPut(() => LanguageListController(), permanent: true);
-  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
-  final stayImagesController = getOrPut(() => StayImagesController());
+  final multipleImageSectionController = Get.find<CommonMultipleImageSectionController>();
+  final stayImagesController = Get.find<StayImagesController>();
 
   @override
   void initState() {
@@ -58,8 +59,6 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
 
   @override
   void dispose() {
-    deleteIfRegistered<AddFlatRentalServiceController>();
-    deleteIfRegistered<StayImagesController>();
     super.dispose();
   }
 
@@ -162,40 +161,19 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                           title: AppStrings.propertyLocationTitle,
                           hintText: AppStrings.propertyLocationHint,
                           onSelected: (placeId, lat, lng, address) async {
-                            print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                            debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                             controller.location.text = address;
                             controller.currentAddress.value = address;
                             controller.latitude = lat;
                             controller.longitude = lng;
 
-                            controller.isFetchingAddressDetails.value = true;
-
-                            // Fetch and auto-fill details
-                            try {
-                              final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-                              final detailsData = detailsResponse.response?.data;
-
-                              final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                              final components = placeDetails.result?.addressComponents ?? [];
-
-                              String postalCode = '';
-
-                              for (var comp in components) {
-                                final types = comp.types ?? [];
-                                if (types.contains('locality')) {
-                                } else if (types.contains('administrative_area_level_1')) {
-                                } else if (types.contains('postal_code')) {
-                                  postalCode = comp.longName ?? '';
-                                }
-                              }
-
-                              controller.pinCode.text = postalCode;
-
-                            } catch (e) {
-                              print("Error fetching place details: $e");
-                            }finally {
-                              controller.isFetchingAddressDetails.value = false;
-                            }
+                          },
+                          // The field hands over the Place Details it already fetched; the
+                          // postal code comes from there (kept as-is if that fetch failed).
+                          onPlaceDetails: (_, __, details) {
+                            if (details == null) return;
+                            controller.pinCode.text =
+                                PlaceLookupService.postalCodeIn(details) ?? '';
                           },
                         ),
                       ),
@@ -251,7 +229,8 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
                         onTap: () async {
                           final result = await CommonMobileOtpDialog().show(context);
 
-                          if (result == true) {
+                          // The dialog returns the verified new number, or null when cancelled.
+                          if (result != null) {
                             //  OTP successfully verified
                             log("OTP verification successful");
                           } else {
@@ -481,7 +460,11 @@ class _AddFlatRoomRentalServiceScreenState extends State<AddFlatRoomRentalServic
             title: controller.isAddFlatRentalServiceLoading.value
                 ? null
                 : AppStrings.postNowButton,
-            onTap: ()=> controller.validateStepFour(stayImagesController),
+            onTap: () {
+              if (controller.validateStepFour(stayImagesController)) {
+                Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+              }
+            },
             radius: 10.0,
             bgColor: AppColors.primaryColor,
             isLoading: controller.isAddFlatRentalServiceLoading.value,

@@ -7,6 +7,7 @@ import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class HobbiesController extends GetxController {
   final hobbies = <Map<String, String>>[].obs;
@@ -110,7 +111,7 @@ class HobbiesController extends GetxController {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print("Error in saveHobbies: $e"); // Debug log
+      debugLog("Error in saveHobbies: $e"); // Debug log
       addHobbiesResponse = ApiResponse.error(AppStrings.hobbiesAddFailed.tr);
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }

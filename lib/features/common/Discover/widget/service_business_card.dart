@@ -84,9 +84,6 @@ class ServiceBusinessCard extends StatelessWidget {
     return _profile?.categoryDetailsName?.trim() ?? '';
   }
 
-  /// Category label rendered as an overlay at the top-left of the hero.
-  String get _categoryLabel => _profile?.categoryDetailsName?.trim() ?? '';
-
   bool get _isOpenToday {
     final today = item.timings?.forWeekday(DateTime.now().weekday);
     return today != null && today.hasHours;

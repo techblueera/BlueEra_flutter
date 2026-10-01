@@ -15,7 +15,6 @@ import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
@@ -65,7 +64,7 @@ class VisitBusinessCommonHeader extends StatefulWidget {
 
 class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
   final storeController = getOrPut(() => StoreController());
-  final chatViewController = getOrPut(() => ChatViewController());
+  final chatViewController = ChatViewController.to;
   final RxBool _isFollowed = false.obs;
 
   BusinessProfileDetails? get details => widget.details;
@@ -410,30 +409,6 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             ),
           ),
           child: child,
-        ),
-      ),
-    );
-  }
-
-  // ─── Circle Action Button ───
-  Widget _buildCircleAction({
-    required String icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.white,
-            border: Border.all(color: AppColors.greyE5, width: 0.5),
-            boxShadow: [AppShadows.textFieldShadow]),
-        child: LocalAssets(
-          imagePath: AppIconAssets.chat,
-          height: 16,
-          width: 16,
-          imgColor: AppColors.secondaryTextColor,
         ),
       ),
     );

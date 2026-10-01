@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Pulls `message` out of a response body that is only *expected* to be JSON.
 ///
@@ -38,7 +39,7 @@ class PorterApiService {
       final response = await _dio.post(url, data: payload);
 
       if (response.statusCode == 200) {
-        print("✅ Porter Quote Response: ${response.data}");
+        debugLog("✅ Porter Quote Response: ${response.data}");
         return {"status": true, "data": response.data};
       } else {
         commonSnackBar(
@@ -55,8 +56,8 @@ class PorterApiService {
               AppStrings.somethingWentWrong);
 
       if (e.response != null) {
-        print("❌ Error response: ${e.response?.data}");
-        print("Status code: ${e.response?.statusCode}");
+        debugLog("❌ Error response: ${e.response?.data}");
+        debugLog("Status code: ${e.response?.statusCode}");
         return {"status": false, "data": e.response?.data};
       } else {
         return {"status": false, "data": e.response?.data};

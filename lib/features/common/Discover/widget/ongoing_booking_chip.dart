@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -12,7 +14,7 @@ import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_c
 import 'package:BlueEra/features/common/Discover/widget/ongoing_style_card.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
-import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
+import 'package:BlueEra/features/ride_booking/service/ride_feedback_service.dart';
 import 'package:BlueEra/features/ride_booking/service/rider_chat_launcher.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_customer_care_sheet.dart';
 import 'package:BlueEra/features/ride_booking/widget/rider_call_options_sheet.dart';
@@ -382,15 +384,9 @@ class OngoingBookingChip extends StatelessWidget {
     RideNavigationOverlayController? overlayCtrl,
     int stars,
   ) {
-    final orderId = booking.rideId;
-    if (orderId.isNotEmpty) {
-      RideBookingRepo().rateRide(orderId: orderId, rating: stars).catchError(
-        (Object error) {
-          debugPrint('ride rating failed — order=$orderId: $error');
-          return null;
-        },
-      );
-    }
+    // Fails soft and skips a ride with no order id; nothing waits on it.
+    unawaited(RideFeedbackService()
+        .rate(orderId: booking.rideId, rating: stars, tags: const []));
     commonSnackBar(message: 'Thanks for the feedback!');
     _clearBooking(ctrl, overlayCtrl);
   }

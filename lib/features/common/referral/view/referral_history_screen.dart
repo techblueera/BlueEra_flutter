@@ -44,9 +44,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
   @override
   void initState() {
     super.initState();
-    _chatViewController = Get.isRegistered<ChatViewController>()
-        ? Get.find<ChatViewController>()
-        : Get.put(ChatViewController());
+    _chatViewController = ChatViewController.to;
     controller.fetchHistory(controller.selectedFilter.value);
   }
 

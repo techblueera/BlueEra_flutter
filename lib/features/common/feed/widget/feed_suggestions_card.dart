@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/visit_profile_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/service/follow_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/glass_surface.dart';
@@ -43,16 +43,12 @@ class _FeedSuggestionsCardState extends State<FeedSuggestionsCard> {
     });
 
     try {
-      final response = await UserRepo().followUser(followUserId: user.id);
+      final followed = await FollowService().follow(user.id);
       if (!mounted) return;
-      if (!response.isSuccess) {
+      if (!followed) {
         setState(() => user.isFollowing = previous);
         commonSnackBar(message: 'Could not follow. Please try again.');
       }
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => user.isFollowing = previous);
-      commonSnackBar(message: 'Could not follow. Please try again.');
     } finally {
       if (mounted) setState(() => _inFlight.remove(user.id));
     }

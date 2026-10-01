@@ -43,11 +43,7 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<LabTestController>()) {
-      controller = Get.put(LabTestController(), permanent: true);
-    } else {
-      controller = Get.find<LabTestController>();
-    }
+    controller = LabTestController.to;
 
     if (_isOtherProfile) {
       controller.fetchTestsByLab(widget.labId!, widget.collection);

@@ -985,7 +985,7 @@ class Education {
     schoolOrCollegeName = json['schoolOrCollegeName'];
     boardName = json['boardName'];
     passingYear =
-        json['passingYear'] != null ? json['passingYear'].toString() : null;
+        json['passingYear']?.toString();
     percentage = json['percentage'];
   }
 

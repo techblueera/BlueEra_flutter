@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/reel/view/shorts/short_player_item.dart'
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// How many shorts to watch before the next interstitial break.
 ///
@@ -116,11 +117,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     } else {
       shortsFeedController = Get.put(ShortsController());
     }
-    print('🚀 INIT: ShortsPlayerScreen initializing...');
+    debugLog('🚀 INIT: ShortsPlayerScreen initializing...');
     WidgetsBinding.instance.addObserver(this);
     currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: currentIndex);
-    print('📍 INIT: Starting at index $currentIndex');
+    debugLog('📍 INIT: Starting at index $currentIndex');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeFeedData();
@@ -140,7 +141,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       // controller — this setState delivers it).
       _playWhenReady(currentIndex);
       if (mounted) setState(() {});
-      print('✅ INIT: Initialization complete');
+      debugLog('✅ INIT: Initialization complete');
     });
 
   }
@@ -154,11 +155,13 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     /* Pause every cached controller first, then dispose them — pausing up
        front means no audio can leak out of a controller while the rest of the
        teardown runs. */
-    _videoCache.values.forEach((e) => e.controller?.pause());
-    _videoCache.values.forEach((e) {
+    for (var e in _videoCache.values) {
+      e.controller?.pause();
+    }
+    for (var e in _videoCache.values) {
       e.controller?.dispose();
       e.controller = null;
-    });
+    }
     _videoCache.clear();
 
     _pageController.dispose();
@@ -167,7 +170,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('📱 LIFECYCLE: App state changed to $state');
+    debugLog('📱 LIFECYCLE: App state changed to $state');
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       final controller = _videoCache[currentIndex]?.controller;
@@ -175,7 +178,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         final wasPlaying = controller.value.isPlaying;
         controller.pause();
         _releaseWakeLock();
-        print('🔇 LIFECYCLE: Paused video at index $currentIndex (was playing: $wasPlaying)');
+        debugLog('🔇 LIFECYCLE: Paused video at index $currentIndex (was playing: $wasPlaying)');
       }
     }
     // Coming back from an INTERSTITIAL, and only from one.
@@ -214,7 +217,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (controller == null) return;
     controller.play();
     _acquireWakeLock();
-    print('▶️ ADS: Resumed short at index $currentIndex after interstitial');
+    debugLog('▶️ ADS: Resumed short at index $currentIndex after interstitial');
   }
 
   /// Runs the interstitial break if enough shorts have gone by.
@@ -245,13 +248,13 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     controller?.pause();
     await _releaseWakeLock();
 
-    print('📺 ADS: Interstitial break; next in $_nextAdAfter shorts');
+    debugLog('📺 ADS: Interstitial break; next in $_nextAdAfter shorts');
     final shown = await InterstitialAdManager.instance.showInterstitial();
 
     // No fill: nothing took over the screen, so no `resumed` is coming and the
     // break has to be closed here or the feed stays paused forever.
     if (!shown) {
-      print('📺 ADS: No interstitial available — resuming immediately');
+      debugLog('📺 ADS: No interstitial available — resuming immediately');
       _endAdBreak();
     }
   }
@@ -294,14 +297,14 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
     /* dispose far away */
     final toRemove = <int>{};
-    _videoCache.keys.forEach((i) {
+    for (var i in _videoCache.keys) {
       if (i < left || i > right) toRemove.add(i);
-    });
+    }
 
-    toRemove.forEach((i) {
+    for (var i in toRemove) {
       _videoCache[i]?.controller?.dispose();
       _videoCache.remove(i);
-    });
+    }
 
     /* create missing — always cover the whole [left..right] window so the
        current page and its immediate neighbours are ready to play. The
@@ -393,7 +396,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     final list = _getCurrentFeedList(shortsFeedController!);
     final item = list?.elementAtOrNull(index);
     if (item == null) return;
-    print('🔁 RELOAD: Rebuilding controller for index $index');
+    debugLog('🔁 RELOAD: Rebuilding controller for index $index');
     _videoCache[index]?.controller?.dispose();
     _videoCache[index] = _createEntry(item, index);
     if (index == currentIndex) _playWhenReady(index);
@@ -414,7 +417,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   }
 
   void _initializeFeedData() {
-    print('📋 FEED: Initializing feed data for ${widget.shorts}');
+    debugLog('📋 FEED: Initializing feed data for ${widget.shorts}');
     switch (widget.shorts) {
       case Shorts.trending:
         shortsFeedController?.trendingVideoFeedPosts.value = [
@@ -458,7 +461,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       default:
         break;
     }
-    print('📋 FEED: Feed initialized with ${widget.initialShorts.length} items');
+    debugLog('📋 FEED: Feed initialized with ${widget.initialShorts.length} items');
   }
 
   List<ShortFeedItem>? _getCurrentFeedList(ShortsController controller) {
@@ -487,7 +490,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   }
 
   void _onScrollToEnd(ShortsController controller) {
-    print('🔄 LOAD_MORE: Loading more content for ${widget.shorts}');
+    debugLog('🔄 LOAD_MORE: Loading more content for ${widget.shorts}');
     switch (widget.shorts) {
       case Shorts.trending:
         controller.getAllFeedTrending();
@@ -512,7 +515,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   Future<void> _blockUserAndAdvance(
       {required ShortFeedItem videoItem,
         required String otherUserId}) async {
-    print('🚫 BLOCK: Blocking user and advancing...');
+    debugLog('🚫 BLOCK: Blocking user and advancing...');
     final list = _getCurrentFeedList(shortsFeedController!);
     if (list == null) return;
     final id = videoItem.video?.id;
@@ -523,18 +526,18 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (controller != null) {
       final wasPlaying = controller.value.isPlaying;
       controller.pause();
-      print('🔇 BLOCK: Paused video at index $index (was playing: $wasPlaying)');
+      debugLog('🔇 BLOCK: Paused video at index $index (was playing: $wasPlaying)');
     }
 
     final hasNext = index < list.length - 1;
     final hasPrev = index > 0;
     if (hasNext) {
-      print('➡️ BLOCK: Moving to next video (index ${index + 1})');
+      debugLog('➡️ BLOCK: Moving to next video (index ${index + 1})');
       await _pageController.animateToPage(index + 1,
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut);
     } else if (hasPrev) {
-      print('⬅️ BLOCK: Moving to previous video (index ${index - 1})');
+      debugLog('⬅️ BLOCK: Moving to previous video (index ${index - 1})');
       await _pageController.animateToPage(index - 1,
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut);
@@ -542,7 +545,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
     await Get.find<ShortsController>()
         .userBlocked(shortsType: widget.shorts, otherUserId: otherUserId);
-    print('✅ BLOCK: User blocked successfully');
+    debugLog('✅ BLOCK: User blocked successfully');
   }
 
   void _onPageChanged(int index) {
@@ -621,7 +624,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   }
 
   Future<bool> _onPop() async {
-    print('🔙 BACK_PRESSED: Starting pop handling...');
+    debugLog('🔙 BACK_PRESSED: Starting pop handling...');
 
     // Pause the currently playing video specifically
     final currentController = _videoCache[currentIndex]?.controller;
@@ -629,9 +632,9 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       final wasPlaying = currentController.value.isPlaying;
       currentController.pause();
       _releaseWakeLock();
-      print('🔇 BACK_PRESSED: Paused current video at index $currentIndex (was playing: $wasPlaying)');
+      debugLog('🔇 BACK_PRESSED: Paused current video at index $currentIndex (was playing: $wasPlaying)');
     } else {
-      print('⚠️ BACK_PRESSED: No controller found for current index $currentIndex');
+      debugLog('⚠️ BACK_PRESSED: No controller found for current index $currentIndex');
     }
 
     // Also pause all other cached controllers as a safety measure
@@ -644,12 +647,12 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     });
 
     if (pausedIndices.isNotEmpty) {
-      print('🔇 BACK_PRESSED: Also paused controllers at indices: $pausedIndices');
+      debugLog('🔇 BACK_PRESSED: Also paused controllers at indices: $pausedIndices');
     }
 
     // Print final cache state
     _printCache();
-    print('✅ BACK_PRESSED: All audio should now be stopped');
+    debugLog('✅ BACK_PRESSED: All audio should now be stopped');
     return true;
   }
 
@@ -760,9 +763,9 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
   // Enhanced cache printing method
   void _printCache() {
-    print('📊 CACHE_STATUS: Current cache state:');
+    debugLog('📊 CACHE_STATUS: Current cache state:');
     if (_videoCache.isEmpty) {
-      print('   - Cache is empty');
+      debugLog('   - Cache is empty');
       return;
     }
 
@@ -777,7 +780,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         final hasError = c.value.hasError;
         final volume = c.value.volume;
 
-        print('   - Cache[$idx]: '
+        debugLog('   - Cache[$idx]: '
             'controller=${c.hashCode}, '
             'initialized=$isInit, '
             'playing=$isPlaying, '
@@ -787,14 +790,14 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
             'position=$position, '
             'hasError=$hasError');
       } else {
-        print('   - Cache[$idx]: controller=NULL');
+        debugLog('   - Cache[$idx]: controller=NULL');
       }
     });
   }
 
   // Call this method whenever you want to check cache status
   void debugCacheStatus() {
-    print('🔍 MANUAL_DEBUG: Cache status requested');
+    debugLog('🔍 MANUAL_DEBUG: Cache status requested');
     _printCache();
   }
 }

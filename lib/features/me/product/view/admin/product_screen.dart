@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -47,9 +46,9 @@ class _ProductScreenState extends State<ProductScreen>
 
   late final List<String> _tabs;
 
-  final inventoryController = getOrPut(() => InventoryController());
+  final inventoryController = InventoryController.to;
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = ChatViewController.to;
 
   @override
   void initState() {

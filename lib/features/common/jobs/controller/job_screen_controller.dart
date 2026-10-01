@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_jobs_model.dart';
 import 'package:BlueEra/features/common/jobs/repo/job_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class JobScreenController extends GetxController {
   RxBool isHeaderVisible = true.obs;
@@ -83,8 +84,8 @@ class JobScreenController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print('Exception in updateJobPostDetailsApi: $e');
-      print('Exception stack trace: ${e.toString()}');
+      debugLog('Exception in updateJobPostDetailsApi: $e');
+      debugLog('Exception stack trace: ${e.toString()}');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }

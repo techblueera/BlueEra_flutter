@@ -14,6 +14,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PhotoUploadWidget extends StatefulWidget {
   PhotoUploadWidget({super.key, this.isFromRepost = false});
@@ -181,7 +182,10 @@ class _PhotoUploadWidgetState extends State<PhotoUploadWidget> {
   Widget addVideoWidget() {
     return InkWell(
       onTap: () async {
-        msgController.pickVideoMedia();
+        msgController.pickVideoMedia(
+            trimVideo: (path) async =>
+                await Get.to(() => VideoTrimmerPage(videoPath: path))
+                    as String?);
       },
       child: Container(
         width: SizeConfig.screenWidth,
@@ -223,7 +227,7 @@ void openVideoPreview(File file) async {
       await Get.to(() => VideoTrimmerPage(videoPath: sourcePath));
 
   if (trimmedPath != null) {
-    print("✅ Re-Trimmed Video Path: $trimmedPath");
+    debugLog("✅ Re-Trimmed Video Path: $trimmedPath");
     final videoTriFile = File(trimmedPath);
 
     // If trimming produced a playable file, use it. Otherwise fall back to
@@ -250,7 +254,7 @@ void openImageCrop(BuildContext context, File file, int index) async {
   final msgController = Get.find<MessagePostController>();
   String croppedPath = await PhotoPickerService.cropImage(context, file.path);
   if (croppedPath.isNotEmpty) {
-    print("✅ Cropped Image Path: $croppedPath");
+    debugLog("✅ Cropped Image Path: $croppedPath");
     final croppedFile = File(croppedPath);
     msgController.imagesList[index] = croppedFile;
     msgController.imagesList.refresh();

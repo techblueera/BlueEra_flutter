@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/view/referral_dashboard_page.dart';
@@ -25,7 +24,7 @@ class ReferralPage extends StatefulWidget {
 }
 
 class _ReferralPageState extends State<ReferralPage> {
-  final controller = getOrPut(() => ReferralController());
+  final controller = ReferralController.to;
 
   @override
   void initState() {

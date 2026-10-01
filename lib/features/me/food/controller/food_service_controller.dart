@@ -30,6 +30,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Top-level so it can run in a background isolate via [compute]. Builds the
 /// root food categories (with their nested `children`) for the drill-down.
@@ -682,7 +683,7 @@ class FoodServiceController extends GetxController {
           return null;
         }
       } catch (e, s) {
-        print('stack trace-- $s');
+        debugLog('stack trace-- $s');
         commonSnackBar(message: e.toString());
         return null;
       }
@@ -808,7 +809,7 @@ class FoodServiceController extends GetxController {
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      print('stack trace-- $s');
+      debugLog('stack trace-- $s');
       commonSnackBar(message: e.toString());
     } finally {
       isPosting.value = false;

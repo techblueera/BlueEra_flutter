@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
@@ -427,7 +426,7 @@ class AdminProductCard extends StatelessWidget {
       // isn't supplied, which is what keeps automotive / manufacturer (who
       // reuse the sheet with their own inventory ids) from PATCHing here.
       onToggleStock: (inventoryId, isOutOfStock) =>
-          getOrPut(() => InventoryController()).toggleVariantOutOfStock(
+          InventoryController.to.toggleVariantOutOfStock(
         inventoryId: inventoryId,
         isOutOfStock: isOutOfStock,
       ),

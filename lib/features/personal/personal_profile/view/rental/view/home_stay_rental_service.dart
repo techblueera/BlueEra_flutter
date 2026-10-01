@@ -1,5 +1,5 @@
-import 'package:BlueEra/core/api/model/place_details.dart';
-import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/common_bloc/place/service/place_lookup_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -33,6 +33,7 @@ import 'package:BlueEra/widgets/time_selection_dropdown.dart';
 import 'package:BlueEra/widgets/update_contact_number.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class HomeStayRentalService extends StatefulWidget {
   const HomeStayRentalService({super.key});
@@ -42,11 +43,11 @@ class HomeStayRentalService extends StatefulWidget {
 }
 
 class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
-  final controller = getOrPut(() => HomeStayRentalServiceController());
+  final controller = Get.find<HomeStayRentalServiceController>();
   final langController = getOrPut(() => LanguageListController(), permanent: true);
-  final multipleImageSectionController = getOrPut(() => CommonMultipleImageSectionController());
-  final myDocumentController = getOrPut(() => MyDocumentsController());
-  final stayImagesController = getOrPut(() => StayImagesController());
+  final multipleImageSectionController = Get.find<CommonMultipleImageSectionController>();
+  final myDocumentController = MyDocumentsController.to;
+  final stayImagesController = Get.find<StayImagesController>();
 
   RxString currentAddress = ''.obs;
   double latitude = 0.0;
@@ -62,8 +63,6 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
   @override
   void dispose() {
-    deleteIfRegistered<HomeStayRentalServiceController>();
-    deleteIfRegistered<StayImagesController>();
     super.dispose();
   }
 
@@ -151,12 +150,13 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                     onTap: () async {
                       final result = await CommonMobileOtpDialog().show(context);
 
-                      if (result == true) {
+                      // The dialog returns the verified new number, or null when cancelled.
+                      if (result != null) {
                         //  OTP successfully verified
-                        print("OTP verification successful");
+                        debugLog("OTP verification successful");
                       } else {
                         // Either cancelled or verification failed
-                        print("OTP verification failed or cancelled");
+                        debugLog("OTP verification failed or cancelled");
                       }
 
                     },
@@ -223,40 +223,19 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
                       title: AppStrings.homeLocation,
                       hintText: AppStrings.propertyLocationHint,
                       onSelected: (placeId, lat, lng, address) async {
-                        print("PlaceId: $placeId Selected: $address → ($lat, $lng)");
+                        debugLog("PlaceId: $placeId Selected: $address → ($lat, $lng)");
                         controller.locationCtrl.text = address;
                         controller.currentAddress.value = address;
                         controller.latitude = lat;
                         controller.longitude = lng;
 
-                        controller.isFetchingAddressDetails.value = true;
-
-                        // Fetch and auto-fill details
-                        try {
-                          final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
-                          final detailsData = detailsResponse.response?.data;
-
-                          final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                          final components = placeDetails.result?.addressComponents ?? [];
-
-                          String postalCode = '';
-
-                          for (var comp in components) {
-                            final types = comp.types ?? [];
-                            if (types.contains('locality')) {
-                            } else if (types.contains('administrative_area_level_1')) {
-                            } else if (types.contains('postal_code')) {
-                              postalCode = comp.longName ?? '';
-                            }
-                          }
-
-                          controller.pinCodeCtrl.text = postalCode;
-
-                        } catch (e) {
-                          print("Error fetching place details: $e");
-                        }finally {
-                          controller.isFetchingAddressDetails.value = false;
-                        }
+                      },
+                      // The field hands over the Place Details it already fetched; the
+                      // postal code comes from there (kept as-is if that fetch failed).
+                      onPlaceDetails: (_, __, details) {
+                        if (details == null) return;
+                        controller.pinCodeCtrl.text =
+                            PlaceLookupService.postalCodeIn(details) ?? '';
                       },
                     ),
                   ),
@@ -881,7 +860,11 @@ class _HomeStayRentalServiceState extends State<HomeStayRentalService> {
 
           CustomBtn(
             title:AppStrings.postNowButton,
-            onTap: ()=> controller.validateStepFour(stayImagesController),
+            onTap: () {
+              if (controller.validateStepFour(stayImagesController)) {
+                Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+              }
+            },
             radius: 10.0,
             bgColor: AppColors.primaryColor,
           )

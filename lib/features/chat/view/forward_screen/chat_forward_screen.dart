@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -14,12 +13,10 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 
 import '../../../../core/constants/common_methods.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/repo/chat_view_repo.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../business_chat/business_chat_list.dart';
 import '../widget/component_widgets.dart';
@@ -44,11 +41,11 @@ class ChatForwardScreen extends StatefulWidget {
 }
 
 class _ChatForwardScreenState extends State<ChatForwardScreen> {
-  final chatViewController = getOrPut(() => ChatViewController());
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatViewController = ChatViewController.to;
+  final chatThemeController = ChatThemeController.to;
  bool symbolSelected=false;
  bool _isSending = false;
-  final bottomBarController = getOrPut(() => BottomBarController());
+  final bottomBarController = BottomBarController.to;
 
   // Inline local search of the conversations shown on this screen.
   bool _isSearching = false;
@@ -81,37 +78,10 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
     super.dispose();
   }
 
-  /// Sends the document at [filePath] as a `document` chat message to every
-  /// conversation the user selected on this screen. Posts straight through the
-  /// repo (not [ChatViewController.sendMessage]) so the file is delivered to the
-  /// recipients without being optimistically appended to the chat we forwarded
-  /// from — otherwise it would briefly appear as a sent message in our own
-  /// (unrelated) open chat. A fresh MultipartFile is built per recipient because
-  /// its byte stream is consumed once per send.
-  Future<void> _sendDocumentToSelected(String filePath) async {
-    final fileName = filePath.split('/').last;
-    final repo = ChatViewRepo();
-    for (final chat in chatViewController.selectedChatList) {
-      final recipientId = chat?.sender?.id ?? '';
-      final convId = chat?.conversationId ?? '';
-      if (recipientId.isEmpty && convId.isEmpty) continue;
-
-      final multipartFile = await dio.MultipartFile.fromFile(
-        filePath,
-        filename: fileName,
-      );
-      final data = <String, dynamic>{
-        ApiKeys.conversation_id: convId,
-        ApiKeys.other_user_id: recipientId,
-        ApiKeys.message: '',
-        ApiKeys.message_type: 'document',
-        ApiKeys.files: [multipartFile],
-      };
-      await repo.sendMessageToUser(data);
-    }
-    chatViewController.emitEvent(
-        ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
-  }
+  /// Sends the document at [filePath] to every conversation selected on this
+  /// screen. See [ChatViewController.forwardDocumentToSelected].
+  Future<void> _sendDocumentToSelected(String filePath) =>
+      chatViewController.forwardDocumentToSelected(filePath);
 
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,9 +1,6 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/lab_home_screen_v2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,34 +21,9 @@ class _LaboratoryMainState extends State<LaboratoryMain> with RouteAware {
 
     // Keep LabFullDetailsController registered for the V2 overview / contact
     // tabs that look it up via Get.find.
-    if (!Get.isRegistered<LabFullDetailsController>()) {
-      Get.put(LabFullDetailsController(), permanent: true);
-    }
+    LabFullDetailsController.to;
 
-    _bootstrapLabId();
-  }
-
-  Future<void> _bootstrapLabId() async {
-    try {
-      if (labIDGlobal.isEmpty) {
-        final ResponseModel response =
-            await LabServiceRepo().getLabFullDetailsByIdRepo();
-        if (response.isSuccess) {
-          final fetched =
-              response.getExtraData('data')?['profile']?['_id'] ?? '';
-          labIDGlobal = fetched;
-          await setLabID(fetched);
-        } else {
-          labIDGlobal = '';
-          await setLabID('');
-        }
-      }
-      await getLabID();
-      labServiceAiController.hasLabCreated.value = labIDGlobal.isNotEmpty;
-      if (mounted) setState(() {});
-    } on Exception {
-      // Silent failure — UI falls back to "no lab created" state.
-    }
+    labServiceAiController.refreshLabCreated();
   }
 
   @override

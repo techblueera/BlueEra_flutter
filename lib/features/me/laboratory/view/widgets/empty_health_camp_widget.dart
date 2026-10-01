@@ -1,30 +1,15 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
-import 'package:BlueEra/features/me/laboratory/repo/health_camp_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/health_camp_detail_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
-/// Renders the "Health Camp" tile on the lab profile.
-///
-/// - Own profile: always shows the add/manage CTA (lazy fetch happens inside
-///   the detail screen).
-/// - Other profile: fetches via [HealthCampRepo] and shows a loading state,
-///   the first camp preview, or an empty placeholder.
+/// The "Health Camp" tile on the lab owner's overview: opens the owner's
+/// health camp screen, which fetches the camp itself.
 class EmptyHealthCampWidget extends StatefulWidget {
-  final bool isOwnProfile;
-  final String? labId;
-
-  const EmptyHealthCampWidget({
-    super.key,
-    this.isOwnProfile = true,
-    this.labId,
-  });
+  const EmptyHealthCampWidget({super.key});
 
   @override
   State<EmptyHealthCampWidget> createState() => _EmptyHealthCampWidgetState();
@@ -35,48 +20,13 @@ class _EmptyHealthCampWidgetState extends State<EmptyHealthCampWidget> {
   static const String _emptyIconAsset = 'assets/category/medical/empty_white_data.png';
   static const double _stackHeight = 220;
 
-  List<HealthCamp> _healthCamps = [];
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (!widget.isOwnProfile && widget.labId != null) {
-      _fetchHealthCamps();
-    }
-  }
-
-  Future<void> _fetchHealthCamps() async {
-    setState(() => _isLoading = true);
-    try {
-      final res = await HealthCampRepo().getHealthCampsByLab(widget.labId!);
-      if (res.isSuccess) {
-        final List data = res.getExtraData('data') ?? [];
-        if (!mounted) return;
-        setState(() {
-          _healthCamps = data.map((e) => HealthCamp.fromJson(e)).toList();
-        });
-      }
-    } catch (e) {
-      logs('EmptyHealthCampWidget._fetchHealthCamps ERROR $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   void _navigateToDetail() {
-    Get.to(() => HealthCampDetailScreen(
-          isOwnProfile: widget.isOwnProfile,
-          labId: widget.labId,
-        ));
+    Get.to(() => const HealthCampDetailScreen());
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isOwnProfile) return _buildOwnProfileView();
-    if (_isLoading) return _buildLoadingView();
-    if (_healthCamps.isEmpty) return _buildEmptyOtherUserView();
-    return _buildOtherUserCampView(_healthCamps.first);
+    return _buildOwnProfileView();
   }
 
   /// Standard rounded white shell that every variant of this widget shares.
@@ -176,101 +126,5 @@ class _EmptyHealthCampWidgetState extends State<EmptyHealthCampWidget> {
         ),
       ),
     );
-  }
-
-  Widget _buildLoadingView() {
-    return _buildCard(
-      child: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-    );
-  }
-
-  /// Other user: no health camp available (message only)
-  Widget _buildEmptyOtherUserView() {
-    return _buildCard(
-      child: _buildImageStack(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LocalAssets(imagePath: _emptyIconAsset, width: 60, height: 60),
-            const SizedBox(height: 12),
-            CustomText(
-              "no_health_camp_available".tr,
-              color: Colors.white,
-              textAlign: TextAlign.center,
-              fontSize: SizeConfig.size15,
-              fontWeight: FontWeight.w500,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Other user: show health camp preview (read-only), tap for full details
-  Widget _buildOtherUserCampView(HealthCamp camp) {
-    final dateRange = _formatDateRange(camp.startDate, camp.endDate);
-    final hasImage = camp.images?.isNotEmpty ?? false;
-
-    return InkWell(
-      onTap: _navigateToDetail,
-      child: _buildCard(
-        child: _buildImageStack(
-          imageUrl: hasImage ? camp.images!.first : null,
-          overlay: true,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                camp.title ?? AppStrings.healthCamp,
-                color: Colors.white,
-                textAlign: TextAlign.center,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-              if (camp.description?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 8),
-                CustomText(
-                  camp.description!,
-                  color: Colors.white,
-                  textAlign: TextAlign.center,
-                  fontSize: SizeConfig.size15,
-                  fontWeight: FontWeight.w400,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              if (dateRange.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white54),
-                  ),
-                  child: CustomText(
-                    dateRange,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  static String _formatDateRange(String? startIso, String? endIso) {
-    final start = DateTime.tryParse(startIso ?? '');
-    final end = DateTime.tryParse(endIso ?? '');
-    if (start == null || end == null) return '';
-    final fmt = DateFormat('dd MMM yyyy');
-    return '${fmt.format(start)} - ${fmt.format(end)}';
   }
 }

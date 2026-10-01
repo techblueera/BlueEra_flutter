@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ShortsController extends GetxController{
   ApiResponse personalizedShortsResponse = ApiResponse.initial('Initial');
@@ -142,10 +143,10 @@ class ShortsController extends GetxController{
       if (trendingVideoFeedPosts.isEmpty) {
         final cachedShorts = await HomeCacheService().getCachedShorts();
         if (cachedShorts != null && cachedShorts.isNotEmpty) {
-          print('📱 Showing cached shorts: ${cachedShorts.length} items');
+          debugLog('📱 Showing cached shorts: ${cachedShorts.length} items');
           trendingVideoFeedPosts.value = cachedShorts;
         } else {
-          print('📱 No cached shorts found, fetching from API...');
+          debugLog('📱 No cached shorts found, fetching from API...');
         }
       }
 
@@ -220,7 +221,7 @@ class ShortsController extends GetxController{
             // Cache shorts
             if (videos.isNotEmpty) {
               await HomeCacheService().cacheShorts(videos);
-              print('💾 Cached ${videos.length} shorts');
+              debugLog('💾 Cached ${videos.length} shorts');
             }
           }else{
             trendingVideoFeedPosts.addAll(videos);
@@ -393,7 +394,7 @@ class ShortsController extends GetxController{
       }
     } catch (e) {
       // Silently fail for background fetch
-      print('Background shorts fetch failed: $e');
+      debugLog('Background shorts fetch failed: $e');
     }
   }
 
@@ -541,7 +542,7 @@ class ShortsController extends GetxController{
         // commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
-      print('stack trace--> $s');
+      debugLog('stack trace--> $s');
       nearByShortsResponse = ApiResponse.error('error');
       logs("nearByShortsResponse ERROR 2: $e\n$s");
 
@@ -916,8 +917,8 @@ class ShortsController extends GetxController{
         blockUserResponse = ApiResponse.complete(response);
         BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
         list.removeWhere((v) {
-          print('contain userId --> ${v.video?.userId}');
-          print('userId --> $otherUserId');
+          debugLog('contain userId --> ${v.video?.userId}');
+          debugLog('userId --> $otherUserId');
           return v.video?.userId == otherUserId;
         });
         safeBack();

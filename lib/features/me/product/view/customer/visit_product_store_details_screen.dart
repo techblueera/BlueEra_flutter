@@ -48,7 +48,7 @@ class VisitProductStoreDetailsScreen extends StatefulWidget {
 class _VisitProductStoreDetailsScreenState
     extends State<VisitProductStoreDetailsScreen> {
   final InventoryController controller =
-      getOrPut<InventoryController>(() => InventoryController());
+      InventoryController.to;
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
   final StoreController storeController =

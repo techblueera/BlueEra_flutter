@@ -121,8 +121,8 @@ class _MultiImagePreviewPageState extends State<MultiImagePreviewPage> {
         files.add(File(pickedVideo.path));
       }
     } else {
-      final List<XFile>? pickedImages = await picker.pickMultiImage();
-      if (pickedImages != null && pickedImages.isNotEmpty) {
+      final List<XFile> pickedImages = await picker.pickMultiImage();
+      if (pickedImages.isNotEmpty) {
         files.addAll(pickedImages.map((xfile) => File(xfile.path)));
       }
     }

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class PersonalProfileRepo extends BaseService {
   // ── Individual availability (schedule-driven Go-Live) ───────────────
@@ -90,10 +91,10 @@ class PersonalProfileRepo extends BaseService {
       showProgress: showProgress ?? true,
       isMultipart: true,
       onError: (error) {
-        print("Update user failed: $error");
+        debugLog("Update user failed: $error");
       },
       onSuccess: (res) {
-        print("User updated: ${res.data}");
+        debugLog("User updated: ${res.data}");
       },
     );
 
@@ -106,10 +107,10 @@ class PersonalProfileRepo extends BaseService {
       "$FollowersAndPostsCount/$userId",
       showProgress: false,
       onError: (error) {
-        print("Get user counts failed: $error");
+        debugLog("Get user counts failed: $error");
       },
       onSuccess: (data) {
-        print("User counts fetched: ${data}");
+        debugLog("User counts fetched: ${data}");
       },
     );
 

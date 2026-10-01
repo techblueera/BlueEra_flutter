@@ -130,7 +130,7 @@ class HotelEnquirySheet {
     );
     if (enquiryId == null) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
       name: listing.hotelName.isNotEmpty ? listing.hotelName : listing.ownerName,
@@ -166,8 +166,6 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
   static const int _maxPhotos = 5;
 
   static const String _hotelAmenitiesTitle = 'Hotel Amenities';
-  static const String _roomAmenitiesTitle = 'Room Amenities';
-
   final Map<String, Set<String>> _selected = {};
   final List<String> _photos = [];
   final _noteController = TextEditingController();

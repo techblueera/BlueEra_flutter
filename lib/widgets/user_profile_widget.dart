@@ -2,7 +2,6 @@ import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

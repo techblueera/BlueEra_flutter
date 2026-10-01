@@ -9,13 +9,12 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
-import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
+import 'package:BlueEra/features/common/rental/service/property_edit_service.dart';
 import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -38,6 +37,7 @@ class PropertyDetailsScreen extends StatefulWidget {
 
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   late PropertyModel _property;
+  final _editService = PropertyEditService();
   int _currentImage = 0;
   bool _showFullDesc = false;
 
@@ -1901,33 +1901,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
 
     try {
-      final repo = PropertyRepo();
-      final response = await repo.updateProperty(p.id!, updates);
-
-      if (response.isSuccess) {
-        final fetchResponse = await repo.getPropertyById(p.id!);
-        safeBack(); // close loading
-        if (fetchResponse.isSuccess && fetchResponse.data != null) {
-          if (!mounted) return;
-          setState(() {
-            _property = PropertyModel.fromJson(
-              fetchResponse.data is Map<String, dynamic>
-                  ? fetchResponse.data
-                  : fetchResponse.data as Map<String, dynamic>,
-            );
-          });
-        }
-        safeBack(); // close bottom sheet
-        commonSnackBar(message: AppStrings.updatedSuccessfully.tr);
-      } else {
-        safeBack(); // close loading
-        commonSnackBar(
-            message: response.message ?? AppStrings.updateFailed.tr);
+      final result = await _editService.updateFields(p.id!, updates);
+      safeBack(); // close loading
+      if (!result.ok) {
+        commonSnackBar(message: result.message ?? AppStrings.updateFailed.tr);
+        return;
       }
+      _showEdited(result.property);
+      safeBack(); // close bottom sheet
+      commonSnackBar(message: AppStrings.updatedSuccessfully.tr);
     } catch (e) {
       safeBack(); // close loading
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
+  }
+
+  /// Shows the listing as re-read after an edit (kept as-is if that failed).
+  void _showEdited(PropertyModel? property) {
+    if (property == null || !mounted) return;
+    setState(() => _property = property);
   }
 
   Future<void> _uploadImages(List<String> localPaths) async {
@@ -1939,35 +1931,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
 
     try {
-      final body = <String, dynamic>{};
-      final images = <dio.MultipartFile>[];
-      for (final path in localPaths) {
-        images.add(await dio.MultipartFile.fromFile(path));
+      final result = await _editService.uploadImages(p.id!, localPaths);
+      safeBack(); // close loading
+      if (!result.ok) {
+        commonSnackBar(message: result.message ?? AppStrings.uploadFailed.tr);
+        return;
       }
-      body['propertyImages'] = images;
-
-      final repo = PropertyRepo();
-      final response =
-          await repo.updateProperty(p.id!, body, isMultipart: true);
-
-      if (response.isSuccess) {
-        final fetchResponse = await repo.getPropertyById(p.id!);
-        safeBack(); // close loading
-        if (fetchResponse.isSuccess && fetchResponse.data != null) {
-          if (!mounted) return;
-          setState(() {
-            _property = PropertyModel.fromJson(
-              fetchResponse.data as Map<String, dynamic>,
-            );
-          });
-        }
-        safeBack(); // close bottom sheet
-        commonSnackBar(message: AppStrings.photosUploadedSuccessfully.tr);
-      } else {
-        safeBack(); // close loading
-        commonSnackBar(
-            message: response.message ?? AppStrings.uploadFailed.tr);
-      }
+      _showEdited(result.property);
+      safeBack(); // close bottom sheet
+      commonSnackBar(message: AppStrings.photosUploadedSuccessfully.tr);
     } catch (e) {
       safeBack(); // close loading
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);

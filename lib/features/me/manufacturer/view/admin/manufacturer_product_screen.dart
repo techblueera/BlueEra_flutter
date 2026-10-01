@@ -49,7 +49,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
 
   final inventoryController = getOrPut(() => ManufacturerInventoryController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = ChatViewController.to;
 
   @override
   void initState() {

@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../../../../../core/api/apiService/api_response.dart';
 import '../../../../../../core/constants/app_colors.dart';
-import '../../../../../../core/constants/getx_utils.dart';
 import '../../../../../../core/constants/size_config.dart';
 import '../../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../../widgets/custom_text_cm.dart';
@@ -18,7 +17,7 @@ class SeeAllTransactionsView extends StatefulWidget {
 }
 
 class _SeeAllTransactionsViewState extends State<SeeAllTransactionsView> {
-  final controller = getOrPut(() => WalletController());
+  final controller = WalletController.to;
 
   @override
   void initState() {

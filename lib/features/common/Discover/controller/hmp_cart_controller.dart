@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -314,7 +313,7 @@ class HmpCartController extends GetxController {
       Get.until((route) =>
           route.settings.name == RouteConstant.BottomNavigationBarScreen);
 
-      final chatViewController = getOrPut(() => ChatViewController());
+      final chatViewController = ChatViewController.to;
       chatViewController.checkChatConnectionAndOpenChat(
         userId: seller.userId ?? '',
         name: seller.serviceName,

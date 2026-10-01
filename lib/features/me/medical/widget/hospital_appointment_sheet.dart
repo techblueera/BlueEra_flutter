@@ -7,9 +7,9 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/me/medical/model/hospital_appointment_models.dart';
+import 'package:BlueEra/features/me/medical/service/hospital_doctor_catalog.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -17,52 +17,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Snapshot of the hospital the customer is booking with. Denormalised
-/// so the sheet header and (later) the in-chat card render without
-/// re-fetching the source listing.
-class HospitalAppointmentListing {
-  final String hospitalId;
-  final String ownerId;
-  final String ownerName;
-  final String hospitalName;
-  final String? coverImage;
-  final String? location;
-
-  const HospitalAppointmentListing({
-    required this.hospitalId,
-    required this.ownerId,
-    required this.ownerName,
-    required this.hospitalName,
-    this.coverImage,
-    this.location,
-  });
-}
-
-/// One selectable doctor in the appointment sheet — slim projection of
-/// [OpdDoctor] so this widget doesn't couple to the OPD model.
-///
-/// The doc §1 requires `opd_id`; everything else on the card (doctor
-/// name, department, fees, image) is snapshotted server-side from the
-/// OPD record — no need to send them.
-class HospitalAppointmentDoctorOption {
-  final String id;
-  final String name;
-  final String? department;
-  final int? fees;
-  final String? image;
-  final String? timing;
-  final String? position;
-
-  const HospitalAppointmentDoctorOption({
-    required this.id,
-    required this.name,
-    this.department,
-    this.fees,
-    this.image,
-    this.timing,
-    this.position,
-  });
-}
+export 'package:BlueEra/features/me/medical/model/hospital_appointment_models.dart';
 
 /// Customer-side bottom sheet for the hospital-**appointment** flow
 /// (`POST /hospital-appointments`). Opened from the accepted
@@ -75,160 +30,11 @@ class HospitalAppointmentDoctorOption {
 class HospitalAppointmentSheet {
   HospitalAppointmentSheet._();
 
-  /// In-memory cache of a hospital's doctors keyed by hospitalId.
-  ///
-  /// Populated by callers that already have the doctor list (e.g. the
-  /// hospital-detail screen from discover) so the enquiry-first flow —
-  /// where this sheet is opened from a chat card that doesn't itself
-  /// hold the doctors — can still render a real picker instead of an
-  /// empty state.
-  ///
-  /// Session cache: OK to lose on app restart; sheet still opens but
-  /// shows an empty picker + prompts the customer to go back through
-  /// the hospital screen.
-  static final Map<String, List<HospitalAppointmentDoctorOption>>
-      _doctorsCache = {};
-
-  /// Register the doctors for [hospitalId]. Call this right before
-  /// opening the enquiry sheet from the hospital detail screen so the
-  /// eventual appointment sheet can find them. Safe to call multiple
-  /// times — later calls overwrite the entry.
+  /// Register the doctors for [hospitalId] so the enquiry-first flow can show
+  /// a real picker. See [HospitalDoctorCatalog].
   static void cacheDoctorsForHospital(
-      String hospitalId, List<HospitalAppointmentDoctorOption> doctors) {
-    final id = hospitalId.trim();
-    if (id.isEmpty) return;
-    if (doctors.isEmpty) {
-      // Don't blow away a good cache with an empty list — the hospital
-      // screen sometimes caches lazily on tap (before the merge lands)
-      // and again after merge. Keep whichever list is non-empty.
-      if (!_doctorsCache.containsKey(id)) {
-        // No prior entry → still record the empty so lookups know we
-        // tried; the sheet will fall through to its empty state.
-        _doctorsCache[id] = const [];
-      }
-    } else {
-      _doctorsCache[id] = List.unmodifiable(doctors);
-    }
-    log('[APPOINTMENT] cacheDoctorsForHospital hospitalId=$id '
-        'doctors=${doctors.length} (cache size=${_doctorsCache.length})');
-  }
-
-  /// Fetches the hospital's OPD doctors on demand when the session cache is
-  /// empty — happens when the sheet is opened from the accepted-enquiry chat
-  /// card without a prior hospital-screen visit (e.g. cold start, deep link,
-  /// notification). Mirrors `discover_hospital_home_screen.dart`'s
-  /// `viewBusinessProfileById → HospitalFullData → flatten` pipeline, then
-  /// seeds the same session cache used by the discover flow.
-  ///
-  /// Returns whatever it finds (possibly empty) so the picker can fall
-  /// through to its empty state on genuine failure.
-  static Future<List<HospitalAppointmentDoctorOption>> _fetchDoctorsForHospital({
-    required String hospitalId,
-  }) async {
-    final key = hospitalId.trim();
-    if (key.isEmpty) return const [];
-    final cached = _doctorsCache[key];
-    if (cached != null && cached.isNotEmpty) return cached;
-
-    try {
-      final res = await BusinessProfileRepo().viewBusinessProfileById(key);
-      if (!res.isSuccess) {
-        log('[APPOINTMENT] _fetchDoctorsForHospital hospitalId=$key '
-            'profile fetch failed: ${res.message}');
-        return const [];
-      }
-      final hospitalJson = _extractHospitalJson(res.response?.data);
-      if (hospitalJson == null) {
-        log('[APPOINTMENT] _fetchDoctorsForHospital hospitalId=$key '
-            'no hospital JSON in profile response');
-        return const [];
-      }
-      final data = HospitalFullData.fromJson(hospitalJson);
-      final doctors = _flattenDoctors(data);
-      log('[APPOINTMENT] _fetchDoctorsForHospital hospitalId=$key '
-          'fetched ${doctors.length} doctor(s)');
-      cacheDoctorsForHospital(key, doctors);
-      return doctors;
-    } catch (e, s) {
-      log('[APPOINTMENT] _fetchDoctorsForHospital error hospitalId=$key: $e\n$s');
-      return const [];
-    }
-  }
-
-  /// Field names read by [HospitalFullData.fromJson]. Duplicated from
-  /// discover_hospital_home_screen.dart to keep the two flows independent.
-  static const _hospitalKeys = <String>[
-    '_id',
-    'name',
-    'description',
-    'userId',
-    'location',
-    'coverUrl',
-    'logoUrl',
-    'visionMission',
-    'history',
-    'management',
-    'departments',
-    'emergencyCare',
-    'otherFacilities',
-    'emergencyContact',
-    'gallery',
-    'contacts',
-  ];
-
-  /// Builds a flat hospital-JSON map from the business-profile response.
-  /// Sections may live at the root, under `data`, or under `vertical_profile`
-  /// — pull each key from the first container that carries it. Mirrors the
-  /// discover screen's extractor.
-  static Map<String, dynamic>? _extractHospitalJson(dynamic raw) {
-    if (raw is! Map) return null;
-    final data = raw['data'];
-    final vp = raw['vertical_profile'];
-    final containers = <Map>[
-      if (vp is Map && vp['data'] is Map) vp['data'],
-      if (vp is Map) vp,
-      if (raw['hospital'] is Map) raw['hospital'],
-      if (raw['hospitalDetails'] is Map) raw['hospitalDetails'],
-      if (data is Map && data['hospital'] is Map) data['hospital'],
-      if (data is Map && data['hospitalDetails'] is Map)
-        data['hospitalDetails'],
-      if (data is Map) data,
-      raw,
-    ];
-    final merged = <String, dynamic>{};
-    for (final key in _hospitalKeys) {
-      for (final c in containers) {
-        if (c.containsKey(key) && c[key] != null) {
-          merged[key] = c[key];
-          break;
-        }
-      }
-    }
-    return merged.isEmpty ? null : merged;
-  }
-
-  /// Flattens `departments[].opd[]` into the sheet's slim doctor shape.
-  /// Iterates every department (not just `type == 'OPD'`) — the backend
-  /// sometimes leaves `type` blank on OPD-only entries.
-  static List<HospitalAppointmentDoctorOption> _flattenDoctors(
-      HospitalFullData? data) {
-    final out = <HospitalAppointmentDoctorOption>[];
-    for (final dept in data?.departments ?? const <IpdOpdDepartments>[]) {
-      final deptName = (dept.name ?? '').trim();
-      for (final doc in dept.opd ?? const <Opd>[]) {
-        final id = (doc.id ?? '').trim();
-        if (id.isEmpty) continue;
-        out.add(HospitalAppointmentDoctorOption(
-          id: id,
-          name: (doc.name ?? '').trim(),
-          department: deptName.isNotEmpty ? deptName : null,
-          image: doc.imageUrl,
-          timing: doc.timing,
-        ));
-      }
-    }
-    return out;
-  }
+          String hospitalId, List<HospitalAppointmentDoctorOption> doctors) =>
+      HospitalDoctorCatalog.remember(hospitalId, doctors);
 
   static void open(
     BuildContext context, {
@@ -242,14 +48,14 @@ class HospitalAppointmentSheet {
       return;
     }
     final key = listing.hospitalId.trim();
-    final cached = _doctorsCache[key];
+    final cached = HospitalDoctorCatalog.cached(key);
     final doctors = (availableDoctors != null && availableDoctors.isNotEmpty)
         ? availableDoctors
         : (cached ?? const <HospitalAppointmentDoctorOption>[]);
     log('[APPOINTMENT] open hospitalId=$key '
         'availableDoctors=${availableDoctors?.length ?? 0} '
         'cachedDoctors=${cached?.length ?? -1} '
-        'cacheKeys=${_doctorsCache.keys.toList()}');
+        'cacheKeys=${HospitalDoctorCatalog.cachedIds}');
 
     showModalBottomSheet<void>(
       context: context,
@@ -293,7 +99,7 @@ class HospitalAppointmentSheet {
     );
     if (appointmentId == null) return;
 
-    final chatViewController = getOrPut(() => ChatViewController());
+    final chatViewController = ChatViewController.to;
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
       name: listing.hospitalName.isNotEmpty
@@ -372,9 +178,7 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
 
   Future<void> _loadDoctors() async {
     setState(() => _isLoadingDoctors = true);
-    final fetched = await HospitalAppointmentSheet._fetchDoctorsForHospital(
-      hospitalId: widget.listing.hospitalId,
-    );
+    final fetched = await HospitalDoctorCatalog().fetch(widget.listing.hospitalId);
     if (!mounted) return;
     setState(() {
       _doctors = fetched;

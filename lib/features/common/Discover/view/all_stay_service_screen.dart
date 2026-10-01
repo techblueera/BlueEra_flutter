@@ -1,3 +1,4 @@
+import 'package:BlueEra/features/common/Discover/controller/stay_discover_controller.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -17,7 +18,6 @@ import 'package:BlueEra/features/business/widgets/business_ratings_bottom_sheet.
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart'
     hide Size;
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
@@ -71,7 +71,7 @@ class AllStayServiceScreen extends StatefulWidget {
 }
 
 class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
-  final controller = getOrPut(() => DiscoverController());
+  final controller = Get.find<StayDiscoverController>();
   ScrollController scrollController = ScrollController();
   late List<OnboardingCategoryModel> _stayCategories;
   late String _category;
@@ -2214,7 +2214,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _stayIcon;
 
-  final DiscoverController _ctrl = Get.find<DiscoverController>();
+  final _ctrl = Get.find<StayDiscoverController>();
   static const ClusterManagerId _clusterManagerId =
       ClusterManagerId('stay_services');
 

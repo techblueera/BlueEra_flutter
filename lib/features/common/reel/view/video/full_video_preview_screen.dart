@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class FullVideoPreview extends StatefulWidget {
   final String videoPath;
@@ -74,7 +75,7 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
       })
       ..setLooping(true)
       ..setVolume(1.0)
-      ..play();;
+      ..play();
   }
 
   void _getVideoDuration() {
@@ -84,9 +85,9 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
       setState(() {
         _videoDuration = duration;
       });
-      print("Video duration: ${duration.inSeconds} seconds");
+      debugLog("Video duration: ${duration.inSeconds} seconds");
     } else {
-      print("Failed to get video duration");
+      debugLog("Failed to get video duration");
     }
   }
 

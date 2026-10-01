@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/chat/auth/service/rider_order_service.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../core/constants/custom_carousel_slider.dart';
@@ -69,26 +69,19 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
   /// caller can use the position too, and records the started/not-started
   /// answer on the way through so the action row can re-label itself.
   Future<Map<dynamic, dynamic>?> _refreshRideState() async {
-    if (_orderId.isEmpty) return null;
-    try {
-      final response = await ChatViewRepo().getRiderLiveLocationApi(_orderId);
-      if (!response.isSuccess) return null;
-      final data = _locationPayload(response.response?.data);
-      if (data == null) return null;
+    final data = await RiderOrderService().riderLocation(_orderId);
+    if (data == null) return null;
 
-      final status = (data['status'] ?? '')
-          .toString()
-          .toLowerCase()
-          .replaceAll('_', '-')
-          .trim();
-      final started = _startedStatuses.contains(status);
-      if (mounted && started != _rideStarted) {
-        setState(() => _rideStarted = started);
-      }
-      return data;
-    } catch (_) {
-      return null;
+    final status = (data['status'] ?? '')
+        .toString()
+        .toLowerCase()
+        .replaceAll('_', '-')
+        .trim();
+    final started = _startedStatuses.contains(status);
+    if (mounted && started != _rideStarted) {
+      setState(() => _rideStarted = started);
     }
+    return data;
   }
 
   /// "Track Order" → hand off to the phone's Google Maps.
@@ -203,20 +196,6 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
     return (lat, lng);
   }
 
-  /// The poll fields sit at the root, but some gateway responses wrap them in
-  /// `{ data: {...} }`. Accept either — same rule
-  /// [RiderLocationPollController] applies.
-  Map<dynamic, dynamic>? _locationPayload(dynamic body) {
-    if (body is! Map) return null;
-    final inner = body['data'];
-    if (inner is Map &&
-        (inner.containsKey('rideActive') ||
-            inner.containsKey('rider') ||
-            inner.containsKey('status'))) {
-      return inner;
-    }
-    return body;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -352,7 +331,7 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                           isExpired ? null : () => _openRideTracking(),
                       icon: SvgPicture.asset(
                         AppIconAssets.location_new,
-                        color: actionColor,
+                        colorFilter: ColorFilter.mode(actionColor, BlendMode.srcIn),
                       ),
                       label: CustomText(
                         AppStrings.trackOrder,

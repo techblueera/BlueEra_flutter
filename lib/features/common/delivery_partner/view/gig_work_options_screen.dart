@@ -16,7 +16,7 @@ class GigWorkOptionsScreen extends StatefulWidget {
 }
 
 class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen> {
-  final controller = getOrPut(() => EarnServiceController());
+  final controller = EarnServiceController.to;
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController(), permanent: true);
 
   @override

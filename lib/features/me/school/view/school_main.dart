@@ -1,9 +1,6 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/school/view/v2/school_home_screen_v2.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
-import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -28,23 +25,9 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
 
   apiCalling() async {
     try {
-      if (schoolIDGlobal.isEmpty) {
-        ResponseModel response = await SchoolRepo().getSchoolByUserIDRepo();
-        if (response.isSuccess) {
-          String? schoolID = response.getNested(['data', 0, '_id']);
-          if (schoolID != null && schoolID.isNotEmpty) {
-            await setSchoolID(schoolID);
-          } else {
-            await setSchoolID("");
-          }
-        }
-      }
-      await getSchoolID();
+      await controller.resolveOwnSchool();
       if (!mounted) return;
-      setState(() {
-        // Check if global ID was successfully populated
-        controller.hasSchool.value = schoolIDGlobal.isNotEmpty;
-      });
+      setState(() {});
       await schoolAboutUsController.getSchoolByIdController();
     } on Exception {
       // TODO

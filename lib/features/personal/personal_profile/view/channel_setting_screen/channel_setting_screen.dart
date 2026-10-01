@@ -178,7 +178,7 @@ class ChannelSettingScreen extends StatelessWidget {
       child: Switch(
         value: value.value,
         onChanged: (val) => onChanged(),
-        activeColor: AppColors.primaryColor,
+        activeThumbColor: AppColors.primaryColor,
         activeTrackColor: AppColors.primaryColor.withValues(alpha: 0.3),
         inactiveTrackColor: Colors.grey[300],
         inactiveThumbColor: Colors.grey[400],

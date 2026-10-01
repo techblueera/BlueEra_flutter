@@ -72,8 +72,15 @@ import 'package:BlueEra/features/chat/auth/model/order_lifecycle_model.dart';
 import 'payment_qr_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChatViewController extends GetxController {
+  /// The session's chat controller, registered on first use. Permanent: it
+  /// owns the chat socket for the whole session; logout deletes it.
+  static ChatViewController get to => Get.isRegistered<ChatViewController>()
+      ? Get.find<ChatViewController>()
+      : Get.put(ChatViewController(), permanent: true);
+
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> personalChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessChatListResponse = ApiResponse.initial('Initial').obs;
@@ -243,27 +250,27 @@ class ChatViewController extends GetxController {
       "account_type": AppConstants.askConsultingTalk_Chat_Type,
     }
   };
-  static final ChatList? personalAiChatModule =
+  static final ChatList personalAiChatModule =
       ChatList.fromJson(aiChatListModel);
-  static final ChatList? businessAiChatModule =
+  static final ChatList businessAiChatModule =
       ChatList.fromJson(businessAiChatListModel);
-  static final ChatList? aiChatListSearchModule =
+  static final ChatList aiChatListSearchModule =
       ChatList.fromJson(aiChatSearch);
-  static final ChatList? inventoryAiChatListSearchModule =
+  static final ChatList inventoryAiChatListSearchModule =
       ChatList.fromJson(inventoryAiSearch);
-  static final ChatList? foodAiChatListSearchModule =
+  static final ChatList foodAiChatListSearchModule =
       ChatList.fromJson(foodAiSearch);
-  static final ChatList? serviceAiChatListSearchModule =
+  static final ChatList serviceAiChatListSearchModule =
       ChatList.fromJson(serviceAiSearch);
-  static final ChatList? healthCareAiChatListSearchModule =
+  static final ChatList healthCareAiChatListSearchModule =
       ChatList.fromJson(healthCareAiSearch);
-  static final ChatList? educationAiChatListSearchModule =
+  static final ChatList educationAiChatListSearchModule =
       ChatList.fromJson(educationAiSearch);
-  static final ChatList? homeServiceAiChatListSearchModule =
+  static final ChatList homeServiceAiChatListSearchModule =
       ChatList.fromJson(homeServiceAiSearch);
-  static final ChatList? travelAndStayAiChatListSearchModule =
+  static final ChatList travelAndStayAiChatListSearchModule =
       ChatList.fromJson(travelAndStayAiSearch);
-  static final ChatList? consultingTalkAiChatListSearchModule =
+  static final ChatList consultingTalkAiChatListSearchModule =
       ChatList.fromJson(consultingTalkAiSearch);
 
   /// Synthetic row for the pinned "BlueEra" system chat that surfaces broadcast
@@ -281,7 +288,7 @@ class ChatViewController extends GetxController {
       "account_type": AppConstants.personal_Chat_Type,
     }
   };
-  static final ChatList? blueEraNotificationModule =
+  static final ChatList blueEraNotificationModule =
       ChatList.fromJson(blueEraNotificationChatModel);
 
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
@@ -793,9 +800,9 @@ class ChatViewController extends GetxController {
       }
     } catch (e, stackTrace) {
       // 🔴 Log the Error and Stack Trace
-      print("❌ Error in _parseDataByType for type: $type");
-      print("Error: $e");
-      print("Stack Trace: $stackTrace");
+      debugLog("❌ Error in _parseDataByType for type: $type");
+      debugLog("Error: $e");
+      debugLog("Stack Trace: $stackTrace");
 
       // Recommended: Rethrow the error so the UI knows something failed
       rethrow;
@@ -1088,9 +1095,7 @@ class ChatViewController extends GetxController {
       // the PaymentQrController so the "Payments received" tab refreshes and an
       // incoming payment card is injected into the open conversation.
       chatSocket.listenEvent(ChatEmitEvents.paymentReceived, (data) {
-        final controller = Get.isRegistered<PaymentQrController>()
-            ? Get.find<PaymentQrController>()
-            : Get.put(PaymentQrController(), permanent: true);
+        final controller = PaymentQrController.to;
         controller.handlePaymentReceived(data);
       });
 
@@ -1306,9 +1311,7 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.newRiderOtpReceived, (data) async {
         if (data is! Map || data['message'] == null) return;
         final message = Messages.fromJson(data['message']);
-        if (message.myMessage == null) {
-          message.myMessage = userId == message.senderId;
-        }
+        message.myMessage ??= userId == message.senderId;
         // Only append when the user is viewing this conversation; otherwise the
         // card flows in on the next history load.
         final openConvId = userOpenConversationId.value;
@@ -2076,15 +2079,11 @@ class ChatViewController extends GetxController {
       // Payment resolved by the payee — tell the PAYER. Without this the
       // customer's card sits on "waiting for the shop" forever.
       chatSocket.listenEvent(ChatEmitEvents.paymentVerified, (data) {
-        final controller = Get.isRegistered<PaymentQrController>()
-            ? Get.find<PaymentQrController>()
-            : Get.put(PaymentQrController(), permanent: true);
+        final controller = PaymentQrController.to;
         controller.handlePaymentResolved(data, verified: true);
       });
       chatSocket.listenEvent(ChatEmitEvents.paymentRejected, (data) {
-        final controller = Get.isRegistered<PaymentQrController>()
-            ? Get.find<PaymentQrController>()
-            : Get.put(PaymentQrController(), permanent: true);
+        final controller = PaymentQrController.to;
         controller.handlePaymentResolved(data, verified: false);
       });
 
@@ -3311,6 +3310,36 @@ class ChatViewController extends GetxController {
     });
   }
 
+  /// Sends the document at [filePath] as a `document` chat message to every
+  /// conversation in [selectedChatList] (the forward screen's picks), then
+  /// refreshes the chat list.
+  ///
+  /// Posts straight through the repo rather than [sendMessage], so the file is
+  /// delivered to the recipients without being optimistically appended to the
+  /// chat it was forwarded from. A fresh MultipartFile is built per recipient
+  /// because its byte stream is consumed once per send.
+  Future<void> forwardDocumentToSelected(String filePath) async {
+    final fileName = filePath.split('/').last;
+    final repo = ChatViewRepo();
+    for (final chat in selectedChatList) {
+      final recipientId = chat?.sender?.id ?? '';
+      final convId = chat?.conversationId ?? '';
+      if (recipientId.isEmpty && convId.isEmpty) continue;
+
+      final multipartFile =
+          await dio.MultipartFile.fromFile(filePath, filename: fileName);
+      await repo.sendMessageToUser({
+        ApiKeys.conversation_id: convId,
+        ApiKeys.other_user_id: recipientId,
+        ApiKeys.message: '',
+        ApiKeys.message_type: 'document',
+        ApiKeys.files: [multipartFile],
+      });
+    }
+    emitEvent(ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.personal_Chat_Type});
+  }
+
   void emitEvent(String event, dynamic data, [String? conversationId]) async {
     if (event == ChatEmitEvents.messageReceived &&
         (conversationId ?? "").isNotEmpty &&
@@ -4398,7 +4427,6 @@ class ChatViewController extends GetxController {
           dataList.map((item) => GroupMembersListModel.fromJson(item)).toList();
 
       getGroupMembersResponse.value = ApiResponse.complete(members);
-      ;
     } else {
       commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong);

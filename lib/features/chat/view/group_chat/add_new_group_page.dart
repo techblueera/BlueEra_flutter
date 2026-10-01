@@ -125,7 +125,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
         pickedFile = File(imagePath);
       });
     }
-    return null;
+    return;
   }
 
   @override

@@ -53,7 +53,7 @@ class _GroupChatCustomVideoPlayerState extends State<GroupChatCustomVideoPlayer>
           });
         });
     } else {
-      _controller = VideoPlayerController.network(widget.videoUrl)
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
         ..initialize().then((_) {
           if (!mounted) return;
           setState(() {

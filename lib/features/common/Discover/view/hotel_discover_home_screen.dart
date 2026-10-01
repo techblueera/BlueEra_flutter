@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
@@ -18,7 +17,6 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/visit_business_hero.dart';
@@ -26,7 +24,6 @@ import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/widgets/custom_form_card.dart';
@@ -813,184 +810,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 
   // ─── CONTACT US (clickable) ─────────────────────────────────────────
 
-  Widget _buildContactCard() {
-    final contact = profile?.contacts?.firstOrNull;
-    final hasContact = (contact?.email?.isNotEmpty ?? false) ||
-        (contact?.phone?.isNotEmpty ?? false) ||
-        (profile?.website?.isNotEmpty ?? false) ||
-        (profile?.location?.name?.isNotEmpty ?? false);
-
-    final firstImageUrl = profile?.photos
-        ?.expand((p) => p.imageReferences ?? <String>[])
-        .firstOrNull;
-
-    return CommonCardWidget(
-      padding: 10,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ServiceHomeTitleWidget(title: AppStrings.contactUs),
-          const SizedBox(height: 12),
-          if (!hasContact && (profile?.name?.isEmpty ?? true))
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: EmptyStateWidget(
-                message: AppStrings.noContactDetailsMsg.tr,
-                imageSize: 60,
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[200]!),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Logo & Name
-                  Row(
-                    children: [
-                      if (firstImageUrl?.isNotEmpty ?? false)
-                        Container(
-                          width: 60,
-                          height: 60,
-                          margin: const EdgeInsets.only(right: 12),
-                          child: ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: firstImageUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (ctx, _) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.cover,
-                              ),
-                              errorWidget: (ctx, _, __) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                      Expanded(
-                        child: CustomText(
-                          profile?.name ?? '',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (profile?.description?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 8),
-                    ExpandableText(text: profile?.description ?? ""),
-                  ],
-                  const Divider(height: 20),
-
-                  // Clickable contact items
-                  if (profile?.website?.isNotEmpty ?? false)
-                    _contactItemClickable(
-                      icon: AppIconAssets.website_click,
-                      label: profile?.website ?? "",
-                      iconColor: AppColors.primaryColor,
-                      onTap: () => _launchUrl(profile?.website ?? ""),
-                    ),
-                  if (contact?.email?.isNotEmpty ?? false)
-                    _contactItemClickable(
-                      icon: AppIconAssets.email,
-                      label: contact?.email ?? "",
-                      iconColor: AppColors.secondaryTextColor,
-                      onTap: () => _launchEmail(contact?.email ?? ""),
-                    ),
-                  if (contact?.phone?.isNotEmpty ?? false)
-                    _contactItemClickable(
-                      icon: AppIconAssets.phone_outline,
-                      label: contact?.phone ?? "",
-                      iconColor: AppColors.secondaryTextColor,
-                      onTap: () => _launchCaller(contact?.phone ?? ""),
-                    ),
-                  if (profile?.location?.name?.isNotEmpty ?? false)
-                    _contactItemClickable(
-                      icon: AppIconAssets.location_new,
-                      label: profile?.location?.name ?? "",
-                      iconColor: Colors.grey[700]!,
-                    ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _contactItemClickable({
-    required String icon,
-    required String label,
-    required Color iconColor,
-    VoidCallback? onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4.0),
-          child: Row(
-            children: [
-              LocalAssets(
-                imagePath: icon,
-                imgColor: iconColor,
-                height: 20,
-                width: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: CustomText(
-                  label,
-                  color: onTap != null
-                      ? AppColors.primaryColor
-                      : AppColors.mainTextColor,
-                  fontSize: SizeConfig.medium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (onTap != null)
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: AppColors.primaryColor,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // ─── LOCATION ───────────────────────────────────────────────────────
-
-  Widget _buildLocationSection() {
-    final coords = profile?.location?.coordinates;
-    if (coords == null ||
-        coords.length < 2 ||
-        (coords[0] == 0.0 && coords[1] == 0.0)) {
-      return const SizedBox.shrink();
-    }
-
-    return BusinessLocationWidget(
-      locationText: profile?.location?.name,
-      latitude: coords[1].toDouble(),
-      longitude: coords[0].toDouble(),
-      businessName: profile?.name ?? "",
-      padding: 0,
-      isTitleShow: true,
-    );
-  }
 
   // ─── LAUNCHERS ──────────────────────────────────────────────────────
 
@@ -1054,49 +874,6 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     return out;
   }
 
-  void _launchCaller(String number) async {
-    final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');
-    final Uri launchUri = Uri(scheme: 'tel', path: cleanNumber);
-    try {
-      if (await canLaunchUrl(launchUri)) {
-        await launchUrl(launchUri);
-      } else {
-        commonSnackBar(message: AppStrings.couldNotOpenDialer.tr);
-      }
-    } catch (e) {
-      debugPrint("Error launching dialer: $e");
-    }
-  }
-
-  void _launchEmail(String email) async {
-    final Uri launchUri = Uri(scheme: 'mailto', path: email);
-    try {
-      if (await canLaunchUrl(launchUri)) {
-        await launchUrl(launchUri);
-      } else {
-        commonSnackBar(message: AppStrings.couldNotOpenEmail.tr);
-      }
-    } catch (e) {
-      debugPrint("Error launching email: $e");
-    }
-  }
-
-  void _launchUrl(String url) async {
-    try {
-      String finalUrl = url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        finalUrl = 'https://$url';
-      }
-      final uri = Uri.parse(finalUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        commonSnackBar(message: AppStrings.couldNotOpenLink.tr);
-      }
-    } catch (e) {
-      debugPrint("Error launching URL: $e");
-    }
-  }
 }
 
 class _AmenityItem {

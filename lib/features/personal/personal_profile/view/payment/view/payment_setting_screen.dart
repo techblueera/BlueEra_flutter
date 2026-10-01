@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../../../../../core/constants/getx_utils.dart';
 import '../../../../../../core/routes/route_helper.dart';
 import '../../wallet/controller/wallet_controller.dart';
 import '../../wallet/model/bank_details_model.dart';
@@ -28,7 +27,7 @@ class PaymentSettingScreen extends StatefulWidget {
 }
 
 class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
-  final controller = getOrPut(() => WalletController());
+  final controller = WalletController.to;
 
   @override
   void initState() {

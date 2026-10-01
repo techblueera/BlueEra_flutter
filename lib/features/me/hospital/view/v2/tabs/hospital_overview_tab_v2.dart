@@ -96,9 +96,6 @@ class HospitalOverviewTabV2 extends StatelessWidget {
           child: child,
         );
 
-    // Uniform vertical rhythm between sections.
-    final gap = SizedBox(height: SizeConfig.size10);
-
     return Obx(() {
       final data = controller.hospitalDataResModel?.value.data;
       final coordinates =

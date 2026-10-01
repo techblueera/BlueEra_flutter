@@ -3,7 +3,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -54,7 +53,7 @@ class SelfEmployeeOverviewTab extends StatelessWidget {
       Get.find<ViewPersonalDetailsController>();
 
   PersonalCreateProfileController get _personalCtrl =>
-      getOrPut(() => PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
 
   @override
   Widget build(BuildContext context) {

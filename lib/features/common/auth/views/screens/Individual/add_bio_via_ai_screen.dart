@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -21,7 +20,6 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -56,7 +54,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   final ViewPersonalDetailsController viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
   final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        PersonalCreateProfileController.to;
   final TextEditingController bioController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isFormValid = false;
@@ -146,31 +144,6 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
       profession: widget.profession,
       subcategory: widget.designation,
       forceRefresh: forceRefresh,
-    );
-  }
-
-  /// The existing AI generator — opens its own selection dialog and writes the
-  /// pick into the same field.
-  Future<void> _generateAiBio() async {
-    await aiController.fetchSuggestions(
-        bodyRequest: {
-          ApiKeys.profession: widget.profession,
-          ApiKeys.designation: widget.designation,
-          ApiKeys.date_of_birth_Obj: {
-            ApiKeys.year: widget.selectedYear,
-            ApiKeys.month: widget.selectedMonth,
-            ApiKeys.date: widget.selectedDay
-          },
-          ApiKeys.gender: viewPersonalDetailsController
-              .personalProfileDetails.value.user?.gender
-        },
-        apiType: "bio",
-        targetController: bioController,
-        onSaved: (){
-          // An AI pick replaces whatever suggestion was ticked.
-          _selectedSuggestionIndex = null;
-          validateForm();
-        }
     );
   }
 

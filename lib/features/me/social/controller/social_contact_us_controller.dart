@@ -5,16 +5,13 @@ import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dar
 import 'package:BlueEra/features/me/social/repo/social_profile_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class SocialContactUsController extends GetxController {
   // Observables
   var isLoading = true.obs;
   var contactUsData = Rxn<SocialContactUsResModel>();
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   fetchHomeData() async {
     try {
@@ -149,7 +146,7 @@ class SocialContactUsController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }
-      print("Request Body: $body");
+      debugLog("Request Body: $body");
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {

@@ -17,6 +17,12 @@ import 'package:get/get.dart';
 /// images (with S3 upload), and per-test discount picks across selected
 /// pathology categories. Only one camp per lab is supported by the backend.
 class HealthCampController extends GetxController {
+  /// The signed-in lab's shared instance, registered on first use. Permanent:
+  /// the lab screens and tabs share it; logout deletes it.
+  static HealthCampController get to => Get.isRegistered<HealthCampController>()
+      ? Get.find<HealthCampController>()
+      : Get.put(HealthCampController(), permanent: true);
+
   final HealthCampRepo _repo = HealthCampRepo();
   final LabTestRepo _testRepo = LabTestRepo();
 

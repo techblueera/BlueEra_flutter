@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/common/reel/models/follow_following_res_model.dart';
 import 'package:BlueEra/features/common/reel/repo/follower_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class FollowerController extends GetxController {
   Rx<ApiResponse> followerResponse = ApiResponse.initial('Initial').obs;
@@ -26,7 +27,7 @@ RxInt selectedIndex=0.obs;
         followerResponse.value = ApiResponse.complete(response);
         FollowerResModel followerResModel = FollowerResModel.fromJson(response.response?.data);
         followerList.value = followerResModel.data ?? [];
-        print(followerList.length);
+        debugLog(followerList.length);
       }
     } catch (e) {
       followerResponse.value = ApiResponse.error('error');
@@ -46,7 +47,7 @@ RxInt selectedIndex=0.obs;
         followingList.value = followingResModel.data ?? [];
       }
     } catch (e, s) {
-      print('s-- $s');
+      debugLog('s-- $s');
       followingResponse.value = ApiResponse.error('error');
     } finally{
       isFollowingLoading.value = false;

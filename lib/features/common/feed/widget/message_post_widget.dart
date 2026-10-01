@@ -1,5 +1,7 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/features/common/reel/widget/video_reported_dialog.dart';
+import 'package:BlueEra/features/common/reel/service/video_actions.dart';
+import 'package:BlueEra/features/common/post/service/repost_service.dart';
+import 'package:BlueEra/features/common/post/widget/return_to_feed.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -8,11 +10,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/translator_function.dart';
-import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/feed_profile_navigation.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -21,9 +19,8 @@ import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_stats_strip.dart';
-import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
+import 'package:BlueEra/features/common/post/binding/message_post_binding.dart';
 import 'package:BlueEra/features/common/post/message_post/create_message_repost_screen.dart';
-import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/post/widget/user_chip.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -35,7 +32,6 @@ import 'package:BlueEra/features/common/feed/view/twitter_post_detail_screen.dar
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 
 import 'social_message_post_grid_widget.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
@@ -176,20 +172,14 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 userId: videoData?.video?.userId ?? '',
                                 contentId: videoData?.video?.id ?? '',
                                 userBlockVoidCallback: () async {
-                                  await getOrPut(() => VideoController())
-                                      .userBlocked(
-                                    videoType: VideoType.videoFeed,
-                                    otherUserId:
-                                        videoData?.video?.userId ?? '',
-                                  );
+                                  if (await VideoActions().blockUser(videoData?.video?.userId ?? '')) {
+                                    safeBack();
+                                  }
                                 },
-                                reportCallback: (params) {
-                                  getOrPut(() => VideoController())
-                                      .videoPostReport(
-                                          videoId:
-                                              videoData?.video?.id ?? '',
-                                          videoType: VideoType.videoFeed,
-                                          params: params);
+                                reportCallback: (params) async {
+                                  if (await VideoActions().reportPost(params) && context.mounted) {
+                                    showVideoReportedDialog(context);
+                                  }
                                 });
                           },
                         ),
@@ -760,28 +750,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     SizedBox(height: SizeConfig.size20),
                     InkWell(
                       onTap: () async {
-                        Get.put(MessagePostController());
                         safeBack();
-                        ResponseModel responseModel =
-                            await PostRepo().addRePostNewRepo(
-                          reqDataData: {
-                            ApiKeys.type: AppConstants.MESSAGE_POST,
-                            ApiKeys.repostId: widget.post?.id ?? "",
-                          },
-                        );
-                        if (responseModel.isSuccess) {
-                          commonSnackBar(
-                              message: AppStrings.repostedSuccessfully);
-                          Get.find<NavigationHelperController>()
-                              .shouldRefreshBottomBar
-                              .value = true;
-                          Get.until((route) =>
-                              route.settings.name ==
-                              RouteHelper
-                                  .getBottomNavigationBarScreenRoute());
-                        } else {
-                          commonSnackBar(
-                              message: AppStrings.alreadyReposted);
+                        if (await quickRepost(widget.post?.id ?? "")) {
+                          returnToFeedAfterPosting();
                         }
                       },
                       child: Row(
@@ -838,10 +809,8 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                     InkWell(
                       onTap: () {
                         safeBack();
-                        Get.to(() => CreateMessagePostScreenRepost(
-                          isEdit: false,
-                          post: widget.post,
-                        ));
+                        Get.to(() => const CreateMessagePostScreenRepost(),
+                        binding: MessagePostBinding.repost(widget.post));
                       },
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

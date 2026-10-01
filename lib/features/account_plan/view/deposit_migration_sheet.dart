@@ -6,10 +6,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/account_plan/controller/account_plan_controller.dart';
-import 'package:BlueEra/features/account_plan/controller/account_plan_entitlement.dart';
 import 'package:BlueEra/features/account_plan/model/deposit_migration_model.dart';
-import 'package:BlueEra/features/account_plan/repo/account_plan_repo.dart';
+import 'package:BlueEra/features/account_plan/service/deposit_migration_service.dart';
 import 'package:BlueEra/features/account_plan/view/account_plan_catalog_view.dart'
     show AccountPlanPalette;
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -61,16 +59,8 @@ Future<void> showDepositMigrationIfNeeded(BuildContext context) async {
   }
   _checkInFlight = true;
   try {
-    final res = await AccountPlanRepo().migrationEligibility();
-    if (!res.isSuccess) {
-      logs('DEPOSIT_MIGRATION: eligibility failed — ${res.message}');
-      return;
-    }
-    final body = res.response?.data;
-    if (body is! Map) return;
-
-    final eligibility = DepositMigrationEligibility.fromJson(
-        Map<String, dynamic>.from(body));
+    final eligibility = await DepositMigrationService().eligibility();
+    if (eligibility == null) return;
     logs('DEPOSIT_MIGRATION: eligible=${eligibility.eligible} '
         'alreadyMigrated=${eligibility.alreadyMigrated} '
         'hasActivePlan=${eligibility.hasActivePlan} '
@@ -255,39 +245,20 @@ class _MigrationTncSheetState extends State<_MigrationTncSheet> {
     if (_migrating || !_accepted) return;
     setState(() => _migrating = true);
     try {
-      final res = await AccountPlanRepo().migrate();
-      final body = res.response?.data;
-      final data = body is Map && body['data'] is Map
-          ? Map<String, dynamic>.from(body['data'] as Map)
-          : const <String, dynamic>{};
-      // Idempotent by contract: a second tap answers `already: true`, which is
-      // the plan being active — the same outcome the first tap wanted.
-      final already = data['already'] == true || body is Map && body['already'] == true;
-      final ok = res.isSuccess &&
-          (body is! Map || body['success'] != false || already);
+      // Also refreshes the plan state the rest of the app reads on success.
+      final result = await DepositMigrationService().migrate();
 
-      if (!ok) {
-        final message = (body is Map ? body['message']?.toString() : null) ??
-            res.message ??
-            AppStrings.somethingWentWrong.tr;
+      if (!result.ok) {
+        final message = result.message ?? AppStrings.somethingWentWrong.tr;
         logs('DEPOSIT_MIGRATION: migrate failed — $message');
         if (mounted) commonSnackBar(message: message);
         return;
       }
 
-      final message = (body is Map ? body['message']?.toString() : null) ??
-          AppStrings.depositMigrationSuccess.tr;
-      logs('DEPOSIT_MIGRATION: migrated (already=$already)');
+      logs('DEPOSIT_MIGRATION: migrated (already=${result.already})');
       if (mounted) Navigator.of(context).pop(true);
-      commonSnackBar(message: message);
-      // The user now holds a plan — refresh the entitlement snapshot the
-      // go-live gates read, or the app keeps telling them to pay for one.
-      unawaited(AccountPlanEntitlement.to.refresh());
-      // And the plans screen, if it happens to be alive, so the new active
-      // plan is there rather than one navigation behind.
-      if (Get.isRegistered<AccountPlanController>()) {
-        unawaited(Get.find<AccountPlanController>().fetchMyPlans());
-      }
+      commonSnackBar(
+          message: result.message ?? AppStrings.depositMigrationSuccess.tr);
     } catch (e) {
       logs('DEPOSIT_MIGRATION: migrate threw — $e');
       if (mounted) commonSnackBar(message: AppStrings.somethingWentWrong.tr);

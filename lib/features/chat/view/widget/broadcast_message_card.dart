@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 
 /// Full-width broadcast card for the BlueEra / Admin conversation — renders a
 /// single [Messages] as a news-channel post (edge-to-edge image, larger body
@@ -596,9 +595,7 @@ class _BroadcastAutoPlayVideo extends StatefulWidget {
 
 class _BroadcastAutoPlayVideoState extends State<_BroadcastAutoPlayVideo> {
   final SimplePriorityVideoManager _videoManager =
-      Get.isRegistered<SimplePriorityVideoManager>()
-          ? Get.find<SimplePriorityVideoManager>()
-          : Get.put(SimplePriorityVideoManager());
+      SimplePriorityVideoManager.to;
 
   @override
   void dispose() {
@@ -619,7 +616,7 @@ class _BroadcastAutoPlayVideoState extends State<_BroadcastAutoPlayVideo> {
       key: ValueKey('bcast_vid_${widget.videoId}'),
       onVisibilityChanged: _onVisibility,
       child: GetBuilder<SimplePriorityVideoManager>(
-        init: getOrPut(() => SimplePriorityVideoManager()),
+        init: SimplePriorityVideoManager.to,
         builder: (vm) {
           final controller = vm.controller;
           final isCurrent = vm.currentIndex.value == widget.videoId.hashCode;

@@ -30,8 +30,15 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/vehicle/v3/controller/vehicle_v3_controller.dart';
 import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/active_orders_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_broadcast_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_lifecycle_controller.dart';
+import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
+import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/bookmark_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/saved_address_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
@@ -39,6 +46,7 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller
 import 'package:BlueEra/features/me/laboratory/controller/lab_profile_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
+import 'package:BlueEra/features/me/job_seekar/controller/job_seeker_portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/portfolio_professionals_controller.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
@@ -78,6 +86,18 @@ import 'package:BlueEra/features/me/others/controller/other_service_photo_contro
 import 'package:BlueEra/features/me/others/service/other_profile_local_store.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_lock_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_pin_archive_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/custom_chat_tab_controller.dart';
+import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -191,8 +211,18 @@ class LogoutHelper {
   ///   `Get.put` calls happen from non-route contexts (AuthController,
   ///   drawer), so smart-management never auto-disposes them.
   /// - `ChatViewController`: owns chat sockets/listeners.
+  /// - `FeedController`: the feeds, including my posts and saved posts.
   static void _resetSessionControllers() {
     _drop(() => deleteIfRegistered<ChatViewController>());
+    _drop(() => deleteIfRegistered<FeedController>());
+    // Chat settings loaded from this account's Hive data, and the story feed.
+    _drop(() => deleteIfRegistered<ChatLockController>());
+    _drop(() => deleteIfRegistered<ChatFlagController>());
+    _drop(() => deleteIfRegistered<ChatPinArchiveController>());
+    _drop(() => deleteIfRegistered<CustomChatTabController>());
+    _drop(() => deleteIfRegistered<SymbolFeedController>());
+    // The saved drop/delivery addresses, read from this account's Hive box.
+    _drop(() => deleteIfRegistered<SavedAddressController>());
     _drop(() => deleteIfRegistered<ViewPersonalDetailsController>());
     _drop(() => deleteIfRegistered<ViewBusinessDetailsController>());
     // Rider pair: both are registered `permanent: true`, because their
@@ -303,20 +333,29 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<LabPackageController>());
     _drop(() => deleteIfRegistered<BusinessOnboardingController>());
     _drop(() => deleteIfRegistered<PortfolioProfessionalsController>());
+    _drop(
+        () => deleteIfRegistered<JobSeekerPortfolioProfessionalsController>());
     _drop(() => deleteIfRegistered<MedicalCartController>());
     _drop(() => deleteIfRegistered<BookmarkController>());
     _drop(() => deleteIfRegistered<PaymentQrController>());
     // Its onClose stops the ride-status polls, which would otherwise keep
     // running for the previous account's ride.
     _drop(() => deleteIfRegistered<RideBookingController>());
+    // Holds any ongoing fare-call ride / multi-shop order; its onClose stops
+    // the polls.
+    _drop(() => deleteIfRegistered<DiscoverController>());
+    // Its Discover listings and the providers saved on this device.
+    _drop(() => deleteIfRegistered<ProfessionalDiscoverController>());
     _resetWalletAndReferralControllers();
+    _resetPersonalProfileControllers();
+    _resetOrderAndNotificationControllers();
   }
 
   /// Drops the wallet, coin and referral controllers.
   ///
-  /// The home drawer registers these with `getOrPut`, so they live as long
-  /// as the home route: for the whole session. ReferralController matters
-  /// most: `_currentUserReferralCode` (common_methods.dart) prefers its code
+  /// They are registered permanently (their `to` accessors), so they live for
+  /// the whole session. ReferralController matters most:
+  /// `_currentUserReferralCode` (common_methods.dart) prefers its code
   /// when appending `?referralCode=` to every deep link the app builds, so
   /// the next account's share links credited the previous account's
   /// referrals. The wallet ones held the previous account's balance, bank
@@ -325,6 +364,46 @@ class LogoutHelper {
     _drop(() => deleteIfRegistered<ReferralController>());
     _drop(() => deleteIfRegistered<WalletController>());
     _drop(() => deleteIfRegistered<EarnCoinController>());
+  }
+
+  /// Drops the signed-in user's profile editor, earn profiles, earn products
+  /// and documents.
+  ///
+  /// They are registered permanently (their `to` accessors) because the Me tabs,
+  /// profile sheets and setup screens share them for the whole session, so
+  /// nothing else frees them: without this the next account would see the
+  /// previous one's profession, earn profiles, products and uploaded
+  /// documents.
+  static void _resetPersonalProfileControllers() {
+    _drop(() => deleteIfRegistered<PersonalCreateProfileController>());
+    _drop(() => deleteIfRegistered<EarnProfileController>());
+    _drop(() => deleteIfRegistered<EarnServiceController>());
+    _drop(() => deleteIfRegistered<MyDocumentsController>());
+  }
+
+  /// Drops the order and notification state, and clears the ride overlay.
+  ///
+  /// All of these are registered permanently through their accessors, so
+  /// nothing reclaimed them: the next account saw the previous one's active
+  /// orders rail and order cards, the broadcast dispatch polls kept running for
+  /// the previous customer's orders (its `onClose` cancels them), and both
+  /// notification lists kept the previous account's notifications in memory
+  /// while pointing at Hive boxes the wipe had already deleted. Each accessor
+  /// re-creates its controller on next use, which re-opens a fresh box.
+  ///
+  /// The ride overlay is only reset, not deleted: its screens reach it through
+  /// a bare `Get.find`, and main registers it once for the whole process.
+  static void _resetOrderAndNotificationControllers() {
+    _drop(() => deleteIfRegistered<ActiveOrdersController>());
+    _drop(() => deleteIfRegistered<OrderBroadcastController>());
+    _drop(() => deleteIfRegistered<OrderLifecycleController>());
+    _drop(() => deleteIfRegistered<BlueEraNotificationController>());
+    _drop(() => deleteIfRegistered<NotificationCacheService>());
+    _drop(() {
+      if (Get.isRegistered<RideNavigationOverlayController>()) {
+        Get.find<RideNavigationOverlayController>().clearRideData();
+      }
+    });
   }
 
   /// Drops the "other service" business-profile controllers.

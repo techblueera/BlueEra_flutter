@@ -17,6 +17,7 @@ import 'package:BlueEra/core/api/model/video_post_model.dart';
 import 'package:BlueEra/features/common/home/view/video_feed_listing/video_cache_manager.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VideoPlayerItem extends StatefulWidget {
   final VideoPost video;
@@ -422,7 +423,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                             //   }
                                             // }
                                           } catch (e) {
-                                            print(
+                                            debugLog(
                                                 "feed card share failed inside _onShareButtonPressed $e");
                                           } finally {
                                             _isSharing = false;

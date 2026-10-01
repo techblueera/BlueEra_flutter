@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_cart_controller.dart';
@@ -18,7 +17,7 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
+import 'package:BlueEra/features/common/Discover/service/public_profile_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
@@ -66,7 +65,6 @@ class _HmpStoreDetailsDiscoverScreenV2State
   static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
   static const String _profileType = 'homeMadeProduct';
 
-  final _repo = EarnProfileRepo();
   EarnProfileModel? _store;
   bool _loadingStore = true;
 
@@ -106,20 +104,10 @@ class _HmpStoreDetailsDiscoverScreenV2State
       setState(() => _loadingStore = false);
       return;
     }
-    try {
-      final res = await _repo.fetchEarnProfileByUserId(
-        userId: widget.userId,
-        queryParams: const {'profileType': _profileType},
-      );
-      final body = res.response?.data;
-      // The by-userId endpoint returns a SINGLE object: { success, data: {…} }.
-      if (res.isSuccess && body is Map && body['data'] is Map) {
-        _store = EarnProfileModel.fromJson(
-            Map<String, dynamic>.from(body['data'] as Map));
-      }
-    } catch (_) {
-      /* swallow — store-only sections simply show the stub / hide */
-    }
+    // Null leaves the store-only sections showing the stub / hidden.
+    _store = await PublicProfileService()
+            .earnProfile(widget.userId, profileType: _profileType) ??
+        _store;
     if (mounted) setState(() => _loadingStore = false);
   }
 
@@ -365,40 +353,6 @@ class _HmpStoreDetailsDiscoverScreenV2State
     );
   }
 
-  Widget _chatPill() {
-    return GestureDetector(
-      onTap: _openChat,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-        decoration: BoxDecoration(
-          color: _primary,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: _primary.withValues(alpha: 0.30),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LocalAssets(
-              imagePath: AppIconAssets.chat,
-              width: 15,
-              height: 15,
-              imgColor: Colors.white,
-            ),
-            const SizedBox(width: 6),
-            CustomText('Chat',
-                fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _tagPill(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -472,26 +426,6 @@ class _HmpStoreDetailsDiscoverScreenV2State
           ],
         ),
       ),
-    );
-  }
-
-  void _openChat() {
-    final uid = store.userId ?? '';
-    if (uid.trim().isEmpty) return;
-    if (isGuestUser()) {
-      createProfileScreen();
-      return;
-    }
-    final bId = store.id?.trim();
-    if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(userId: bId, source: ChatClickSource.searchResult);
-    }
-    final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.checkChatConnectionAndOpenChat(
-      userId: uid,
-      name: store.serviceName,
-      profile: store.serviceLogo,
-      route: AppConstants.route_discover,
     );
   }
 

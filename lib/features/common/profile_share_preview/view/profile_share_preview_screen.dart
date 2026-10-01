@@ -1,16 +1,14 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/others_service_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/model/share_profile_overview_response.dart';
-import 'package:BlueEra/features/common/profile_share_preview/repo/share_profile_overview_repo.dart';
+import 'package:BlueEra/features/common/profile_share_preview/service/share_preview_service.dart';
 import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
@@ -63,20 +61,13 @@ class _ProfileSharePreviewScreenState extends State<ProfileSharePreviewScreen> {
       _loading = true;
       _error = null;
     });
-    final ResponseModel res = await ShareProfileOverviewRepo().getShareProfileOverview(widget.userId);
+    final parsed = await SharePreviewService().profileOverview(widget.userId);
     if (!mounted) return;
-    if (res.isSuccess && res.response?.data is Map<String, dynamic>) {
-      final parsed = ShareProfileOverviewResponse.fromJson(res.response!.data as Map<String, dynamic>);
-      setState(() {
-        _data = parsed;
-        _loading = false;
-      });
-    } else {
-      setState(() {
-        _loading = false;
-        _error = AppStrings.noDataFound.tr;
-      });
-    }
+    setState(() {
+      _data = parsed;
+      _loading = false;
+      if (parsed == null) _error = AppStrings.noDataFound.tr;
+    });
   }
 
   @override

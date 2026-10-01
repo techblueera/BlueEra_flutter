@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../model/my_medical_products_response.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class MyMedicalVariantCard extends StatelessWidget {
   final MedicalProductVariants variantItem;
@@ -28,9 +29,9 @@ class MyMedicalVariantCard extends StatelessWidget {
     final controller = getOrPut(() => MedicalController());
 
     final price = controller.getPriceDetails(variantItem.pricing);
-    print("Selling Range: ${price.sellingRange}");
-    print("MRP Range: ${price.mrpRange}");
-    print("Discount Range: ${price.discountRange}");
+    debugLog("Selling Range: ${price.sellingRange}");
+    debugLog("MRP Range: ${price.mrpRange}");
+    debugLog("Discount Range: ${price.discountRange}");
 
     return InkWell(
       onTap: () {

@@ -26,6 +26,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../controller/getplace_list_controller.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class CustomizeMapScreen extends StatefulWidget {
   final int? isShowCount;
@@ -253,7 +254,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           snippet: "Tap for details", // Optional subtitle
         ),
         onTap: () {
-          print("Tapped on place: ${place.name}");
+          debugLog("Tapped on place: ${place.name}");
         },
       );
     }).toSet();
@@ -272,7 +273,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
       _markers.addAll(newPlaceMarkers);
     });
 
-    print("Markers updated. Total count: ${_markers.length}");
+    debugLog("Markers updated. Total count: ${_markers.length}");
   }
 
   // List<Map<String, dynamic>> generateNearbyDummyPlaces(

@@ -17,7 +17,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
-import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical/service/medical_profile_service.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_list_screen.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/view/medical_contact_edit_screen.dart';
@@ -63,22 +63,15 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
 
   Future<void> _fetchData() async {
     try {
-      final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
-      if (res.isSuccess && res.response?.data != null) {
-        final data = res.getExtraData('data') ?? res.response?.data;
-        if (data != null && data is Map<String, dynamic>) {
-          if (!mounted) return;
-          setState(() => _data = MedicalHomeResponseModel.fromJson(data));
+      final result = await MedicalProfileService().fetch(widget.businessId);
+      if (result != null && mounted) {
+        setState(() => _data = result.profile);
 
-          // Populate gallery from home API response if gallery controller is empty
-          _populateGalleryFromResponse(data['gallery']);
-        }
+        // Populate gallery from home API response if gallery controller is empty
+        _populateGalleryFromResponse(result.gallery);
       }
-    } catch (e) {
-      debugPrint("Error fetching medical profile: $e");
     } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

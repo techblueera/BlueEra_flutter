@@ -79,13 +79,11 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew>
   @override
   bool get wantKeepAlive => true;
 
-  final FeedController feedController = Get.put(FeedController());
+  final FeedController feedController = FeedController.to;
   final ScrollController _scrollController = ScrollController();
   late ShortsController? shortsController;
 
-  var inventoryController = Get.isRegistered<InventoryController>()
-      ? Get.find<InventoryController>()
-      : Get.put(InventoryController());
+  var inventoryController = InventoryController.to;
 
   final homeScreenController = HomeScreenController.to;
 

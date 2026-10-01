@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/contactListModel.dart';
@@ -40,7 +39,7 @@ class StartChatContactSuggestions extends StatefulWidget {
 
 class _StartChatContactSuggestionsState
     extends State<StartChatContactSuggestions> {
-  final chatViewController = getOrPut(() => ChatViewController());
+  final chatViewController = ChatViewController.to;
 
   /// Only the first load blocks with a spinner — once contacts are in memory
   /// every later rebuild renders straight from the controller.

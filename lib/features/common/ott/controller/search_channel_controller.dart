@@ -3,6 +3,7 @@ import 'package:BlueEra/features/common/ott/view/search_channel_res_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 // Import your model and repo files here
 
 class SearchChannelController extends GetxController {
@@ -48,7 +49,7 @@ class SearchChannelController extends GetxController {
         }
       }
     } catch (e) {
-      print("Error fetching channels: $e");
+      debugLog("Error fetching channels: $e");
     } finally {
       isLoading.value = false;
     }

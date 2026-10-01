@@ -20,7 +20,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_strings.dart';
-import '../../../../../core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -31,12 +30,12 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  final controller = getOrPut(() => WalletController());
-  final referralController = getOrPut(() => ReferralController());
+  final controller = WalletController.to;
+  final referralController = ReferralController.to;
 
   /// Coin balance for the top-right coin chip — GET /earn/balance. Shares the
   /// same singleton as the Coin Wallet card in the body.
-  final earnController = getOrPut(() => EarnCoinController());
+  final earnController = EarnCoinController.to;
 
   @override
   void initState() {

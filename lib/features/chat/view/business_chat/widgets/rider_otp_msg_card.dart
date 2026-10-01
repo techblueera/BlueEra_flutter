@@ -1,11 +1,10 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/chat/auth/repo/make_order_repo.dart';
+import 'package:BlueEra/features/chat/auth/service/rider_order_service.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -88,28 +87,22 @@ class _RiderOtpMsgCardState extends State<RiderOtpMsgCard> {
     FocusScope.of(context).unfocus();
     setState(() => _submitting = true);
     try {
-      final repo = MakeOrderRepo();
-      ResponseModel res;
-      if (otp.isMultiStop) {
-        res = await repo.multiShopStopPickupApi(
-          orderId: orderId,
-          businessId: otp.businessId!,
-          pickupOTP: entered,
-        );
-      } else {
-        res = await repo.uploadThePickupOtp({'pickupOTP': entered}, orderId);
-      }
+      final error = await RiderOrderService().verifyPickupOtp(
+        orderId: orderId,
+        otp: entered,
+        businessId: otp.businessId,
+        multiStop: otp.isMultiStop,
+      );
 
-      if (res.isSuccess) {
+      if (error == null) {
         commonSnackBar(message: AppStrings.pickupOrderVerifiedSuccessfully.tr);
         // Optimistic flip; the `riderOtpUpdated` socket also marks it consumed.
         if (!mounted) return;
         setState(() => otp.status = 'consumed');
       } else {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+        commonSnackBar(
+            message: error.isNotEmpty ? error : AppStrings.somethingWentWrong.tr);
       }
-    } catch (_) {
-      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

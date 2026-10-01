@@ -22,6 +22,12 @@ import '../../view/reminder_chat/reminder_todo_screen.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class ChatThemeController extends GetxController {
+  /// The device's chat theme, registered on first use. Permanent: it is
+  /// loaded once from Hive and shared by every chat screen.
+  static ChatThemeController get to => Get.isRegistered<ChatThemeController>()
+      ? Get.find<ChatThemeController>()
+      : Get.put(ChatThemeController(), permanent: true);
+
   Rx<Color> myMessageBgColor = AppColors.chat_bubble_my_bg.obs;
   Rx<Color> receiveMessageBgColor = AppColors.chat_bubble_receive_bg.obs;
   Rx<Color> readMessageStickColor = AppColors.chat_bubble_receive_bg.obs;

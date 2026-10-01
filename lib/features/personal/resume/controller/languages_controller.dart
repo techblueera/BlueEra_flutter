@@ -23,10 +23,6 @@ import 'package:BlueEra/core/routes/safe_back.dart';
       super.onInit();
     }
 
-    @override
-    void onClose() {
-      super.onClose();
-    }
 
     Future<void> getLanguagesApi() async {
       try {

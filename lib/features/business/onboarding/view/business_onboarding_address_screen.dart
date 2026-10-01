@@ -22,7 +22,7 @@ class BusinessOnboardingAddressScreen extends StatefulWidget {
 
 class _BusinessOnboardingAddressScreenState
     extends State<BusinessOnboardingAddressScreen> {
-  final controller = getOrPut(() => BusinessOnboardingController());
+  final controller = BusinessOnboardingController.to;
   final locationController = getOrPut(() => LocationController());
 
   @override

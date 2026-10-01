@@ -17,6 +17,7 @@ import 'package:get/get.dart';
 
 import '../../../../../../core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// The payout method being added. Replaces the old free-string
 /// 'Bank Account' / 'UPI' / 'Select Account' triple — "nothing chosen yet" is
@@ -361,8 +362,8 @@ class AddBankAccountController extends GetxController {
         "isDefault": isDefault,
         "AccountId": accountId
       };
-      print(body);
-      print("TEEEESSSTTT");
+      debugLog(body);
+      debugLog("TEEEESSSTTT");
 
       ResponseModel response =
       await PaymentRepo().updateAccount(Id: accountId, params: body);

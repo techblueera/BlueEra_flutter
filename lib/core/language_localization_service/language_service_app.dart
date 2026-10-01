@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class LocalizationService extends Translations {
   static final LocalizationService _instance = LocalizationService._internal();
@@ -174,7 +175,7 @@ class LocalizationService extends Translations {
       }
       return assetData;
     } catch (e, st) {
-      print('⚠️ Error loading translations for $languageCode: $e\n$st');
+      debugLog('⚠️ Error loading translations for $languageCode: $e\n$st');
       // Fallback: try the requested language asset, then English asset.
       final assetData = await _loadAssetTranslations(languageCode);
       if (assetData.isNotEmpty) {
@@ -283,7 +284,7 @@ class LocalizationService extends Translations {
         }
       }
     } catch (e, st) {
-      print('⚠️ Error loading translations for $languageCode: $e\n$st');
+      debugLog('⚠️ Error loading translations for $languageCode: $e\n$st');
     }
 
     return {}; // fallback empty map
@@ -297,7 +298,7 @@ class LocalizationService extends Translations {
     var effectiveLang = langCode;
 
     if (data.isEmpty) {
-      print('⚠️ No translations found for $langCode — falling back to $fallbackLanguage');
+      debugLog('⚠️ No translations found for $langCode — falling back to $fallbackLanguage');
       effectiveLang = fallbackLanguage;
       data = await _loadAssetTranslations(fallbackLanguage);
       if (data.isNotEmpty) {

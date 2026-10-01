@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -12,20 +11,16 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
-import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_package_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_full_details_repo.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_package_repo.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
+import 'package:BlueEra/features/me/laboratory/controller/visited_lab_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -56,14 +51,12 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final storeController = getOrPut(() => StoreController());
 
-  List<PathologyTest> _tests = [];
-  List<LabPackage> _packages = [];
-  bool _isLoading = true;
-
-  /// Resolved from the lab's full-details payload — the pathology-tests
-  /// endpoint now keys on `LaboratoryProfile._id`, not the business/user
-  /// id passed into the screen.
-  String? _laboratoryId;
+  // Registered by VisitedLabBinding on this route, tagged with the lab.
+  late final VisitedLabController _lab =
+      Get.find<VisitedLabController>(tag: widget.businessId);
+  List<PathologyTest> get _tests => _lab.tests;
+  List<LabPackage> get _packages => _lab.packages;
+  String? get _laboratoryId => _lab.laboratoryId;
 
   // ── Categories mirror `lab_tests_tab_v2.dart` so the customer tap
   // flow lands on the same `LabTestListScreen(collection, labId)` route.
@@ -110,87 +103,16 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
         source: ChatClickSource.storeDetail,
       );
     }
-    _fetchAll();
   }
 
-  /// Loads the visited business profile first (its `user_id` is the key
-  /// the lab-service full-details endpoint expects), then resolves the
-  /// `LaboratoryProfile._id` and fetches this lab's tests.
-  Future<void> _fetchAll() async {
-    final id = widget.businessId;
-    if (id.isNotEmpty) {
-      await viewBusinessDetailsController.viewBusinessProfileById(id);
-    }
-    await _fetchTests();
-  }
+  Future<void> _refresh() => _lab.refreshLab();
 
-  Future<void> _fetchTests() async {
-    try {
-      // Resolve the LaboratoryProfile._id first — the backend now keys
-      // /pathology-tests/laboratory/:labId on the lab profile id, not
-      // the business id.
-      final labId = await _resolveLaboratoryId();
-      if (labId == null || labId.isEmpty) return;
-      _laboratoryId = labId;
-
-      // Tests and packages both key on the same LaboratoryProfile._id, so
-      // fetch them concurrently — halves the round-trip.
-      final results = await Future.wait([
-        LabTestRepo().getPathologyTestsByLab(labId, ''),
-        LabPackageRepo().getPackagesByLab(labId),
-      ]);
-
-      final testsRes = results[0];
-      if (testsRes.isSuccess) {
-        final List data = testsRes.getExtraData('data') ?? [];
-        final tests = data.map((e) => PathologyTest.fromJson(e)).toList();
-        if (mounted) setState(() => _tests = tests);
-      }
-
-      final packagesRes = results[1];
-      if (packagesRes.isSuccess) {
-        final List data = packagesRes.getExtraData('data') ?? [];
-        final packages = data
-            .whereType<Map<String, dynamic>>()
-            .map(LabPackage.fromJson)
-            .toList();
-        if (mounted) setState(() => _packages = packages);
-      }
-    } catch (e) {
-      debugPrint('LabDetailScreen fetch error: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<String?> _resolveLaboratoryId() async {
-    final userId = viewBusinessDetailsController
-        .visitedBusinessProfileDetails?.data?.userId;
-    if (userId == null || userId.isEmpty) return null;
-    try {
-      final res = await LabFullDetailsRepo().getFullDetailsByUserId(userId);
-      if (!res.isSuccess) return null;
-      final data = res.response?.data?['data'];
-      if (data is Map) {
-        final profile = data['profile'];
-        if (profile is Map) return profile['_id']?.toString();
-      }
-      return null;
-    } catch (e) {
-      debugPrint('LabDetailScreen resolve labId error: $e');
-      return null;
-    }
-  }
-
-  Future<void> _refresh() async {
-    await viewBusinessDetailsController
-        .viewBusinessProfileById(widget.businessId);
-    await _fetchTests();
-  }
-
+  // Rebuilds when the lab's tests, packages or loading state change.
   @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
+  Widget build(BuildContext context) => Obx(() => _buildScreen(context));
+
+  Widget _buildScreen(BuildContext context) {
+    if (_lab.isLoading.value) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -1264,7 +1186,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
   }
 
   void _openInquirySheet(BusinessProfileDetails? profile) {
-    // Route uses LaboratoryProfile._id (resolved by _fetchTests). If the
+    // Route uses LaboratoryProfile._id (resolved by VisitedLabController). If the
     // lab profile hasn't been resolved yet, block with a snackbar rather
     // than post an enquiry the backend will reject.
     final labId = (_laboratoryId ?? '').trim();
@@ -1295,61 +1217,6 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
     );
   }
 
-  // ─── Live Photos ────────────────────────────────────────────────────
-  Widget _buildLivePhotosSection() {
-    return Obx(() {
-      if (viewBusinessDetailsController.isProfileLoading.value) {
-        return const SizedBox.shrink();
-      }
-      final details =
-          viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-      final livePhotos =
-          details?.livePhotos?.where((p) => p.trim().isNotEmpty).toList();
-      if (livePhotos == null || livePhotos.isEmpty) {
-        return const SizedBox.shrink();
-      }
-      final natureOfBusiness = details?.subCategoryDetails?.name ??
-          details?.natureOfBusiness ??
-          'OTHER';
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: CommonCardWidget(
-          padding: 10,
-          cardMargin: 0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                AppStrings.groceryViewLivePhotos.tr,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-              const SizedBox(height: 10),
-              StoreLivePhotoWidget(
-                livePhotos: livePhotos,
-                natureOfBusiness: natureOfBusiness,
-                onViewFullScreen: ({
-                  required int index,
-                  required List<String> storeImage,
-                  required String natureOfBusiness,
-                }) {
-                  navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      appBarTitle: details?.businessName ?? '',
-                      subTitle: natureOfBusiness,
-                      imageUrls: storeImage,
-                      initialIndex: index,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
 }
 
 class _LabCategoryConfig {

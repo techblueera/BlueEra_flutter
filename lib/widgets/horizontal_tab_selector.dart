@@ -5,7 +5,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/glass_surface.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class HorizontalTabSelector<T> extends StatelessWidget {
   final List<T> tabs;
@@ -103,7 +102,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
                     border: isSelected
                         ? null
                         : Border.all(color: unselectedBorder),
-                    boxShadow: boxShadow ?? null
+                    boxShadow: boxShadow
                   ),
                   child: Row(
                     children: [

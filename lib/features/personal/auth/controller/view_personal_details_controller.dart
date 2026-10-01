@@ -47,6 +47,7 @@ import '../../personal_profile/view/widget/ai_suggestion_field.dart';
 import '../../personal_profile/view/widget/introduction_video_widget.dart';
 import '../../personal_profile/view/widget/update_personal_profession_dialog.dart';
 import '../repo/personal_profile_repo.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class _ProfileFieldStatus {
   final int id; // unique identifier
@@ -849,7 +850,7 @@ class ViewPersonalDetailsController extends GetxController
       return;
     }
 
-    final personalController = Get.put(PersonalCreateProfileController());
+    final personalController = PersonalCreateProfileController.to;
 
     // 1. Hydrate from cache immediately so the UI isn't blank while
     //    the silent network refresh below is in flight. The repo call
@@ -1191,7 +1192,7 @@ class ViewPersonalDetailsController extends GetxController
     } catch (e) {
       getFollowerViewCountResponse.value = ApiResponse.error();
 
-      print('Error fetching counts: $e');
+      debugLog('Error fetching counts: $e');
       // commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {}
   }
@@ -1359,7 +1360,7 @@ class ViewPersonalDetailsController extends GetxController
   void showBioUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        PersonalCreateProfileController.to;
     final ViewPersonalDetailsController viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
     final TextEditingController bioController = TextEditingController();
@@ -1453,7 +1454,7 @@ class ViewPersonalDetailsController extends GetxController
   void showEducationUpdateDialog() {
     final formKey = GlobalKey<FormState>();
     final personalCreateProfileController =
-        Get.put(PersonalCreateProfileController());
+        PersonalCreateProfileController.to;
     final viewPersonalDetailsController =
         Get.find<ViewPersonalDetailsController>();
 

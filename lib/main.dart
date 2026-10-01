@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -77,6 +76,7 @@ import 'features/chat/view/widget/ongoing_call_strip.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
 
@@ -732,13 +732,13 @@ getDeviceInfo() async {
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 // Get the major OS version number (e.g., "14", "15")
     deviceOsVersionGlobal = androidInfo.version.release;
-    print('Android Release Version: $deviceOsVersionGlobal');
+    debugLog('Android Release Version: $deviceOsVersionGlobal');
   } else if (Platform.isIOS) {
     IosDeviceInfo iosDeviceInfo = await deviceInfo.iosInfo;
 // Get the major OS version number (e.g., "14", "15")
     deviceOsVersionGlobal = iosDeviceInfo.systemVersion;
 
-    print('iosDeviceInfo Release Version: $deviceOsVersionGlobal');
+    debugLog('iosDeviceInfo Release Version: $deviceOsVersionGlobal');
   }
 }
 
@@ -1448,22 +1448,22 @@ Future<void> _initBackgroundBatch() async {
 }
 
 void debugPrintKeys() {
-  print('--- API KEYS DEBUG ---');
-  print('Selected Base URL: $baseUrl');
-  print('Razorpay Key: $razorpayKey');
-  print('Chat Socket URL: $chatSocketUrl');
-  print('Live Track Socket: $liveTrackSocket');
-  print('Google Map Key: $googleMapKey');
-  print('Gemini API Key: $geminiApiKey');
-  print('Firebase Project ID: $projectFireBaseId');
-  print(Platform.isAndroid
+  debugLog('--- API KEYS DEBUG ---');
+  debugLog('Selected Base URL: $baseUrl');
+  debugLog('Razorpay Key: $razorpayKey');
+  debugLog('Chat Socket URL: $chatSocketUrl');
+  debugLog('Live Track Socket: $liveTrackSocket');
+  debugLog('Google Map Key: $googleMapKey');
+  debugLog('Gemini API Key: $geminiApiKey');
+  debugLog('Firebase Project ID: $projectFireBaseId');
+  debugLog(Platform.isAndroid
       ? 'Android App ID: $firebaseAppId'
       : 'iOS App ID: $firebaseAppId');
-  print(Platform.isAndroid
+  debugLog(Platform.isAndroid
       ? 'Android Firebase Key: $firebaseApiKey'
       : 'iOS Firebase Key: $firebaseApiKey');
-  print('Messaging Sender ID: $messagingSenderId');
-  print('----------------------');
+  debugLog('Messaging Sender ID: $messagingSenderId');
+  debugLog('----------------------');
 }
 
 late List<CameraDescription> cameras;

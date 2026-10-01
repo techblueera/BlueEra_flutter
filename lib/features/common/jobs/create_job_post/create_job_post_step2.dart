@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -15,6 +16,7 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/common_drop_down.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class CreateJobPostStep2 extends StatefulWidget {
   CreateJobPostStep2({super.key});
@@ -104,7 +106,7 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
         _selectedGender = null;
       }
     } catch (e) {
-      print('Error initializing data from API: $e');
+      debugLog('Error initializing data from API: $e');
       // Set default values on error
       controller.selectedLanguages.clear();
       controller.selectedLanguages.add('English');
@@ -302,7 +304,9 @@ class _CreateJobPostStep2State extends State<CreateJobPostStep2> {
                       onTap: () async {
                         final jobId = controller.jobID.value;
                         if (jobId.isNotEmpty) {
-                          await controller.postJobStep2Api(jobId: jobId);
+                          if (await controller.postJobStep2Api(jobId: jobId)) {
+                            Get.toNamed(RouteHelper.getCreateJobPostStep3Route());
+                          }
                         } else {
                           commonSnackBar(message: AppStrings.jobIdMissing);
                         }

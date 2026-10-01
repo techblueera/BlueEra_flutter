@@ -63,9 +63,7 @@ class SymbolStoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<SymbolFeedController>()
-        ? Get.find<SymbolFeedController>()
-        : Get.put(SymbolFeedController());
+    final controller = SymbolFeedController.to;
 
     return Obx(() {
       // Build an ordered list with self always first.

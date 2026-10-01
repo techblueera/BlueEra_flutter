@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -305,14 +304,6 @@ class _LocationTile extends StatelessWidget {
     );
   }
 
-  /// Formats a lat/lon pair into a human-readable directional readout
-  /// (`22.3010°N · 88.4560°E`). Tabular figures keep the digits
-  /// aligned across rebuilds.
-  String _formatCoords(double lat, double lon) {
-    final latDir = lat >= 0 ? 'N' : 'S';
-    final lonDir = lon >= 0 ? 'E' : 'W';
-    return '${lat.abs().toStringAsFixed(4)}°$latDir  ·  ${lon.abs().toStringAsFixed(4)}°$lonDir';
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -330,7 +321,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
   final ViewPersonalDetailsController _viewCtrl =
       Get.find<ViewPersonalDetailsController>();
   final PersonalCreateProfileController _personalCtrl =
-      Get.put(PersonalCreateProfileController());
+      PersonalCreateProfileController.to;
   final LocationController _locationCtrl = Get.put(LocationController());
 
   double _lat = 0.0;

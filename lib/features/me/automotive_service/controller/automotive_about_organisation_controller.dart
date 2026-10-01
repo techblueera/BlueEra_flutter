@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AutomotiveAboutOrganisationController extends GetxController {
   final OtherRepo _repo = OtherRepo();
@@ -64,7 +65,7 @@ class AutomotiveAboutOrganisationController extends GetxController {
         // Handle error
       }
     } catch (e) {
-      print("Error fetching about organisation: $e");
+      debugLog("Error fetching about organisation: $e");
     } finally {
       isLoading.value = false;
     }

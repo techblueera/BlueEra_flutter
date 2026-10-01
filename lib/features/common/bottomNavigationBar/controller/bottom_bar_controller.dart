@@ -3,7 +3,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/analytics_service.dart';
-import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
@@ -12,6 +11,12 @@ import 'package:get/get.dart';
 import '../../auth/model/adminvideo_model.dart';
 
 class BottomBarController extends GetxController {
+  /// The bottom bar's state, registered on first use. Permanent: the shell
+  /// lives for the whole session and is rebuilt by `offAllNamed`.
+  static BottomBarController get to => Get.isRegistered<BottomBarController>()
+      ? Get.find<BottomBarController>()
+      : Get.put(BottomBarController(), permanent: true);
+
   RxInt currentIndex = 0.obs;
 
   /// Drives bottom-nav + subscription-peek visibility from any descendant

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 Future<void> checkAppVersionAndResetIfNeeded() async {
   final box = await Hive.openBox('app_info');
@@ -12,7 +13,7 @@ Future<void> checkAppVersionAndResetIfNeeded() async {
   final savedVersion = box.get('app_version');
 
   if (savedVersion != currentVersion) {
-    print("🚀 App updated from $savedVersion → $currentVersion");
+    debugLog("🚀 App updated from $savedVersion → $currentVersion");
 
     // ✅ Reset language localization (only once after update)
     await resetLanguageLocalization();
@@ -20,6 +21,6 @@ Future<void> checkAppVersionAndResetIfNeeded() async {
     // Save the current version
     await box.put('app_version', currentVersion);
   } else {
-    print("✅ App version unchanged ($currentVersion)");
+    debugLog("✅ App version unchanged ($currentVersion)");
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
@@ -27,7 +26,7 @@ class TestimonialVideoGrid extends StatefulWidget {
 
 class _TestimonialVideoGridState extends State<TestimonialVideoGrid> {
   final _GridVideoPlaybackManager _playback = _GridVideoPlaybackManager();
-  final ReferralController _referral = getOrPut(() => ReferralController());
+  final ReferralController _referral = ReferralController.to;
   Worker? _suppressWorker;
 
   @override

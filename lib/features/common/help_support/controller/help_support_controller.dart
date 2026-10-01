@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
@@ -115,7 +114,7 @@ class HelpSupportController extends GetxController {
   /// until the list catches up.
   Future<void> openSupportChat(String conversationId) async {
     if (conversationId.isEmpty) return;
-    final chat = getOrPut(() => ChatViewController());
+    final chat = ChatViewController.to;
     final row = _findRow(chat, conversationId);
 
     await chat.openChatFromChatList(

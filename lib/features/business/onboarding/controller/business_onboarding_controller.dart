@@ -19,6 +19,11 @@ import 'package:get/get.dart';
 enum BusinessHoursMode { selectedHours, alwaysOpen, appointmentsOnly }
 
 class BusinessOnboardingController extends GetxController {
+  /// One instance for the session, whichever screen asks first; logout drops it.
+  static BusinessOnboardingController get to => Get.isRegistered<BusinessOnboardingController>()
+      ? Get.find<BusinessOnboardingController>()
+      : Get.put(BusinessOnboardingController(), permanent: true);
+
   static const int totalSteps = 6;
   static const int maxCategories = 1;
   static const int maxDescriptionChars = 512;

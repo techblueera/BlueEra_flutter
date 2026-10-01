@@ -25,7 +25,6 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
@@ -61,7 +60,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
   // Drives the inquiry list on the Order tab — same controller the Connect
   // screen uses, so socket-driven updates land on both.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Backs the Overview tab — loads the creator's own earn-artist profile.
   final EarnArtistController _earnArtistController =
@@ -94,7 +93,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
     registerMeTabBackHandler(_tabController);
     // Register the personal-profile controller up front so the Overview tab's
     // identity card can drive cover/avatar edits from a shared instance.
-    getOrPut(() => PersonalCreateProfileController());
+    PersonalCreateProfileController.to;
     _viewCtrl.UserFollowersAndPostsCount(userId);
     // Load per-tab data lazily on first activation instead of all up front.
     _tabController.addListener(_onTabChanged);
@@ -333,9 +332,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
 
   // ─── POST TAB ────────────────────────────────────────────────────────────
   List<Widget> _buildPostTab() {
-    if (!Get.isRegistered<FeedController>()) {
-      Get.put(FeedController());
-    }
+    FeedController.to;
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),

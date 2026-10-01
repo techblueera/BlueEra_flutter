@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class BranchContactController extends GetxController {
   Rx<ApiResponse> updateSchoolContactInfoResponse =
@@ -97,7 +98,7 @@ class BranchContactController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-      print("Request Body: $body");
+      debugLog("Request Body: $body");
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

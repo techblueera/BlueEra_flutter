@@ -14,7 +14,7 @@ import 'package:BlueEra/features/common/Discover/model/doctor_discover_summary.d
 import 'package:BlueEra/features/me/doctor/model/doctor_certificate_model.dart';
 import 'package:BlueEra/features/me/doctor/widget/doctor_appointment_sheet.dart';
 import 'package:BlueEra/features/me/doctor/model/doctor_profile_model.dart';
-import 'package:BlueEra/features/me/doctor/repo/doctor_profile_repo.dart';
+import 'package:BlueEra/features/common/Discover/service/public_profile_service.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -102,19 +102,10 @@ class _DoctorPublicProfileScreenState extends State<DoctorPublicProfileScreen> {
   /// professional sections hide themselves.
   Future<void> _loadDoctorProfile() async {
     if (widget.ownerUserId.isEmpty) return;
-    try {
-      final res = await DoctorProfileRepo()
-          .getPublicProfile(ownerUserId: widget.ownerUserId);
-      if (!res.isSuccess) return;
-      final data = res.response?.data;
-      final profile = (data is Map) ? data['data'] : null;
-      if (profile is Map) {
-        _doctorProfile =
-            DoctorProfile.fromJson(Map<String, dynamic>.from(profile));
-      }
-    } catch (_) {
-      // Same as a 404 — render from business data alone.
-    }
+    // Null (a 404 or a failure) renders from business data alone.
+    _doctorProfile =
+        await PublicProfileService().doctorProfile(widget.ownerUserId) ??
+            _doctorProfile;
   }
 
   Future<void> _refresh() => _load();

@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AiProfessionalsController extends GetxController {
   ProfessionalsRepo _repo = ProfessionalsRepo();
@@ -269,7 +270,7 @@ class AiProfessionalsController extends GetxController {
             file: selectedImage.value ?? File(""),
             fileType: mimeType,
             preSignedUrl: uploadUrl,
-            onProgress: (sent) => print("Uploading: $sent"),
+            onProgress: (sent) => debugLog("Uploading: $sent"),
           );
         }
       }
@@ -359,9 +360,9 @@ class AiProfessionalsController extends GetxController {
 
       _prepareServiceList();
 
-      print("Both services fetched successfully!");
+      debugLog("Both services fetched successfully!");
     } catch (e) {
-      print("Error fetching services: $e");
+      debugLog("Error fetching services: $e");
     } finally {
       isLoading.value = false;
     }
@@ -401,7 +402,7 @@ class AiProfessionalsController extends GetxController {
       }
     } catch (e, s) {
       servicesOfferedResponse.value = ApiResponse.error('error');
-      print("stack trace: $s");
+      debugLog("stack trace: $s");
     } finally {
     }
   }
@@ -439,7 +440,7 @@ class AiProfessionalsController extends GetxController {
         commonSnackBar(message: responseModel.message);
       }
     } catch (e, s) {
-      print('stack trace -- $s');
+      debugLog('stack trace -- $s');
       updateServicesOfferedResponse.value = ApiResponse.error('error');
     } finally {
       isUpdateServiceOfferedLoading.value = false;

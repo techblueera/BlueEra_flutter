@@ -19,6 +19,7 @@ import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/GetBlueeraPiolotModel.dart';
 import '../../../auth/stream/rider_response_stream.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class DeliveryPilotScreen extends StatefulWidget {
   const DeliveryPilotScreen(
@@ -133,7 +134,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
   }
 
   Future<void> fetchStream() async {
-    _stream = await riderOrderStream(userId);
+    _stream = riderOrderStream(userId);
     _subscription = _stream.listen((event) {
       if (event is List) {
         if (event.isEmpty) {
@@ -172,9 +173,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
         }
       } else {}
     }, onError: (error) {
-      print('❌ Stream error: $error');
+      debugLog('❌ Stream error: $error');
     }, onDone: () {
-      print('ℹ️ Stream closed');
+      debugLog('ℹ️ Stream closed');
     });
   }
 

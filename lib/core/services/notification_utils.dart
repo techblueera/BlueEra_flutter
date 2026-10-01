@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class NetworkUtils {
   static final Connectivity _connectivity = Connectivity();
@@ -19,7 +20,7 @@ return false;
   static void initialize() {
     _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> result) {
       final isConnected = !result.contains(ConnectivityResult.none) ;
-      print("🔌 Connectivity changed: $result, connected: $isConnected");
+      debugLog("🔌 Connectivity changed: $result, connected: $isConnected");
       for (final listener in _listeners) {
         listener(isConnected);
       }

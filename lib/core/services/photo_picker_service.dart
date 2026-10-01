@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Single entry point for picking photos in the app.
 class PhotoPickerService {
@@ -581,7 +582,7 @@ class PhotoPickerService {
   /// and strand the chooser dialog on screen.
   static void _handleUnexpectedError(Object e) {
     // ignore: avoid_print
-    print('Photo picker failed: $e');
+    debugLog('Photo picker failed: $e');
     commonSnackBar(message: 'Could not use that photo. Please try again.');
   }
 
@@ -639,7 +640,7 @@ class PhotoPickerService {
       return file;
     } catch (e) {
       // ignore: avoid_print
-      print('Error saving cropped image: $e');
+      debugLog('Error saving cropped image: $e');
       return null;
     }
   }
@@ -647,20 +648,20 @@ class PhotoPickerService {
   static void _logCompression(int originalSize, int newSize, bool attempted) {
     if (!attempted) {
       // ignore: avoid_print
-      print('❌ Compression failed or skipped (using original image)');
+      debugLog('❌ Compression failed or skipped (using original image)');
       return;
     }
     if (newSize < originalSize) {
       final reductionPercent =
           ((originalSize - newSize) / originalSize * 100).toStringAsFixed(2);
       // ignore: avoid_print
-      print('✅ Image compressed: '
+      debugLog('✅ Image compressed: '
           '${formatBytesToMB(originalSize)} MB → '
           '${formatBytesToMB(newSize)} MB '
           '(Reduced $reductionPercent%)');
     } else {
       // ignore: avoid_print
-      print('⚠️ Compression attempted but size did not reduce');
+      debugLog('⚠️ Compression attempted but size did not reduce');
     }
   }
 }

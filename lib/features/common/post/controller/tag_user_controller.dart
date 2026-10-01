@@ -1,15 +1,23 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
-import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/reel/models/get_all_users.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class TagUserController extends GetxController {
+  /// [initialTaggedIds] are the users an edited post already tags; they are
+  /// selected as their page of users loads.
+  TagUserController(
+      {UserRepo? repo, Iterable<String> initialTaggedIds = const []})
+      : _repo = repo ?? UserRepo(),
+        _initialTaggedIds = initialTaggedIds.toSet();
+
+  final UserRepo _repo;
+  final Set<String> _initialTaggedIds;
+
   final RxList<UsersData> allUsers = <UsersData>[].obs;
   final RxList<UsersData> filteredUsers = <UsersData>[].obs;
   final RxList<UsersData> selectedUsers = <UsersData>[].obs;
@@ -33,14 +41,6 @@ class TagUserController extends GetxController {
   }
 
   void fetchUsers({bool isInitialLoad = false}) async {
-    final photoPostController = Get.isRegistered<PhotoPostController>()
-        ? Get.find<PhotoPostController>()
-        : Get.put(PhotoPostController());
-
-    final messagePostController = Get.isRegistered<MessagePostController>()
-        ? Get.find<MessagePostController>()
-        : Get.put(MessagePostController());
-
     if (isInitialLoad) {
       page = 1;
       isHasMoreData.value = true;
@@ -58,8 +58,8 @@ class TagUserController extends GetxController {
     isLoadingMore.value = true;
 
     try {
-      print('api call');
-      ResponseModel response = await UserRepo().getAllUsers(params: params);
+      debugLog('api call');
+      ResponseModel response = await _repo.getAllUsers(params: params);
 
       if (response.statusCode == 200) {
         GetAllUsers getAllUsers = GetAllUsers.fromJson(response.response?.data);
@@ -79,35 +79,13 @@ class TagUserController extends GetxController {
           page++;
         }
 
-        if (photoPostController.isPhotoPostEdit) {
-          if (photoPostController.postData?.value.taggedUsers?.isNotEmpty ??
-              false) {
-            // final taggedIds =
-            //     photoPostController.postData?.value.taggedUsers ?? [];
-            final List<String> taggedIds
-                = photoPostController.postData?.value.taggedUsers?.map((user) => user.id as String).toList()??[];
-
-
-            selectedUsers.value = allUsers.where((user) {
-              final isTagged = taggedIds.contains(user.id);
-              user.isSelected.value =
-                  isTagged; // set isSelected based on tagged
-              return isTagged;
-            }).toList();
-            logs(" tagUserController.selectedUsers.value====${selectedUsers}");
-            // setState(() {});
-          }
-        }
-        if (messagePostController.isMsgPostEdit) {
-          if (messagePostController.taggedSelectedUsersList?.isNotEmpty ??
-              false) {
-            final List<String> taggedIds = messagePostController.taggedSelectedUsersList?.map((user) => user.id as String).toList()??[];
-            selectedUsers.value = allUsers.where((user) {
-              final isTagged = taggedIds.contains(user.id);
-              user.isSelected.value =
-                  isTagged; // set isSelected based on tagged
-              return isTagged;
-            }).toList();
+        // Only this page: re-selecting across all pages would undo a tag the
+        // user removed from an earlier page.
+        for (final user in data) {
+          if (_initialTaggedIds.contains(user.id) &&
+              !selectedUsers.any((selected) => selected.id == user.id)) {
+            user.isSelected.value = true;
+            selectedUsers.add(user);
           }
         }
 
@@ -117,7 +95,7 @@ class TagUserController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      print('Error fetching users: $e');
+      debugLog('Error fetching users: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;

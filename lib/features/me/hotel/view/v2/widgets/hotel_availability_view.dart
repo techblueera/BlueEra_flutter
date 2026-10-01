@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_availability_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -57,20 +56,10 @@ class _HotelAvailabilityCardState extends State<HotelAvailabilityCard> {
     final result = await Get.to(
       () => HotelAvailabilityScreen(
         initialSchedule: widget.businessController.weeklySchedule,
-        onSave: _saveWeeklyHours,
+        onSave: widget.businessController.saveWeeklyHours,
       ),
     );
     if (result == true) await widget.businessController.loadHours();
-  }
-
-  Future<String?> _saveWeeklyHours(List<Schedule> schedule) async {
-    final res = await BusinessProfileRepo().setBusinessHours({
-      'timezone': 'Asia/Kolkata',
-      'schedule': schedule.map((s) => s.toJson()).toList(),
-    });
-    return res.isSuccess
-        ? null
-        : (res.message ?? AppStrings.somethingWentWrong.tr);
   }
 
   @override

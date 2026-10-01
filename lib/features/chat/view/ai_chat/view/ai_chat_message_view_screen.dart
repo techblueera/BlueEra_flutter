@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/services/lost_media_recovery.dart';
 import 'dart:io';
 
@@ -220,7 +221,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
                                       minLines: 1,
                                       maxLines: 5,
                                       onChanged: (value) {
-                                        if (!value.isEmpty) {
+                                        if (value.isNotEmpty) {
                                           chatViewController.isTextFieldEmpty
                                               .value =
                                           true;
@@ -256,9 +257,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
                                         if (value == null || value.isEmpty) {
                                           return AppStrings.pleaseEnterAUrl.tr;
                                         }
-                                        final httpsUrlRegex = RegExp(
-                                            'r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
-                                        if (!httpsUrlRegex.hasMatch(value)) {
+                                        if (!ValidationMethod.isHttpsUrl(value)) {
                                           return AppStrings.onlyHttpsUrlsAllowed.tr;
                                         }
                                         return null;

@@ -1,11 +1,10 @@
+import 'package:BlueEra/features/common/Discover/controller/professional_discover_controller.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/self_profession_discover_screen_v2.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -24,8 +23,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// `assets/electrcian.png`): a full-bleed map, a "Where you Want?" location
 /// selector (device location OR a searched place), and a profession grid.
 ///
-/// Picking a category stamps the chosen location onto [DiscoverController] as a
-/// per-flow override (see [DiscoverController.setEarnDiscoverLocation]) — the
+/// Picking a category stamps the chosen location onto [ProfessionalDiscoverController] as a
+/// per-flow override (see [ProfessionalDiscoverController.setEarnDiscoverLocation]) — the
 /// global [LocationService] is left untouched — then pushes the results list
 /// ([SelfProfessionDiscoverScreenV2]) scoped to that place, which repeats the
 /// same map-backdrop + draggable-sheet shape for continuity.
@@ -44,7 +43,7 @@ class SelfProfessionDiscoverEntryScreen extends StatefulWidget {
 
 class _SelfProfessionDiscoverEntryScreenState
     extends State<SelfProfessionDiscoverEntryScreen> {
-  final _controller = getOrPut(() => DiscoverController());
+  final _controller = ProfessionalDiscoverController.to;
 
   GoogleMapController? _mapController;
 

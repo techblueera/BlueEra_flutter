@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/service/referral_code_service.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -48,23 +48,17 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
     }
 
     setState(() => _isChecking = true);
-    final res = await UserRepo().checkReferralRepo(code);
+    final result = await ReferralCodeService().check(code);
     if (!mounted) return;
     setState(() => _isChecking = false);
 
-    if (!res.isSuccess) return;
+    if (result == null) return;
 
-    // 200 OK does NOT imply the code is valid: server returns
-    // `{success:true, isValid:false, message:"Referral code is invalid"}`
-    // for unknown codes. Block forward progress and show the server's
-    // message so the user can correct the code.
-    final data = res.response?.data;
-    final isValid = data is Map ? data['isValid'] == true : false;
-    if (!isValid) {
-      final message = (data is Map && data['message'] is String)
-          ? data['message'] as String
-          : AppStrings.referralCodeInvalid.tr;
-      commonSnackBar(message: message);
+    // An invalid code blocks forward progress, with the server's message so
+    // the user can correct it.
+    if (!result.valid) {
+      commonSnackBar(
+          message: result.message ?? AppStrings.referralCodeInvalid.tr);
       return;
     }
 

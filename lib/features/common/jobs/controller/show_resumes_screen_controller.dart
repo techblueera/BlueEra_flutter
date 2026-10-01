@@ -4,6 +4,7 @@ import 'package:BlueEra/features/common/auth/model/get_resume_by_id_model.dart';
 import 'package:BlueEra/features/common/jobs/repo/job_repo.dart';
 import 'package:BlueEra/features/common/jobs/view/job_qna_screen.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ShowResumesScreenController extends GetxController{
 
@@ -46,8 +47,8 @@ class ShowResumesScreenController extends GetxController{
         getResumeById.value = null;
       }
     } catch (e) {
-      print("Exception in fetchJobDetails: $e");
-      print("Exception stack trace: ${e.toString()}");
+      debugLog("Exception in fetchJobDetails: $e");
+      debugLog("Exception stack trace: ${e.toString()}");
       error.value = 'Something went wrong: $e';
       getResumeById.value = null;
     } finally {

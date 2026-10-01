@@ -16,6 +16,13 @@ import 'package:get/get.dart';
 import 'package:mime/mime.dart';
 
 class EarnProfileController extends GetxController {
+  /// The signed-in user's earn-with-BlueEra profiles, registered on first use.
+  /// Permanent: the earn home, profile and dashboard screens share it; logout
+  /// deletes it (LogoutHelper._resetPersonalProfileControllers).
+  static EarnProfileController get to => Get.isRegistered<EarnProfileController>()
+      ? Get.find<EarnProfileController>()
+      : Get.put(EarnProfileController(), permanent: true);
+
   RxBool isCreatingProfile = false.obs;
   RxBool isProfileLoading = false.obs;
   RxBool isProfileUpdating = false.obs;

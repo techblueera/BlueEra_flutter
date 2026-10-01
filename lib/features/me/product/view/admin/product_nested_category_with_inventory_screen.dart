@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -36,7 +35,7 @@ class ProductNestedCategoryWithInventoryScreen extends StatefulWidget {
 
 class _ProductNestedCategoryWithInventoryScreenState
     extends State<ProductNestedCategoryWithInventoryScreen> {
-  final _inventoryController = getOrPut(() => InventoryController());
+  final _inventoryController = InventoryController.to;
   late String _argProductCatName;
   late String _argProductCatKey;
   late List<ProductCategoryWithInventoryModel> _argProductCategoryWithInventory;

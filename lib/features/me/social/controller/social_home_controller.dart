@@ -22,11 +22,6 @@ class SocialHomeController extends GetxController {
   double? selectedLat;
   double? selectedLng;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // fetchProfile();
-  }
 
   Future<void> fetchProfile() async {
     try {

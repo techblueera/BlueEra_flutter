@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
-import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_category_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -62,7 +62,6 @@ class _CategorySelectorState extends State<CategorySelector> {
   /// categories have any tests, so we can hide the empty ones. Mirrors the
   /// same filter [LabTestsTabV2] applies to its "Our Tests" grid so both
   /// surfaces show the same visible categories.
-  final LabTestRepo _testRepo = LabTestRepo();
   List<PathologyTest> _allTests = const <PathologyTest>[];
   bool _loadedAllTests = false;
 
@@ -73,24 +72,12 @@ class _CategorySelectorState extends State<CategorySelector> {
   }
 
   Future<void> _fetchAllTestsForFilter() async {
-    try {
-      final res = await _testRepo.getPathologyTests('');
-      if (!mounted) return;
-      if (res.isSuccess) {
-        final List data = res.getExtraData('data') ?? [];
-        setState(() {
-          _allTests = data
-              .whereType<Map<String, dynamic>>()
-              .map(PathologyTest.fromJson)
-              .toList();
-          _loadedAllTests = true;
-        });
-      } else {
-        setState(() => _loadedAllTests = true);
-      }
-    } catch (_) {
-      if (mounted) setState(() => _loadedAllTests = true);
-    }
+    final tests = await LabTestController.to.fetchAllTests();
+    if (!mounted) return;
+    setState(() {
+      if (tests != null) _allTests = tests;
+      _loadedAllTests = true;
+    });
   }
 
   /// Which of the six `groupCategory` values actually have at least one

@@ -8,12 +8,10 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/map/controller/map_service_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/map/widget/profile_summary_card.dart';
 import 'package:BlueEra/features/common/map/widget/sub_category_tab_bar.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn_with_icon.dart';
@@ -23,6 +21,7 @@ import 'package:BlueEra/widgets/load_error_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class FoodServicesBottomSheet extends StatefulWidget {
   final double lat;
@@ -55,7 +54,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
   @override
   initState() {
     super.initState();
-    print("called after getting lat lng");
+    debugLog("called after getting lat lng");
     // mapServiceController.getHomeServiceDataByProfession(
     //     serviceType: _selectedSubCategory,
     // );
@@ -320,9 +319,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                         Expanded(
                           child: CommonIconContainerButton(
                             onTap: () async {
-                              final chatViewController = Get.isRegistered<ChatViewController>()
-                                  ? Get.find<ChatViewController>()
-                                  : Get.put(ChatViewController());
+                              final chatViewController = ChatViewController.to;
                               chatViewController.checkChatConnectionAndOpenChat(
                                 userId: serviceData.id ?? '',
                                 route: AppConstants.route_discover,

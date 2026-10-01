@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/features/common/reel/widget/video_reported_dialog.dart';
 import 'package:BlueEra/core/navigation/me_profile_navigator.dart';
 import 'dart:async';
 import 'dart:developer';
@@ -17,7 +19,6 @@ import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
-import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -32,6 +33,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -401,17 +403,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         userId: videoFeedItem.video?.userId??'',
         contentId: videoFeedItem.video?.id??'',
         userBlockVoidCallback: () async {
-          await Get.find<VideoController>().userBlocked(
+          if (await Get.find<VideoController>().userBlocked(
             videoType: VideoType.videoFeed,
             otherUserId: videoFeedItem.video?.userId ?? '',
-          );
+          )) {
+            safeBack();
+          }
         },
-        reportCallback: (params){
-          Get.find<VideoController>().videoPostReport(
-              videoId: videoFeedItem.video?.id??'',
-              videoType: widget.videoType,
-              params: params
-          );
+        reportCallback: (params) async {
+          if (await Get.find<VideoController>().videoPostReport(
+                  videoId: videoFeedItem.video?.id ?? '',
+                  videoType: widget.videoType,
+                  params: params) &&
+              mounted) {
+            showVideoReportedDialog(context);
+          }
         }
     );
   }
@@ -463,7 +469,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       ));
 
     } catch (e) {
-      print("Video share failed: $e");
+      debugLog("Video share failed: $e");
     } finally {
       _isVideoSharing = false; // Reset flag
     }
@@ -679,7 +685,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       createProfileScreen();
       return;
     }
-    print("sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
+    debugLog("sdkljcnlksdmclksdc ${videoController.videoFeedItem?.author?.id == userId} --- ${videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual}");
     if(videoController.videoFeedItem?.channel?.id!=null){
       Navigator.pushNamed(
           context,

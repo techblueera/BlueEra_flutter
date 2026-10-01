@@ -462,7 +462,7 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
                         onTap: () {
                           FocusScope.of(context).unfocus();
                           if(chatThemeController.isMessageSelectionActive.value){
-                            chatThemeController.selectMoreMessage(message.forwardId==null?message.id:message.forwardId);
+                            chatThemeController.selectMoreMessage(message.forwardId ?? message.id);
                           }else{
                             // Swipe across all conversation media starting from
                             // this grid tile.

@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
@@ -40,7 +39,7 @@ class ProductOrderBookingRiderMain extends StatefulWidget {
 
 class _ProductOrderBookingRiderMainState
     extends State<ProductOrderBookingRiderMain> {
-  final discoverController = getOrPut(() => DiscoverController());
+  final discoverController = DiscoverController.to;
 
   // In-City vehicles only — this flow doesn't expose the other categories.
   List<TransportCategoryDetailsModel> get optionList => [

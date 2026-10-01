@@ -32,6 +32,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Top-level so it can run in a background isolate via [compute]. The
 /// `jsonDecode(jsonEncode())` round-trip normalises types so the same parser
@@ -615,7 +616,7 @@ class GroceryController extends GetxController {
       final payload = buildInventoryPayload();
       if(payload.isEmpty) return;
 
-      print(jsonEncode(payload));
+      debugLog(jsonEncode(payload));
 
       final response = await GroceryRepo().addGroceryProductVariantRepo(
         params: payload,
@@ -671,8 +672,8 @@ class GroceryController extends GetxController {
     final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     final businessData = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
-    print("City (Profile): ${businessData?.cityStatePincode}");
-    print("Pincode (Profile): ${businessData?.pincode}");
+    debugLog("City (Profile): ${businessData?.cityStatePincode}");
+    debugLog("Pincode (Profile): ${businessData?.pincode}");
 
     String city = (businessData?.cityStatePincode != null && businessData!.cityStatePincode!.isNotEmpty)
         ? businessData.cityStatePincode!
@@ -1624,7 +1625,7 @@ class GroceryController extends GetxController {
       final payload = buildMissingRequestsPayload(missingProducts);
       if(payload.isEmpty) return;
 
-      print(jsonEncode(payload));
+      debugLog(jsonEncode(payload));
 
       final response = await GroceryRepo().missingGroceryProductRequestsRepo(
         params: payload,

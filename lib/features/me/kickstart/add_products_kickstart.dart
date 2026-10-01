@@ -323,7 +323,7 @@ class _CatalogueProbe {
       );
     }
     if (t == BusinessType.Product.name.toUpperCase()) {
-      final c = getOrPut(() => InventoryController());
+      final c = InventoryController.to;
       return _CatalogueProbe(
         label: 'product',
         ensureLoaded: () => c.fetchAllProductDataIfNeeded(),

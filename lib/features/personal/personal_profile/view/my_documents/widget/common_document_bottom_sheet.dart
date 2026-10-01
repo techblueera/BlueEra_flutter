@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class CommonDocumentBottomSheet extends StatelessWidget {

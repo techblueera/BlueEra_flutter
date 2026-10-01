@@ -66,11 +66,9 @@ class CustomBtn extends StatelessWidget {
           width: width ?? SizeConfig.screenWidth,
           padding: padding ?? const EdgeInsets.all(0),
           decoration: BoxDecoration(
-            color: bgColor == null
-                ? (isValidate ?? false)
+            color: bgColor ?? ((isValidate ?? false)
                 ? AppColors.primaryColor
-                : AppColors.grey9B
-                : bgColor,
+                : AppColors.grey9B),
             border: Border.all(color: borderColor ?? Colors.transparent),
             borderRadius: BorderRadius.circular(radius ?? 5),
           ),

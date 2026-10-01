@@ -1,11 +1,8 @@
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/services/ads/ad_debug.dart';
-import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -53,7 +50,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-  final walletController = getOrPut(() => WalletController());
+  final walletController = WalletController.to;
 
   final lang = getOrPut(() => LanguageControllerNew());
 
@@ -65,7 +62,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   static const _amber = Color(0xFFD97706);
   static const _gold = Color(0xFFF59E0B);
   static const _teal = Color(0xFF0D9488);
-  static const _blue = Color(0xFF2563EB);
   static const _slate = Color(0xFF475569);
   static const _copper = Color(0xFFB7781F);
   static const _rose = Color(0xFFE11D48);

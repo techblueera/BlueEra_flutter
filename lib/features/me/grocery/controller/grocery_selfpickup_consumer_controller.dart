@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
@@ -256,10 +255,10 @@ class GrocerySelfPickupConsumerController extends GetxController {
       // Land on Discover (index 1) instead of the chat screen — the placed
       // order surfaces there in the "Orders in 12 Hrs." rail. The business
       // chat list is still refreshed so that rail has the new row.
-      final controller = getOrPut(() => BottomBarController());
+      final controller = BottomBarController.to;
       controller.onChangeIndex(1);
 
-      ChatViewController  chatViewController = getOrPut(() => ChatViewController());
+      ChatViewController  chatViewController = ChatViewController.to;
       Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
       chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.business_Chat_Type},);
 

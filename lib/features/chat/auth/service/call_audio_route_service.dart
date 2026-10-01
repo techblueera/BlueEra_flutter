@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 /// Android-only bridge to flutter_webrtc's shared `AudioSwitchManager`.
 ///
@@ -37,7 +38,7 @@ class CallAudioRouteService {
           await _channel.invokeMethod('selectOutput', {'name': typeName});
       return result as String?;
     } catch (e) {
-      if (kDebugMode) print('CallAudioRouteService.selectOutput failed: $e');
+      if (kDebugMode) debugLog('CallAudioRouteService.selectOutput failed: $e');
       return null;
     }
   }
@@ -49,7 +50,7 @@ class CallAudioRouteService {
       final result = await _channel.invokeMethod('currentOutput');
       return result as String?;
     } catch (e) {
-      if (kDebugMode) print('CallAudioRouteService.currentOutput failed: $e');
+      if (kDebugMode) debugLog('CallAudioRouteService.currentOutput failed: $e');
       return null;
     }
   }

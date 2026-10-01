@@ -38,7 +38,7 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
   final controller =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final authController = getOrPut(() => AuthController());
-  final personalController = getOrPut(() => PersonalCreateProfileController());
+  final personalController = PersonalCreateProfileController.to;
 
   final user = controller.personalProfileDetails.value.user;
   IndividualProfileTypeModel _selectedProfileType =

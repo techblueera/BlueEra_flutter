@@ -53,9 +53,9 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                     // Get.to(() => CustomerSupportScreen());
                     final chat =ChatViewController.personalAiChatModule;
                     Get.to(()=> AiChatScreen(
-                      profileImage: chat?.sender?.profileImage,
-                      name: chat?.sender?.name,
-                      type: chat?.sender?.accountType,
+                      profileImage: chat.sender?.profileImage,
+                      name: chat.sender?.name,
+                      type: chat.sender?.accountType,
                       ));
                   },
                 ),

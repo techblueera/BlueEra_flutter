@@ -26,6 +26,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/app_popup_menu_button.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class AllSavedJobPostScreen extends StatefulWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
@@ -377,7 +378,7 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                                                           break;
                                                       }
                                                     }
-                                                    print('Selected: $value');
+                                                    debugLog('Selected: $value');
                                                   },
                                                   icon: Icon(
                                                     Icons.more_vert,

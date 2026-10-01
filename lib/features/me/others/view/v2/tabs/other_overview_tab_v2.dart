@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -24,8 +23,6 @@ import 'package:BlueEra/features/me/others/view/announcements/announcements_scre
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_privacy_condition/other_privacy_condition_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -36,7 +33,6 @@ import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../../core/constants/app_enum.dart';
 import '../../../../../../core/constants/shared_preference_utils.dart';
@@ -149,13 +145,6 @@ class OtherOverviewTabV2 extends StatelessWidget {
       // `isLoading` starts true on the controller, so the very first frame
       // (before the post-frame fetch has even begun) already reads as loading.
       final isOtherLoading = data == null && controller.isLoading.value;
-
-      final coordinates =
-          data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
-      final hasCoords = coordinates != null &&
-          coordinates.length >= 2 &&
-          (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
-          (double.tryParse(coordinates[1].toString()) ?? 0.0) != 0.0;
 
       // Gate: mirrors the school Quick-Info gate (see
       // [_QuickInfoRequiredBanner] in school_overview_tab_v2.dart:530).
@@ -1035,159 +1024,6 @@ class _TimingEditPill extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ContactUs extends StatelessWidget {
-  final ContactUsOtherProfile contacts;
-  const _ContactUs({required this.contacts});
-
-  @override
-  Widget build(BuildContext context) {
-    final branch = contacts.branch;
-    final firstDept = (contacts.departments?.isNotEmpty ?? false)
-        ? contacts.departments!.first
-        : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-            color: Colors.white,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.business_outlined,
-                      size: 16, color: AppColors.secondaryTextColor),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: CustomText(
-                      branch?.name ?? '',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Get.to(() => OtherBranchOnlyScreen(
-                      schoolContactUsData: SchoolContactUsData(
-                        id: contacts.id,
-                        branch: Branch(
-                          name: contacts.branch?.name,
-                          location: SchoolLocation(
-                            name: contacts.branch?.location?.name,
-                            coordinates:
-                                contacts.branch?.location?.coordinates ?? [],
-                          ),
-                          website: contacts.branch?.website,
-                        ),
-                        departments: contacts.departments ?? [],
-                        schoolId: contacts.id,
-                        v: contacts.v,
-                      ),
-                    )),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.primaryColor),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.edit_outlined,
-                              size: 14, color: AppColors.primaryColor),
-                          const SizedBox(width: 4),
-                          CustomText(AppStrings.edit.tr,
-                              fontSize: 12, color: AppColors.primaryColor),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              if (branch?.website != null && branch!.website!.isNotEmpty)
-                _row(AppIconAssets.website_click, branch.website!,
-                    AppColors.primaryColor,
-                    isLink: true),
-              if (firstDept != null) ...[
-                if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
-                  _row(AppIconAssets.phone_outline, firstDept.phone!,
-                      AppColors.mainTextColor),
-                if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _row(AppIconAssets.email, firstDept.email!,
-                      AppColors.mainTextColor),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        GestureDetector(
-          onTap: () => Get.to(() => OtherBranchDetailsFormScreen()),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.add, size: 16, color: AppColors.primaryColor),
-                const SizedBox(width: 6),
-                CustomText(AppStrings.addMore.tr,
-                    fontSize: 13,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _row(String icon, String text, Color textColor,
-      {bool isLink = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          LocalAssets(
-            imagePath: icon,
-            imgColor: isLink == false ? AppColors.mainTextColor : null,
-            height: 20,
-            width: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: InkWell(
-              onTap: isLink ? () => launchUrl(Uri.parse(text)) : null,
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: textColor,
-                  decoration: isLink ? TextDecoration.underline : null,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

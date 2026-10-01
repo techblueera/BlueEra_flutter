@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class ChannelRepo extends BaseService {
   ///CREATE CHANNEL...
@@ -60,7 +61,7 @@ class ChannelRepo extends BaseService {
   Future<ResponseModel?> uploadInit(
       {required Map<String, dynamic> queryParams, required String? url}) async {
 // logs("url=== ${url}");
-    print("url=== ${url}");
+    debugLog("url=== ${url}");
     // final url="https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/${initUpload}";
     final response = await ApiBaseHelper().getHTTP(
       // final response = await ApiBaseHelper().uploadInitGet(
@@ -89,7 +90,7 @@ class ChannelRepo extends BaseService {
   /* ///UPLOAD INIT...
   Future<ResponseModel?> uploadInit({required Map<String, dynamic> queryParams,required String? url }) async {
 // logs("url=== ${url}");
-print("url=== ${url}");
+debugLog("url=== ${url}");
     // final url="https://p3qw782za2.execute-api.ap-south-1.amazonaws.com/api/${initUpload}";
     final response = await ApiBaseHelper().getHTTP(
       url!,

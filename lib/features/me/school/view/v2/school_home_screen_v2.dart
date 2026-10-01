@@ -59,7 +59,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   // Mirrors the wiring used by `HospitalHomeScreenV2` and the Order tab in
   // `professionals_main.dart`.
   final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+      ChatViewController.to;
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
@@ -67,7 +67,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+      ChatFlagController.to;
 
   @override
   void initState() {

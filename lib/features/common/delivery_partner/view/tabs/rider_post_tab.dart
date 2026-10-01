@@ -5,7 +5,6 @@ import 'package:BlueEra/features/common/delivery_partner/view/tabs/rider_tab_scr
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// **Post tab** of the rider dashboard — the rider's own posts.
 ///
@@ -19,9 +18,7 @@ class RiderPostTab extends StatelessWidget {
   Widget build(BuildContext context) {
     // [FeedScreen] reads its controller off the GetX registry rather than
     // taking one, so it has to exist before the first build.
-    if (!Get.isRegistered<FeedController>()) {
-      Get.put(FeedController());
-    }
+    FeedController.to;
 
     return RiderTabScroll(
       children: [

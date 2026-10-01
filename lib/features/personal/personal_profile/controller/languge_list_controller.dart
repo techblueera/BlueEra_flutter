@@ -10,6 +10,7 @@ import 'package:hive/hive.dart';
 import '../../auth/repo/languages_repo.dart';
 import '../../model/language.dart';
 import '../../model/language_model.dart';
+import 'package:BlueEra/core/constants/debug_log.dart';
 
 class LanguageListController extends GetxController {
   late Box languageBox;
@@ -108,7 +109,7 @@ class LanguageListController extends GetxController {
         } catch (_) {}
       }
     } catch (e) {
-      print("Error fetching languages: $e");
+      debugLog("Error fetching languages: $e");
     }
   }
 ///OLD ONE...
@@ -155,7 +156,7 @@ class LanguageListController extends GetxController {
         commonSnackBar(message: response.message ?? 'Failed to download language');
       }
     } catch (e) {
-      print('Error downloading language: $e');
+      debugLog('Error downloading language: $e');
       commonSnackBar(message: 'Failed to download language');
     } finally {
       downloadingLanguages.remove(languageCode);

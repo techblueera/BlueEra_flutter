@@ -24,11 +24,6 @@ class CertificationsController extends GetxController {
   final selectedCertification = Rxn<Certification>();
   final selectedAttachment = Rxn<File>();
 
-  @override
-  void onInit() {
-    super.onInit();
-    // getAllCertifications();
-  }
 
   @override
   void onClose() {

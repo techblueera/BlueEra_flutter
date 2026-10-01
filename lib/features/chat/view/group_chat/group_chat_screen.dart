@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -37,8 +36,8 @@ class GroupChatScreen extends StatefulWidget {
 }
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
-  final chatViewController = getOrPut(() => ChatViewController());
-  final chatThemeController = getOrPut(() => ChatThemeController());
+  final chatViewController = ChatViewController.to;
+  final chatThemeController = ChatThemeController.to;
   final TextEditingController editingController = TextEditingController();
 
   @override
