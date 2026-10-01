@@ -490,7 +490,24 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
   }
 
   // ─── 3. Purchase ────────────────────────────────────────────────
+  /// True for the whole of [buyPlan], including the awaits before
+  /// [isProcessing] is set (upgrade options, GSTIN sheet, confirm dialog). A
+  /// second tap in that window used to pass the [isProcessing] check too and
+  /// stack a second confirm dialog — confirming both created two upgrade
+  /// orders and opened a second checkout.
+  bool _buyPlanInFlight = false;
+
   Future<void> buyPlan(PlanCard card) async {
+    if (_buyPlanInFlight) return;
+    _buyPlanInFlight = true;
+    try {
+      await _buyPlan(card);
+    } finally {
+      _buyPlanInFlight = false;
+    }
+  }
+
+  Future<void> _buyPlan(PlanCard card) async {
     if (isProcessing.value) return;
 
     // A free card is the default entitlement — the backend grants it without

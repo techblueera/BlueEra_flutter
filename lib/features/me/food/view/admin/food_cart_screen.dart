@@ -815,7 +815,9 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
 
     _isPublishing.value = true;
     try {
-      controller.bulkPublishInventory(isSnapSearch: widget.isSnapSearch);
+      // Awaited: un-awaited, the finally re-enabled the button while the
+      // POST was still in flight, and a second tap published the cart again.
+      await controller.bulkPublishInventory(isSnapSearch: widget.isSnapSearch);
     } finally {
       _isPublishing.value = false;
     }

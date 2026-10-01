@@ -654,7 +654,26 @@ class FoodServiceController extends GetxController {
         sellingPrice <= mrp;
   }
 
+  /// Set while a variant save / single-product publish is in flight. Neither
+  /// button had a loading state, and both sheets stay open over the request,
+  /// so a second tap created a duplicate variant / duplicate listing.
+  bool _savingVariant = false;
+  bool _publishingSingleProduct = false;
+
   Future<String?> addOrUpdateVariant(
+      {required String foodId, required FoodVariants newVariant}) async {
+    // A skipped tap returns null, which the sheet already treats as
+    // "stay open" — the first tap's result closes it.
+    if (_savingVariant) return null;
+    _savingVariant = true;
+    try {
+      return await _addOrUpdateVariant(foodId: foodId, newVariant: newVariant);
+    } finally {
+      _savingVariant = false;
+    }
+  }
+
+  Future<String?> _addOrUpdateVariant(
       {required String foodId, required FoodVariants newVariant}) async {
     if (foodId.isNotEmpty) {
       try {
@@ -851,7 +870,7 @@ class FoodServiceController extends GetxController {
   //   }
   // }
 
-  void bulkPublishInventory({bool isSnapSearch = false}) async {
+  Future<void> bulkPublishInventory({bool isSnapSearch = false}) async {
     try {
       // 1. Check if there is anything to publish
       if (selectedVariantsMap.isEmpty) {
@@ -1011,6 +1030,23 @@ class FoodServiceController extends GetxController {
   }
 
   Future<void> addSingleProductToInventory(
+      {required String productId,
+      required List<FoodVariants> selectedVariants,
+      int? createMissingProductIndex}) async {
+    if (_publishingSingleProduct) return;
+    _publishingSingleProduct = true;
+    try {
+      await _addSingleProductToInventory(
+        productId: productId,
+        selectedVariants: selectedVariants,
+        createMissingProductIndex: createMissingProductIndex,
+      );
+    } finally {
+      _publishingSingleProduct = false;
+    }
+  }
+
+  Future<void> _addSingleProductToInventory(
       {required String productId,
       required List<FoodVariants> selectedVariants,
       int? createMissingProductIndex}) async {

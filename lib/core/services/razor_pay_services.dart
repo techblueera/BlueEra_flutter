@@ -32,6 +32,17 @@ class RazorpayService {
   /// after the event has landed is a fault in OUR callback, not a failure to
   /// open.
   bool _checkoutOpen = false;
+
+  /// When a checkout was last opened by ANY instance, cleared when it settles.
+  ///
+  /// Several screens build a new [RazorpayService] per tap, so the per-instance
+  /// [_checkoutOpen] never stopped a second tap: two quick taps opened two
+  /// checkout sheets for one amount. Only one checkout can be on screen, so
+  /// this is app-wide. A lock older than [_checkoutLockTtl] is ignored, so a
+  /// checkout that never reports back can't block payments for good.
+  static DateTime? _anyCheckoutOpenedAt;
+  static const Duration _checkoutLockTtl = Duration(minutes: 5);
+
   bool get isCheckoutOpen => _checkoutOpen;
 
   /// Set when [dispose] was called mid-checkout; the teardown then happens as
@@ -93,6 +104,12 @@ class RazorpayService {
     Function(PaymentFailureResponse)? onPaymentError,
     Function(ExternalWalletResponse)? onExternalWallet,
   }) {
+    final openedAt = _anyCheckoutOpenedAt;
+    if (openedAt != null &&
+        DateTime.now().difference(openedAt) < _checkoutLockTtl) {
+      debugPrint('RazorpayService: a checkout is already open, ignoring');
+      return;
+    }
     this.onSuccess = onPaymentSuccess;
     this.onError = onPaymentError;
 
@@ -135,6 +152,7 @@ class RazorpayService {
     };
 
     _checkoutOpen = true;
+    _anyCheckoutOpenedAt = DateTime.now();
     if (key.isEmpty) {
       // Nothing to open with — say so here rather than letting the native SDK
       // fail mutely a second later.
@@ -204,6 +222,7 @@ class RazorpayService {
   /// Closes out one checkout, running any teardown [dispose] had to defer.
   void _settleCheckout() {
     _checkoutOpen = false;
+    _anyCheckoutOpenedAt = null;
     if (_disposeRequested) {
       _disposeRequested = false;
       _razorpay.clear();
