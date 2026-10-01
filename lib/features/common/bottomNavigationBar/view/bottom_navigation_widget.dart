@@ -48,7 +48,10 @@ class BottomNavigationBarWidget extends StatelessWidget {
     this.showShadow = true,
   });
 
-  DateTime? lastBackPressed;
+  // Static: the bar is rebuilt whenever its parent changes (e.g. the chat
+  // badge count), and an instance field would reset on every rebuild, so the
+  // second back press could show the snackbar again instead of exiting.
+  static DateTime? _lastBackPressed;
 
   bool _handleBackPress(BuildContext context) {
     if (!isBottomNavVisible) {
@@ -73,9 +76,9 @@ class BottomNavigationBarWidget extends StatelessWidget {
       return false;
     }
     final now = DateTime.now();
-    if (lastBackPressed == null ||
-        now.difference(lastBackPressed!) > const Duration(seconds: 2)) {
-      lastBackPressed = now;
+    if (_lastBackPressed == null ||
+        now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
+      _lastBackPressed = now;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Press back again to exit the app"),

@@ -1235,7 +1235,7 @@ class ViewPersonalDetailsController extends GetxController
 
       if (responseModel.isSuccess) {
         String isUserServiceExits =
-            responseModel.getExtraData('exists').toString() ?? 'false';
+            responseModel.getExtraData('exists')?.toString() ?? 'false';
         return isUserServiceExits;
       } else {
         commonSnackBar(

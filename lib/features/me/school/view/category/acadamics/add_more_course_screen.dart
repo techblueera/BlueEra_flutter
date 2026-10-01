@@ -203,7 +203,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                           "admission_process":
                               admissionProcessEditController.text,
                           "eligibility": eligibilityEditController.text,
-                          "admission_process": courseController.feeType.value,
+                          "fee_type": courseController.feeType.value,
                           "course_fee": courseFeeEditController.text,
                           "course_duration": courseDurationEditController.text
                         },
