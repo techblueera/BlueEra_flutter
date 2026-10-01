@@ -267,18 +267,26 @@ class OrderNowController extends GetxController {
     }
   }
 
-  Future<void> updatePaymentStausByUser(String params) async {
-    try {
-      ResponseModel? response =
-          await MakeOrderRepo().updatePaymentStausByUser(params);
-
-      if (response.isSuccess) {
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+  /// Tells the server the customer has paid for [params] (the ride order id).
+  ///
+  /// Called right after Razorpay reports success, so the money has already
+  /// moved: a dropped request here used to be shown as a snackbar and then
+  /// ignored, and the flow went on to say "order placed" for an order the
+  /// server still had as unpaid. Retried a couple of times on failure, and
+  /// the result returned so the caller only confirms the order when this
+  /// actually landed (and offers a retry when it didn't).
+  Future<bool> updatePaymentStausByUser(String params) async {
+    const retryDelays = [Duration(seconds: 2), Duration(seconds: 4)];
+    for (var attempt = 0;; attempt++) {
+      try {
+        final ResponseModel response =
+            await MakeOrderRepo().updatePaymentStausByUser(params);
+        if (response.isSuccess) return true;
+      } catch (e) {
+        debugPrint('updatePaymentStausByUser failed (attempt $attempt): $e');
       }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      if (attempt >= retryDelays.length) return false;
+      await Future<void>.delayed(retryDelays[attempt]);
     }
   }
 

@@ -721,6 +721,12 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
   /// ledger — the order was created for a difference, not a plan price.
   bool _verifyingUpgrade = false;
 
+  /// Razorpay order ids opened as UPGRADES this session. [_verifyingUpgrade]
+  /// is cleared by [_reset] (e.g. when resume-recovery gives up), so a late
+  /// success event for an upgrade used to be verified as a plain purchase —
+  /// the wrong ledger. The order id itself says which verify it needs.
+  final Set<String> _upgradeOrderIds = {};
+
   /// Prices, confirms and starts an upgrade for [card].
   ///
   /// Returns true when this path has taken responsibility for the tap —
@@ -824,6 +830,7 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
 
     _verifyingUpgrade = true;
     _pendingOptionCode = card.optionCode;
+    _upgradeOrderIds.add(order.orderId);
     _razorpay.openCheckout(
       razorpayKeyId: order.keyId,
       name: AppStrings.appName,
@@ -845,8 +852,9 @@ class AccountPlanController extends GetxController with WidgetsBindingObserver {
   Future<void> _onPaymentSuccess(PaymentSuccessResponse r) async {
     // An upgrade order settles through the upgrade's own verify — see
     // [_verifyingUpgrade].
-    final wasUpgrade = _verifyingUpgrade;
     final orderId = r.orderId ?? '';
+    final wasUpgrade =
+        _verifyingUpgrade || _upgradeOrderIds.contains(orderId);
     final paymentId = r.paymentId ?? '';
     final signature = r.signature ?? '';
     _reset();
