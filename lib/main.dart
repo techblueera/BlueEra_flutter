@@ -63,6 +63,7 @@ import 'core/constants/getx_utils.dart';
 import 'core/services/address_cache_service.dart';
 import 'core/services/keyed_json_cache.dart';
 import 'core/services/home_cache_service.dart';
+import 'core/services/server_move_cache_reset.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'features/chat/auth/controller/call_controller.dart';
@@ -1268,6 +1269,10 @@ Future<void> _initDeferred(
   /// is decorative and nothing on screen waits for it.
   PromoAdsService.hydrateFromCache();
   unawaited(PromoAdsService.ensureLoaded());
+
+  /// One-off after the server move: drop images cached under the old media
+  /// hosts so they reload from the rewritten URLs (see [ServerMoveCacheReset]).
+  unawaited(ServerMoveCacheReset.runOnce());
 
   /// Notification-hub local cache. Registered before the notification handler
   /// so incoming pushes are mirrored into it, and hydrated from Hive here so the

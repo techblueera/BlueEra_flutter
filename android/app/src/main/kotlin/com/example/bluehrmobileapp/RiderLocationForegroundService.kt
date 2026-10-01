@@ -96,10 +96,22 @@ class RiderLocationForegroundService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var ticking = false
 
+    /// Consecutive failed pings. Each one stretches the gap before the next
+    /// (30s, then doubling up to 5 min) so a failing server isn't hit every
+    /// 30s by every rider's phone; a success resets it.
+    private val failures = java.util.concurrent.atomic.AtomicInteger(0)
+
+    private fun nextDelayMs(): Long {
+        val n = failures.get()
+        if (n <= 0) return INTERVAL_MS
+        val backoff = 5_000L shl (n - 1).coerceAtMost(16)
+        return backoff.coerceIn(INTERVAL_MS, 5 * 60_000L)
+    }
+
     private val tick = object : Runnable {
         override fun run() {
             pingLocation()
-            handler.postDelayed(this, INTERVAL_MS)
+            handler.postDelayed(this, nextDelayMs())
         }
     }
 
@@ -387,14 +399,32 @@ class RiderLocationForegroundService : Service() {
                     .toString()
                 conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
                 val code = conn.responseCode // triggers the request
-                if (code in 200..299) {
-                    prefs.edit()
-                        .putLong(KEY_LAST_PING, System.currentTimeMillis())
-                        .apply()
-                }
                 conn.disconnect()
+                when {
+                    code in 200..299 -> {
+                        failures.set(0)
+                        prefs.edit()
+                            .putLong(KEY_LAST_PING, System.currentTimeMillis())
+                            .apply()
+                    }
+                    code == 401 || code == 403 -> {
+                        // The session is gone — retrying can never succeed and
+                        // only floods the API. Stand down exactly as if the
+                        // rider went offline: clear ACTIVE (the watchdog,
+                        // restart alarm and boot receiver all check it) and
+                        // stop. The next login + go-live re-arms everything.
+                        prefs.edit().putBoolean(KEY_ACTIVE, false).apply()
+                        RiderLocationWatchdogWorker.cancel(applicationContext)
+                        handler.post {
+                            handler.removeCallbacks(tick)
+                            stopSelf()
+                        }
+                    }
+                    else -> failures.incrementAndGet()
+                }
             } catch (_: Exception) {
-                // Best-effort — the next tick retries.
+                // No answer at all — back off, the next tick retries.
+                failures.incrementAndGet()
             }
         }.start()
     }

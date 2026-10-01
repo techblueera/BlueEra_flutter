@@ -1398,8 +1398,8 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (iceServersJson is List) {
       _iceConfig = IceServerConfig(
         iceServers: iceServersJson
-            .whereType<Map<String, dynamic>>()
-            .map((s) => IceServer.fromJson(s))
+            .whereType<Map>()
+            .map((s) => IceServer.fromJson(Map<String, dynamic>.from(s)))
             .toList(),
       );
     } else if (iceServersJson is Map<String, dynamic>) {
