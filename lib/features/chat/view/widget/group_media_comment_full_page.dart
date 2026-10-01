@@ -265,27 +265,21 @@ class _GroupVideoCommentsPageState extends State<GroupVideoCommentsPage> {
     final Size videoSize = _controller.value.size;
     final bool isPortrait = videoSize.height > videoSize.width;
     return Obx(() {
-      return WillPopScope(
-        onWillPop: () async {
+      return PopScope(
+        // Fires on every way out (system back and the app-bar arrow alike), so
+        // the app-bar arrow only pops — emitting there too would send it twice.
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) return;
           chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
             ApiKeys.conversation_id: widget.conversationId,
             ApiKeys.page: 1,
             ApiKeys.is_online_user: widget.userId,
             ApiKeys.per_page_message: 30,
           });
-          return true;
         },
         child: Scaffold(
           appBar: CommonBackAppBar(
-            onBackTap: (){
-              chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
-                ApiKeys.conversation_id: widget.conversationId,
-                ApiKeys.page: 1,
-                ApiKeys.is_online_user: widget.userId,
-                ApiKeys.per_page_message: 30,
-              });
-              Navigator.pop(context);
-            },
+            onBackTap: () => Navigator.pop(context),
             title: "${widget.chaterName}",
           ),
           backgroundColor: AppColors.whiteFE,

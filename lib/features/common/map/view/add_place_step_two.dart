@@ -162,10 +162,8 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+      builder: (_) => PopScope(
+        canPop: false,
         child: AlertDialog(
           backgroundColor: AppColors.white, // dark blue-ish background
           shape:

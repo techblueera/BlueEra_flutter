@@ -137,10 +137,7 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
   Widget build(BuildContext context) {
     final isLoading = Get.find<GroceryController>().isCreateNewGroceryProductNewVariantLoading.value;
 
-    return WillPopScope(
-      // onWillPop: () async => !isLoading, // disable back button
-      onWillPop: () async => true,
-      child: Dialog(
+    return Dialog(
         insetPadding: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: AbsorbPointer(
@@ -226,8 +223,7 @@ class _GroceryVariantDialogState extends State<GroceryVariantDialog> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _input(String label, String hint, TextEditingController controller,

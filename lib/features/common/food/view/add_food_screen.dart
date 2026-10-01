@@ -1111,10 +1111,11 @@ class _AddOnsPageState extends State<AddOnsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         Navigator.pop(context, addOns);
-        return false;
       },
       child: Scaffold(
         appBar: CommonBackAppBar(onBackTap: () {

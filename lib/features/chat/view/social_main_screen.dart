@@ -141,6 +141,11 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
     final tabController = chatViewController.chatMainTabController;
+    // Kept on WillPopScope on purpose: this screen is a bottom-bar tab, and a
+    // tab-level PopScope would fire alongside BottomNavigationBarWidget's own
+    // (every PopScope on a route gets the callback). WillPopScope is consulted
+    // first and its `false` stops the bar's handler, which is what we want.
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (chatViewController.chatMainTabController?.index == 0) {

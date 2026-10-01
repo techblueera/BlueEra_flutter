@@ -68,13 +68,16 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        // Back first clears a chosen post type; only then leaves the screen.
         if (controller.selectedSymbolPostType.value != null) {
           controller.clearData();
-          return false;
+          return;
         }
-        return true;
+        Navigator.of(context).pop();
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF6F7FB),

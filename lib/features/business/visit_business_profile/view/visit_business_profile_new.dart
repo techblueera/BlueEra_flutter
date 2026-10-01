@@ -111,10 +111,11 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         backPress();
-        return false;
       },
       child: Scaffold(
         // Transparent so the app-wide themed background (AppHomeBackground,

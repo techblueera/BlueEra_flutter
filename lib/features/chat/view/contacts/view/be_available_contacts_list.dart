@@ -216,11 +216,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
     final theme = Theme.of(context);
 
     final bool isGroupMode = true;
-    return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
-      child: Scaffold(
+    return Scaffold(
         appBar: CommonBackAppBar(
           onBackTap: () {
             // chatViewController
@@ -471,8 +467,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

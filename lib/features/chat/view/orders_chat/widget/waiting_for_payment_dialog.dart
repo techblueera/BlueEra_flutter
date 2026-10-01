@@ -113,8 +113,10 @@ class WaitingForPaymentDialog extends StatelessWidget {
               false;
         }
 
-        return WillPopScope(
-          onWillPop: () async {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
             // Resolved before the await: the warning dialog sits on top of
             // this one, and this one can be gone by the time it closes.
             final pendingPop = PendingPop.of(context);
@@ -127,7 +129,6 @@ class WaitingForPaymentDialog extends StatelessWidget {
                   .cancelOrderForce(orderId, {ApiKeys.status: "cancelled"});
               commonSnackBar(message: AppStrings.orderCanceledPayment);
             }
-            return Future.value(false); // prevent default pop
           },
           child: Dialog(
             shape: RoundedRectangleBorder(

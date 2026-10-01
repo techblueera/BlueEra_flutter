@@ -17,14 +17,14 @@ class PostDeatilPage extends StatelessWidget {
     // String operationType = args["operation"];
     // logs("operationType ===${operationType}");
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           arguments: {ApiKeys.initialIndex: 3},
         );
-
-        return false;
       },
       child: GetBuilder<PostDetailController>(
           init: PostDetailController(),
