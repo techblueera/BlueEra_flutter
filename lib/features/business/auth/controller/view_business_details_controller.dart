@@ -1322,6 +1322,10 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     // store's name, logo and stats on this store's page.
     if (_visitedProfileId != userId) {
       _visitedProfileId = userId;
+      // Read by the hospital page to merge departments/doctors; left at the
+      // previous business's COMPLETE response it got merged into this one
+      // whenever this request came back unsuccessful.
+      viewBusinessResponseNew = ApiResponse.initial('Initial');
       if (visitedBusinessProfileDetails != null) {
         visitedBusinessProfileDetails = null;
         // Cleared now, so the screen being built reads nothing stale; the
@@ -1364,6 +1368,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
             0.0;
         update();
       } else {
+        viewBusinessResponseNew = ApiResponse.error('error');
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
@@ -1523,6 +1528,9 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   // Fetch service from API
   final RxList<GetServiceModel> services = <GetServiceModel>[].obs;
 
+  /// The business [services] were loaded for.
+  String? _servicesForId;
+
   /// The only fetch in this controller that was not wrapped — every sibling
   /// ([fetchProducts], [_fetchBusinessProfile]) already is. The parse below
   /// runs on backend data, and a throw from it escapes into an async context
@@ -1530,6 +1538,19 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   /// field in one service used to take the app down rather than leave the
   /// services tab on the error state it already knows how to render.
   Future<void> fetchServices({required String visitBusinessId}) async {
+    // Same shared-controller problem as the profile: the rail is the LAST
+    // business's services until this one's land, and stayed for good when
+    // this request failed. Cleared on a switch of business — a microtask late,
+    // because callers run this from initState and clearing an observable list
+    // notifies its listeners.
+    if (_servicesForId != visitBusinessId) {
+      _servicesForId = visitBusinessId;
+      Future.microtask(() {
+        if (_servicesForId != visitBusinessId) return;
+        services.clear();
+        businessServiceResponse.value = ApiResponse.initial('Initial');
+      });
+    }
     try {
       errorMessage.value = '';
       final response = await BusinessProfileRepo().getServices(
