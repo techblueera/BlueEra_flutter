@@ -783,6 +783,24 @@ class GroceryController extends GetxController {
   /// store A → B → back to A re-fetches A only if its data went stale.
   final FetchCache _allGroceryCache = FetchCache();
 
+  /// The fetch signature of the store whose data the lists currently hold.
+  String? _shownStoreScope;
+
+  /// The owner's screens and the screens for visiting someone else's store
+  /// share this one untagged controller. When the next screen asks for a
+  /// different store, the previous store's lists have to go BEFORE the first
+  /// await: otherwise that screen paints them for a frame (as COMPLETE, so no
+  /// skeleton), and a failed fetch leaves them on screen as if they were this
+  /// store's.
+  void _switchStoreScope(String signature) {
+    if (_shownStoreScope == signature) return;
+    _shownStoreScope = signature;
+    groceryCategoryList.clear();
+    groceryBusinessProductsList.clear();
+    fetchMyGroceryCategoryResponse.value = ApiResponse.initial('Initial');
+    fetchGroceryBusinessProductsResponse.value = ApiResponse.initial('Initial');
+  }
+
   /// Fetch the store's grocery data (categories + top-selling) only when it
   /// isn't already loaded & fresh for this [userId]. Use on screen (re)entry;
   /// call [fetchAllGroceryData] for explicit refreshes.
@@ -814,6 +832,7 @@ class GroceryController extends GetxController {
     }
 
     final signature = 'grocery|$userId|$otherStore';
+    _switchStoreScope(signature);
     final hasData = groceryCategoryList.isNotEmpty ||
         groceryBusinessProductsList.isNotEmpty;
     if (_allGroceryCache.isFresh(signature, hasData: hasData)) return;

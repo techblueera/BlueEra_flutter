@@ -22,7 +22,9 @@ import 'package:get/get.dart';
 /// [_locationParams], and a missing location is surfaced as such rather than
 /// silently returning nothing.
 class VehicleBuyerControllerV3 extends GetxController {
-  final VehicleV3Repo _repo = VehicleV3Repo();
+  VehicleBuyerControllerV3({VehicleV3Repo? repo}) : _repo = repo ?? VehicleV3Repo();
+
+  final VehicleV3Repo _repo;
 
   /// Default radius in km for the lat/lng form of the search.
   static const num defaultRangeKm = 25;
@@ -248,8 +250,14 @@ class VehicleBuyerControllerV3 extends GetxController {
     }
   }
 
+  /// The trim the latest [fetchListingsForTrim] asked for. A response for any
+  /// other trim belongs to one the user already left (opened, then another
+  /// before it landed) and must not replace this one's listings.
+  String? _listingsForTrim;
+
   /// Every live listing for one trim, newest filter state applied.
   Future<void> fetchListingsForTrim(String productId) async {
+    _listingsForTrim = productId;
     trimListingsStatus.value = Status.LOADING;
     try {
       final location = _locationParams() ?? const {};
@@ -261,6 +269,7 @@ class VehicleBuyerControllerV3 extends GetxController {
         lng: location['lng'] as double?,
         range: location['range'] as num?,
       );
+      if (_listingsForTrim != productId) return;
       if (!res.isSuccess) {
         trimListingsStatus.value = Status.ERROR;
         return;
@@ -269,7 +278,7 @@ class VehicleBuyerControllerV3 extends GetxController {
       trimListingsStatus.value = Status.COMPLETE;
     } catch (e) {
       logs('VEHICLE_V3_BUYER: fetchListingsForTrim failed — $e');
-      trimListingsStatus.value = Status.ERROR;
+      if (_listingsForTrim == productId) trimListingsStatus.value = Status.ERROR;
     }
   }
 

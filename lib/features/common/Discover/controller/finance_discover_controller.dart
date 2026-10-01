@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class FinanceDiscoverController extends GetxController {
+  FinanceDiscoverController({ApiBaseHelper? api}) : _api = api ?? ApiBaseHelper();
+
+  final ApiBaseHelper _api;
+
   final profiles = <FinanceBusinessItem>[].obs;
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
@@ -23,20 +27,27 @@ class FinanceDiscoverController extends GetxController {
   /// staff, gallery, contactUs, etc.) and replace [selectedDetail] with it.
   /// The list screen seeds [selectedDetail] with the lightweight search item
   /// first, so the screen shows immediately and refreshes when this completes.
+  /// The business the latest [fetchDetail] asked for. A response for any
+  /// other id is for a business the user has already left (it was opened, then
+  /// another before this landed) and must not replace the one on screen.
+  String? _detailRequestedId;
+
   Future<void> fetchDetail(String id) async {
     if (id.isEmpty) return;
+    _detailRequestedId = id;
     try {
       isDetailLoading.value = true;
       detailError.value = '';
       // `showProgress: false` suppresses the global ProgressDialog /
       // ShimmerListView overlay (see [ApiBaseHelper.addInterceptors]) —
       // callers of this controller own their own loading state.
-      final ResponseModel res = await ApiBaseHelper().getHTTP(
+      final ResponseModel res = await _api.getHTTP(
         "other-service/business-profile/$id/full",
         showProgress: false,
         onError: (e) {},
         onSuccess: (data) {},
       );
+      if (_detailRequestedId != id) return;
       if (res.isSuccess) {
         final data = res.getExtraData('data');
         if (data != null) {
@@ -47,9 +58,10 @@ class FinanceDiscoverController extends GetxController {
         detailError.value = res.message ?? AppStrings.somethingWentWrong;
       }
     } catch (e) {
-      detailError.value = e.toString();
+      if (_detailRequestedId == id) detailError.value = e.toString();
     } finally {
-      isDetailLoading.value = false;
+      // A superseded call must not end the newer one's loading state.
+      if (_detailRequestedId == id) isDetailLoading.value = false;
     }
   }
 
@@ -127,7 +139,7 @@ class FinanceDiscoverController extends GetxController {
       // ShimmerListView overlay so pagination doesn't stack a shimmer on
       // top of the list. FinanceListingScreen renders its own initial + bottom
       // pagination loaders keyed off `isLoading` / `isLoadingMore`.
-      final ResponseModel res = await ApiBaseHelper().getHTTP(
+      final ResponseModel res = await _api.getHTTP(
         "other-service/business-profile/search?distance=5000&limit=$_limit&page=$page&sub_type=${selectedCategory.value}",
         showProgress: false,
         onError: (e) {},
