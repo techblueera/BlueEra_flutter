@@ -1082,7 +1082,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                       const SizedBox(height: 20),
                       // Outgoing-call status label.
                       // For the caller, this is driven by the server's
-                      // `call:ringing` event (Dialing…/Ringing…/Connecting…/
+                      // `call:ringing` event (Calling…/Ringing…/Connecting…/
                       // Connected/terminal). For the callee's accepting flow
                       // we keep the local CallStatus.accepting label since
                       // `call:ringing` is caller-only.

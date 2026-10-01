@@ -128,7 +128,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
 
   /// Server-pushed outgoing-call state from `call:ringing`.
   /// Used to drive the outgoing-call screen label
-  /// (Dialing… / Ringing… / Connecting… / Connected / terminal).
+  /// (Calling… / Ringing… / Connecting… / Connected / terminal).
   /// See `lib/docs/call-ringing-event-flutter-integration-guide.md`.
   var ringingState = CallRingingState.dialing.obs;
 
@@ -685,6 +685,13 @@ class CallController extends GetxController with WidgetsBindingObserver {
     // route to have been silently lost: whatever ran while we were away (an
     // FCM data message, the floating overlay) may have replaced
     // flutter_webrtc's shared AudioSwitchManager. Re-drive the user's choice.
+    //
+    // Not while the call is still ringing on either side: re-activating the
+    // audio manager takes audio focus, which silenced the caller's ringback
+    // (and could cut the receiver's ringtone) on return to the app. Nothing is
+    // being heard through the route yet, and connect asserts it anyway.
+    final status = callStatus.value;
+    if (status == CallStatus.outgoing || status == CallStatus.ringing) return;
     _reassertAudioRoute();
   }
 
@@ -734,7 +741,7 @@ class CallController extends GetxController with WidgetsBindingObserver {
       _handleCallEnded(data);
     });
 
-    // Outgoing-call state stream (caller-only). Drives the Dialing…/Ringing…/
+    // Outgoing-call state stream (caller-only). Drives the Calling…/Ringing…/
     // Connecting…/Connected label. The server only emits this to the initiator,
     // so receivers will never see it. Additive — does not replace the existing
     // call:incoming/accepted/declined/cancelled/ended events.
@@ -2308,7 +2315,17 @@ class CallController extends GetxController with WidgetsBindingObserver {
   void _attachRingingState() {
     ringingState.value = CallRingingState.dialing;
     ringingParticipantStates.clear();
+    // A `call:ringing` that beat the initiate response here (the server can
+    // emit it before the HTTP reply lands) was held by _handleCallRinging;
+    // apply it now that the callId is known. Its callId is still checked, so
+    // one left over from an earlier call is dropped.
+    final early = _earlyRingingEvent;
+    _earlyRingingEvent = null;
+    if (early != null && callId.value.isNotEmpty) _handleCallRinging(early);
   }
+
+  /// Latest `call:ringing` received before the initiate response set callId.
+  Map<String, dynamic>? _earlyRingingEvent;
 
   /// Locally derive a terminal state when the server cannot emit `call:ringing`
   /// (REST 409 = busy, REST 5xx = failed). The outgoing screen reads this and
@@ -2325,8 +2342,16 @@ class CallController extends GetxController with WidgetsBindingObserver {
     if (raw is! Map) return;
     final data = raw.cast<String, dynamic>();
     final eventCallId = (data['call_id'] ?? '').toString();
+    // No callId yet means `POST /call/initiate` is still in flight: hold the
+    // latest event for _attachRingingState instead of dropping it, or the
+    // caller sees "Calling…" for the whole ring.
+    if (callId.value.isEmpty) {
+      _earlyRingingEvent = data;
+      debugLog('[CALL_DEBUG] call:ringing → held until initiate returns (event=$eventCallId)');
+      return;
+    }
     // Filter stale events: ignore if not for the current outgoing call.
-    if (callId.value.isEmpty || eventCallId != callId.value) {
+    if (eventCallId != callId.value) {
       debugLog('[CALL_DEBUG] call:ringing → IGNORED (callId mismatch: event=$eventCallId active=${callId.value})');
       return;
     }

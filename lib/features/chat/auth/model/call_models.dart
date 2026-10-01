@@ -52,7 +52,7 @@ enum CallRingingState {
   String get label {
     switch (this) {
       case CallRingingState.dialing:
-        return 'Dialing…';
+        return 'Calling…';
       case CallRingingState.ringing:
         return 'Ringing…';
       case CallRingingState.connecting:
