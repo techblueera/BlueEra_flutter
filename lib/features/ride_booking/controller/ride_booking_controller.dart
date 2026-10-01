@@ -473,7 +473,6 @@ class RideBookingController extends GetxController {
   final broadcastWave = 0.obs; // current wave (1-based)
   final broadcastTotalWaves = 0.obs; // total waves the server will run
   final broadcastRidersNotified = 0.obs; // riders rung so far this order
-  bool _broadcastSocketBound = false;
 
   // ------------------------------------------------------------- lifecycle
 
@@ -1636,9 +1635,16 @@ class RideBookingController extends GetxController {
   /// Register the broadcast race listeners once. Idempotent — [ChatSocketService]
   /// de-dupes by event name and replays on reconnect. Handlers ignore any event
   /// whose orderId isn't our current booking, so they self-cancel after reset.
+  ///
+  /// Re-registered on EVERY search, not once per session: [ChatSocketService]
+  /// keeps one handler per event, and DiscoverController registers its own
+  /// handlers for `ride:broadcast:*` and `ride:queue:accepted` whenever a
+  /// fare-call or multi-shop booking starts. With a bind-once guard, one such
+  /// booking replaced these for the rest of the session, and the next ride
+  /// sat on "searching" without ever seeing a rider accept. Only one booking
+  /// search runs at a time, so the flow that started last owning the events
+  /// is the right outcome.
   void _subscribeBroadcastSocket() {
-    if (_broadcastSocketBound) return;
-    _broadcastSocketBound = true;
     final socket = ChatSocketService();
 
     // Wave fan-out progress → "Searching · wave 1/3 · 5 riders".
