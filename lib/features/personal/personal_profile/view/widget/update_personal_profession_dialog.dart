@@ -61,6 +61,7 @@ class _UpdatePersonalProfessionDialogState extends State<UpdatePersonalProfessio
       assignPrefessionValue();
     });
     Future.delayed(Duration(seconds: 1), () {
+      if (!mounted) return;
       setState(() {});
     });
     super.initState();

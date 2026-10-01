@@ -68,6 +68,7 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
     } else {
       FocusScope.of(context).unfocus();
       Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
         setState(() => _isEmojiVisible = true);
       });
     }

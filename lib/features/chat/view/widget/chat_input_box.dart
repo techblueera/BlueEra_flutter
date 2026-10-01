@@ -85,6 +85,7 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     } else {
       FocusScope.of(context).unfocus();
       Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
         setState(() => _isEmojiVisible = true);
       });
     }
