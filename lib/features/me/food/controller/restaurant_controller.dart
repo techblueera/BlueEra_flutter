@@ -53,6 +53,25 @@ class RestaurantController extends GetxController {
   /// re-entry for the same restaurant skips the network call.
   final FetchCache _homeCache = FetchCache();
 
+  /// The fetch signature of the restaurant whose data is currently loaded.
+  String? _shownStoreScope;
+
+  /// The owner's screens and the screens for visiting someone else's
+  /// restaurant share this one untagged controller. When the next screen asks
+  /// for a different restaurant, the previous one's menu has to go BEFORE the
+  /// first await: otherwise that screen paints it for a frame, and a failed
+  /// fetch leaves it on screen as if it were this restaurant's.
+  void _switchStoreScope(String signature) {
+    if (_shownStoreScope == signature) return;
+    _shownStoreScope = signature;
+    restaurantData.value = null;
+    foodMenuNestedCategory.clear();
+    allFoodItems.clear();
+    restaurantSpecials.clear();
+    discountFoodItems.clear();
+    foodHomeDataResponse.value = ApiResponse.initial('Initial');
+  }
+
   /// Load home + discount data only when it isn't already loaded & fresh for
   /// this [businessId]. Use on screen (re)entry; call [fetchHomeData] /
   /// [fetchDiscountFoodProducts] directly for explicit refreshes.
@@ -77,6 +96,7 @@ class RestaurantController extends GetxController {
   /// pull-to-refresh on the tab is the escape hatch for that.
   Future<void> fetchHomeAndDiscountIfNeeded({required String businessId}) async {
     final signature = 'foodHome|$businessId';
+    _switchStoreScope(signature);
     if (_homeCache.isFresh(signature, hasData: restaurantData.value != null)) {
       return;
     }

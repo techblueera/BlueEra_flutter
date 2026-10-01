@@ -1310,8 +1310,29 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     await viewBusinessProfileById(userId);
   }
 
+  /// The id [visitedBusinessProfileDetails] was loaded for.
+  String? _visitedProfileId;
+
   Future<void> viewBusinessProfileById(String userId,
       {bool silent = false}) async {
+    // One controller serves every visited business, so the profile it holds is
+    // the LAST one opened. Drop it the moment a different business is asked
+    // for: visitor screens read it ahead of their own data, and kept until the
+    // new one landed (or for good, if that request failed) it put the previous
+    // store's name, logo and stats on this store's page.
+    if (_visitedProfileId != userId) {
+      _visitedProfileId = userId;
+      if (visitedBusinessProfileDetails != null) {
+        visitedBusinessProfileDetails = null;
+        // Cleared now, so the screen being built reads nothing stale; the
+        // rebuild notice waits a microtask because this runs from initState,
+        // mid-build, where notifying listeners would throw.
+        Future.microtask(() {
+          profileVersion.value++;
+          update();
+        });
+      }
+    }
     try {
       // Silent mode skips the loading flag so consumers (e.g. the
       // rate / follow callbacks) can refresh in the background without
