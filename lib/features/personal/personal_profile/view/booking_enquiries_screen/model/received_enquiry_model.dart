@@ -81,8 +81,8 @@ class ReceivedEnquiry {
         subject: json["subject"],
         messages: List<Message>.from(json["messages"].map((x) => Message.fromJson(x))),
         status: json["status"],
-        createdAt: DateTime.parse(json["createdAt"]),
-        updatedAt: DateTime.parse(json["updatedAt"]),
+        createdAt: DateTime.tryParse('${json["createdAt"] ?? ''}') ?? DateTime.now(),
+        updatedAt: DateTime.tryParse('${json["updatedAt"] ?? ''}') ?? DateTime.now(),
         v: json["__v"],
         channelName: json["channelName"],
         channelUsername: json["channelUsername"],
@@ -138,8 +138,8 @@ class Message {
         senderType: json["senderType"],
         content: json["content"],
         id: json["_id"],
-        createdAt: DateTime.parse(json["createdAt"]),
-        updatedAt: DateTime.parse(json["updatedAt"]),
+        createdAt: DateTime.tryParse('${json["createdAt"] ?? ''}') ?? DateTime.now(),
+        updatedAt: DateTime.tryParse('${json["updatedAt"] ?? ''}') ?? DateTime.now(),
     );
 
     Map<String, dynamic> toJson() => {

@@ -83,7 +83,7 @@ class RentalDataList {
     priceUnit = json['priceUnit'];
     isActive = json['is_active'];
     isNegotiable = json['is_negotiable'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
     reviews = json['reviews'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];

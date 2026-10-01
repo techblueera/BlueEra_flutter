@@ -73,8 +73,8 @@ class ChannelData {
       reports: List<String>.from(json['reports'] ?? []),
       followers: List<String>.from(json['followers'] ?? []),
       isFollowing: json['isFollowing'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse('${json['updatedAt'] ?? ''}') ?? DateTime.now(),
     );
   }
 }
@@ -98,7 +98,7 @@ class Ownership {
   factory Ownership.fromJson(Map<String, dynamic> json) {
     return Ownership(
       claimedBy: json['claimedBy'] ?? '',
-      claimedAt: DateTime.parse(json['claimedAt']),
+      claimedAt: DateTime.tryParse('${json['claimedAt'] ?? ''}') ?? DateTime.now(),
     );
   }
 }

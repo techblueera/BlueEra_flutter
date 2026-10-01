@@ -301,7 +301,7 @@ class RatingSummary {
   RatingSummary({this.avgRating, this.totalRatings});
 
   RatingSummary.fromJson(Map<String, dynamic> json) {
-    avgRating = json['avg_rating'];
+    avgRating = (json['avg_rating'] as num?)?.round();
     totalRatings = json['total_ratings'];
   }
 

@@ -131,8 +131,8 @@ class Location {
 
   Location.fromJson(dynamic json) {
     city = json['city'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = (json['latitude'] as num?)?.toDouble();
+    longitude = (json['longitude'] as num?)?.toDouble();
   }
   String? city;
   double? latitude;
@@ -158,8 +158,8 @@ class StartFrom {
 
   StartFrom.fromJson(dynamic json) {
     city = json['city'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = (json['latitude'] as num?)?.toDouble();
+    longitude = (json['longitude'] as num?)?.toDouble();
   }
   String? city;
   double? latitude;

@@ -46,7 +46,7 @@ class ChannelFeedController extends GetxController {
       throw Exception('Unexpected response type: ${data.runtimeType}');
     }
     channelFeedModel.value = ChannelFeedModel.fromJson(json);
-    final fetched = (json['data'] as List)
+    final fetched = ((json['data'] as List?) ?? const [])
         .map((item) => ChannelFeedData.fromJson(item))
         .toList();
     if (fetched.isEmpty) {
@@ -112,7 +112,7 @@ class ChannelFeedController extends GetxController {
       throw Exception('Unexpected response type: ${data.runtimeType}');
     }
     unJoinChannelFeedModel.value = ChannelFeedModel.fromJson(json);
-    final fetched = (json['data'] as List)
+    final fetched = ((json['data'] as List?) ?? const [])
         .map((item) => ChannelFeedData.fromJson(item))
         .toList();
     if (fetched.isEmpty) {
@@ -221,7 +221,7 @@ class ChannelFeedController extends GetxController {
       throw Exception('Unexpected response type: ${data.runtimeType}');
     }
     allChannelResModel.value = AllChannelResModel.fromJson(json);
-    final fetched = (json['data'] as List)
+    final fetched = ((json['data'] as List?) ?? const [])
         .map((item) => AllChannelData.fromJson(item))
         .toList();
     if (fetched.isEmpty) {

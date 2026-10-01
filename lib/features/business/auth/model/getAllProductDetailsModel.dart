@@ -136,7 +136,7 @@ class Data {
         addMoreDetails?.add(v);
       });
     }
-    avgRating = json['avgRating'];
+    avgRating = (json['avgRating'] as num?)?.round();
     feedbackCount = json['feedbackCount'];
     isRated = json['isRated'];
     isMediaAdded = json['isMediaAdded'];

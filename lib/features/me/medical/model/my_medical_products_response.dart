@@ -181,7 +181,7 @@ class MedicalProductVariants {
         images!.add(new Images.fromJson(v));
       });
     }
-    weight = json['weight'];
+    weight = (json['weight'] as num?)?.round();
     inventory = json['product'] != null
         ? new Inventory.fromJson(json['product'])
         : null;

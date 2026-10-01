@@ -390,7 +390,7 @@ class Items {
     price = json['price'] != null ? Price.fromJson(json['price']) : null;
     isAvailable = json['isAvailable'];
     preparationTime = json['preparationTime'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
@@ -595,7 +595,7 @@ class BusinessProfile {
     websiteUrl = json['website_url'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    avgRating = json['avg_rating'];
+    avgRating = (json['avg_rating'] as num?)?.round();
     totalRatings = json['total_ratings'];
   }
   List<OwnerDetails>? ownerDetails;

@@ -61,8 +61,8 @@ class BlockedUserData {
       updatedBy: json['updated_by'],
       status: json['status'],
       id: json['_id'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: DateTime.tryParse('${json['created_at'] ?? ''}') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse('${json['updated_at'] ?? ''}') ?? DateTime.now(),
       v: json['__v'],
     );
   }

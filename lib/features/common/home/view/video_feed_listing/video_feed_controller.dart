@@ -72,7 +72,7 @@ class VideoFeedController extends GetxController {
         throw Exception('Unexpected response type: ${data.runtimeType}');
       }
 
-      final fetched = (json['data'] as List)
+      final fetched = ((json['data'] as List?) ?? const [])
           .map((item) => VideoPost.fromJson(item))
           .where((post) => !videos.any((existing) => existing.id == post.id))
           .toList();
