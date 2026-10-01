@@ -253,6 +253,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
     });
     tempImgPath = personalCreateProfileController.imagePath?.value;
     Future.delayed(Duration(seconds: 1), () {
+      if (!mounted) return;
       setState(() {});
     });
     super.initState();

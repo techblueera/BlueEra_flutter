@@ -133,6 +133,7 @@ class _SearchPlaceListState extends State<SearchPlaceList> {
       widget.onRefresh;
     }
     Future.delayed(Duration(seconds: 1),(){
+      if (!mounted) return;
       setState(() {
         isGettingCurrentLocation = false;
       });

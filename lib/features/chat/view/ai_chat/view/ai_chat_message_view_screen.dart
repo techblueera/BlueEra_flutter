@@ -404,6 +404,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
     } else {
       FocusScope.of(context).unfocus();
       Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
         setState(() => _isEmojiVisible = true);
       });
     }
