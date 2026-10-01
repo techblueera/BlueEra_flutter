@@ -41,6 +41,9 @@ class DeliveryPilotScreen extends StatefulWidget {
 }
 
 class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
+  /// True while a Book tap is resolving addresses / sending the request.
+  bool _isRequestingRider = false;
+
   final orderController = Get.find<OrderNowController>();
   GoogleMapController? mapController;
   Set<Marker> _markers = {};
@@ -432,6 +435,12 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                             borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () async {
+                        // Two address lookups (network geocoding) run before
+                        // the waiting dialog covers the screen; every tap in
+                        // that window sent the riders another order request.
+                        if (_isRequestingRider) return;
+                        _isRequestingRider = true;
+                        try {
                         List<String?> userIdList = orderController
                             .selectedIndexes
                             .map((e) => e?.userId)
@@ -464,6 +473,9 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
                         if (!context.mounted) return;
                         showAwaitingForRider(context);
                         await orderController.sendOrderRequestToRider(params);
+                        } finally {
+                          _isRequestingRider = false;
+                        }
 
                         // final razorpayService =
                         // RazorpayService();
