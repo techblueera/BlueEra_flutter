@@ -176,6 +176,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
     _viewTimer?.cancel();
     RouteHelper.routeObserver.unsubscribe(this);
     disposePlayer();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

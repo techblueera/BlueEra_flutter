@@ -145,6 +145,7 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
   @override
   void dispose() {
     NetworkUtils.removeListener((connected) {});
+    editingController.dispose();
     super.dispose();
   }
 

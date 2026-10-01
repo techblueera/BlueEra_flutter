@@ -59,6 +59,15 @@ class WaitingForPaymentDialog extends StatelessWidget {
       builder: (context, setState) {
         // ✅ Start timer only once
         timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
+            // The dialog can be closed from outside (the pilot screen pops it
+            // when the order is rejected or the stream empties), and nothing
+            // here gets a dispose. Without this the timer ran on for up to 3
+            // minutes, set state on the dead dialog and then reported an
+            // expired payment window over whatever screen was showing.
+            if (!context.mounted) {
+              t.cancel();
+              return;
+            }
             if (remainingSeconds > 0) {
               setState(() => remainingSeconds--);
             } else {
@@ -113,8 +122,10 @@ class WaitingForPaymentDialog extends StatelessWidget {
               false;
         }
 
-        return WillPopScope(
-          onWillPop: () async {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
             // Resolved before the await: the warning dialog sits on top of
             // this one, and this one can be gone by the time it closes.
             final pendingPop = PendingPop.of(context);
@@ -127,7 +138,6 @@ class WaitingForPaymentDialog extends StatelessWidget {
                   .cancelOrderForce(orderId, {ApiKeys.status: "cancelled"});
               commonSnackBar(message: AppStrings.orderCanceledPayment);
             }
-            return Future.value(false); // prevent default pop
           },
           child: Dialog(
             shape: RoundedRectangleBorder(

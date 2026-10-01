@@ -92,6 +92,11 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
   // String? _audioPath;
 
   late final AudioPlayer _audioPlayer;
+
+  /// The preview's "finished" listener. One at a time: it used to be added on
+  /// every Play tap and never cancelled, so after N plays one finish ran the
+  /// reset N times.
+  StreamSubscription<PlayerState>? _previewStateSub;
   Timer? _recordTimer;
 
   // UI States
@@ -289,7 +294,8 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
       setState(() => _isPlayingPreview = true);
 
       // Reset when ENTIRE playlist finishes
-      _audioPlayer.playerStateStream.listen((state) {
+      _previewStateSub?.cancel();
+      _previewStateSub = _audioPlayer.playerStateStream.listen((state) {
         if (state.processingState == ProcessingState.completed) {
           if (!mounted) return;
           setState(() => _isPlayingPreview = false);
@@ -599,6 +605,7 @@ class _AiCommonSearchScreenState extends State<AiCommonSearchScreen> {
   void dispose() {
     chatViewController.disposeAiSocket();
     _audioRecorder.dispose();
+    _previewStateSub?.cancel();
     _audioPlayer.dispose();
     _recordTimer?.cancel();
     super.dispose();

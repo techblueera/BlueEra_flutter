@@ -191,6 +191,17 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   }
 
   @override
+  void dispose() {
+    _shortDescription.dispose();
+    _shortLink.dispose();
+    _brandPromotionLink.dispose();
+    _videoTitle.dispose();
+    _videoDescription.dispose();
+    _commonKeywords.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
