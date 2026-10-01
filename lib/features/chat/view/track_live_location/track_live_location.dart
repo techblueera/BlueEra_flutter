@@ -21,6 +21,7 @@ import '../../../common/Discover/widget/tooltip_generator.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/core/constants/app_constant.dart' show LiveTrackEmitEvents;
 import '../../auth/socket/live_location_track_socket.dart';
 import 'package:BlueEra/permissionCentralize/permission_queue.dart';
 
@@ -127,7 +128,11 @@ class _TrackLiveLocationPageState extends State<TrackLiveLocationPage> {
   @override
   void dispose() {
     _expiryTimer?.cancel();
-    LiveTrackingSocketService().disconnectSocket();
+    // Only this viewer's claim: a live-location share running at the same
+    // time keeps sending on the socket.
+    final liveSocket = LiveTrackingSocketService();
+    liveSocket.offEvent(LiveTrackEmitEvents.locationUpdate);
+    liveSocket.disconnectSocket(holder: LiveTrackingSocketService.holderViewer);
     mapController?.dispose();
     super.dispose();
   }

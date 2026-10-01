@@ -3899,7 +3899,8 @@ class ChatViewController extends GetxController {
       ),
     );
     await LiveTrackingSocketService()
-        .connectToSocket(LatLng(pos.latitude, pos.longitude));
+        .connectToSocket(LatLng(pos.latitude, pos.longitude),
+            holder: LiveTrackingSocketService.holderSharer);
 
     // End any earlier share first, so starting a new one doesn't leave the
     // previous GPS stream running.
@@ -3924,7 +3925,8 @@ class ChatViewController extends GetxController {
   //
   void stopLiveLocationTracking() {
     _stopLiveLocationUpdates();
-    LiveTrackingSocketService().disconnectSocket();
+    LiveTrackingSocketService()
+        .disconnectSocket(holder: LiveTrackingSocketService.holderSharer);
   }
 
   void _stopLiveLocationUpdates() {

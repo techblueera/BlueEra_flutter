@@ -14,20 +14,49 @@ class LiveTrackingSocketService {
 
   LiveTrackingSocketService._internal();
 
-  static late IO.Socket _socket;
+  static IO.Socket? _socket;
   bool _isConnected = false;
+
+  /// Who is using the socket: the user sharing their own live location
+  /// ([holderSharer]) and/or the one viewing someone else's ([holderViewer]).
+  ///
+  /// Both used to share one socket with no bookkeeping: every connect built a
+  /// NEW socket (forceNew) and dropped the old one still connected and
+  /// reconnecting forever, and closing a live-location view disconnected the
+  /// socket a running share was still sending on. Now a connect reuses the
+  /// live socket, each holder releases only its own claim, and the socket
+  /// closes when nobody holds it.
+  final Set<String> _holders = {};
+
+  static const String holderSharer = 'sharer';
+  static const String holderViewer = 'viewer';
 
   /// The last position sent as `[lng, lat]`, re-announced on every
   /// (re)connect so the server's view resumes from where the rider actually
   /// is rather than from where they were when the socket was first opened.
   List<double>? _lastCoordinates;
 
-  Future<void> connectToSocket(LatLng? currentPos) async {
+  Future<void> connectToSocket(LatLng? currentPos,
+      {required String holder}) async {
     try {
+      _holders.add(holder);
       if (currentPos != null) {
         _lastCoordinates = [currentPos.longitude, currentPos.latitude];
       }
-      _socket = IO.io(
+      final existing = _socket;
+      if (existing != null) {
+        // Already open for the other holder: reuse it. A fresh position is
+        // announced now if connected, otherwise by onConnect below.
+        final coordinates = _lastCoordinates;
+        if (currentPos != null && _isConnected && coordinates != null) {
+          existing.emit(LiveTrackEmitEvents.updateLocation, {
+            ApiKeys.coordinates: coordinates,
+            ApiKeys.availabilityStatus: "OPEN",
+          });
+        }
+        return;
+      }
+      final socket = IO.io(
         liveTrackSocket, // ex: https://map.beapp.in
         IO.OptionBuilder()
             .setTransports(['websocket'])
@@ -41,13 +70,14 @@ class LiveTrackingSocketService {
         })
             .build(),
       );
-      _socket.connect();
-      _socket.onConnect((_) {
+      _socket = socket;
+      socket.connect();
+      socket.onConnect((_) {
         _isConnected = true;
 
         final coordinates = _lastCoordinates;
         if (coordinates != null) {
-          _socket.emit(
+          socket.emit(
               LiveTrackEmitEvents.updateLocation,
               {
                 ApiKeys.coordinates: coordinates,
@@ -57,10 +87,10 @@ class LiveTrackingSocketService {
         }
 
       });
-      _socket.onConnectError((err) {
+      socket.onConnectError((err) {
       });
 
-      _socket.onDisconnect((_) {
+      socket.onDisconnect((_) {
         _isConnected = false;
       });
     } catch (e) {
@@ -80,7 +110,7 @@ class LiveTrackingSocketService {
       }
     }
     // if (_isConnected) {
-      _socket.emit(event, data);
+      _socket?.emit(event, data);
     // } else {
     //   await connectToSocket(null);
     //   _socket.emit(event, data);
@@ -90,29 +120,32 @@ class LiveTrackingSocketService {
   // 📤 Emit only if connected (no reconnect)
   void emitDisposeEvent(String event, dynamic data) {
     if (_isConnected) {
-      _socket.emit(event, data);
+      _socket?.emit(event, data);
     } else {
     }
   }
 
   // 📥 Listen event
   void listenEvent(String event, Function(dynamic) callback) {
-    _socket.on(event, callback);
+    _socket?.on(event, callback);
   }
 
   // ❌ Remove listener
   void offEvent(String event) {
-    _socket.off(event);
+    _socket?.off(event);
   }
 
-  // 🔌 Disconnect
-  void disconnectSocket() {
-    _socket.disconnect();
+  /// Releases [holder]'s claim; the socket closes once no one holds it.
+  void disconnectSocket({required String holder}) {
+    _holders.remove(holder);
+    if (_holders.isEmpty) disposeSocket();
   }
 
-  // 🧹 Dispose
+  /// Closes the socket outright, whoever holds it.
   void disposeSocket() {
-    _socket.dispose();
+    _socket?.dispose();
+    _socket = null;
+    _holders.clear();
     _isConnected = false;
   }
 

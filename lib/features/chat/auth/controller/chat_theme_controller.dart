@@ -336,7 +336,8 @@ class ChatThemeController extends GetxController {
   }
 
   Future<void> connectSocket(String userId) async {
-      await liveTrackSocket.connectToSocket(null);
+      await liveTrackSocket.connectToSocket(null,
+          holder: LiveTrackingSocketService.holderViewer);
       liveTrackSocket.emitEvent(LiveTrackEmitEvents.subscribeToProviders, {
         ApiKeys.userIds: ["${userId}"],
       });
