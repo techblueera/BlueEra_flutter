@@ -53,7 +53,8 @@ class VisitFoodStoreDetailsScreen extends StatefulWidget {
 
 class _VisitFoodStoreDetailsScreenState
     extends State<VisitFoodStoreDetailsScreen> {
-  final controller = getOrPut(() => RestaurantController());
+  late final RestaurantController controller;
+  late final bool _ownsController;
   final storeController = getOrPut(() => StoreController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
 
@@ -66,6 +67,10 @@ class _VisitFoodStoreDetailsScreenState
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<RestaurantController>(widget.visitBusinessId, () => RestaurantController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     viewBusinessDetailsController
         .viewBusinessProfileByIdIfNeeded(widget.visitBusinessId);
     controller.fetchHomeAndDiscountIfNeeded(businessId: widget.visitBusinessId);
@@ -94,6 +99,12 @@ class _VisitFoodStoreDetailsScreenState
         visitBusinessAddress: details?.address,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) deleteIfRegistered<RestaurantController>(tag: visitTag(widget.visitBusinessId));
+    super.dispose();
   }
 
   @override

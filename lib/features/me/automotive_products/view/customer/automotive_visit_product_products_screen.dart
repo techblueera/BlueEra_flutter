@@ -35,8 +35,8 @@ class AutomotiveVisitProductProductsScreen extends StatefulWidget {
 
 class _AutomotiveVisitProductProductsScreenState
     extends State<AutomotiveVisitProductProductsScreen> {
-  final AutomotiveInventoryController controller =
-      getOrPut<AutomotiveInventoryController>(() => AutomotiveInventoryController());
+  late final AutomotiveInventoryController controller;
+  late final bool _ownsController;
   final AutomotiveProductSelfPickupController cartController =
       getOrPut<AutomotiveProductSelfPickupController>(
           () => AutomotiveProductSelfPickupController());
@@ -59,6 +59,10 @@ class _AutomotiveVisitProductProductsScreenState
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<AutomotiveInventoryController>(widget.visitBusinessId, () => AutomotiveInventoryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final children = widget.parentCategory.children ?? [];
@@ -73,6 +77,7 @@ class _AutomotiveVisitProductProductsScreenState
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    if (_ownsController) deleteIfRegistered<AutomotiveInventoryController>(tag: visitTag(widget.visitBusinessId));
     super.dispose();
   }
 

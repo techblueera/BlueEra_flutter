@@ -44,8 +44,8 @@ class ManufacturerVisitProductStoreDetailsScreen extends StatefulWidget {
 
 class _VisitProductStoreDetailsScreenState
     extends State<ManufacturerVisitProductStoreDetailsScreen> {
-  final ManufacturerInventoryController controller =
-      getOrPut<ManufacturerInventoryController>(() => ManufacturerInventoryController());
+  late final ManufacturerInventoryController controller;
+  late final bool _ownsController;
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
   final StoreController storeController =
@@ -60,6 +60,10 @@ class _VisitProductStoreDetailsScreenState
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<ManufacturerInventoryController>(widget.visitBusinessId, () => ManufacturerInventoryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     // Load the visiting business profile + inventory in parallel, and
     // track the store-detail view (same pattern as the grocery visit
     // screen).
@@ -96,6 +100,12 @@ class _VisitProductStoreDetailsScreenState
         businessAddress: bDetails?.address,
       );
     }
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) deleteIfRegistered<ManufacturerInventoryController>(tag: visitTag(widget.visitBusinessId));
+    super.dispose();
   }
 
   @override
