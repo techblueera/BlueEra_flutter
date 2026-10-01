@@ -23,8 +23,14 @@ class FinanceDiscoverController extends GetxController {
   /// staff, gallery, contactUs, etc.) and replace [selectedDetail] with it.
   /// The list screen seeds [selectedDetail] with the lightweight search item
   /// first, so the screen shows immediately and refreshes when this completes.
+  /// The business the latest [fetchDetail] asked for. A response for any
+  /// other id is for a business the user has already left (it was opened, then
+  /// another before this landed) and must not replace the one on screen.
+  String? _detailRequestedId;
+
   Future<void> fetchDetail(String id) async {
     if (id.isEmpty) return;
+    _detailRequestedId = id;
     try {
       isDetailLoading.value = true;
       detailError.value = '';
@@ -37,6 +43,7 @@ class FinanceDiscoverController extends GetxController {
         onError: (e) {},
         onSuccess: (data) {},
       );
+      if (_detailRequestedId != id) return;
       if (res.isSuccess) {
         final data = res.getExtraData('data');
         if (data != null) {
@@ -47,9 +54,10 @@ class FinanceDiscoverController extends GetxController {
         detailError.value = res.message ?? AppStrings.somethingWentWrong;
       }
     } catch (e) {
-      detailError.value = e.toString();
+      if (_detailRequestedId == id) detailError.value = e.toString();
     } finally {
-      isDetailLoading.value = false;
+      // A superseded call must not end the newer one's loading state.
+      if (_detailRequestedId == id) isDetailLoading.value = false;
     }
   }
 

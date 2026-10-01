@@ -112,6 +112,7 @@ class SchoolAboutUsController extends GetxController {
     try {
       ResponseModel response = await SchoolRepo()
           .getSchoolAboutUsRepo(schoolID: schoolID ?? schoolIDGlobal);
+      if (_isStaleSchool(schoolID)) return;
       SchoolAboutUsModel schoolAboutUsModel =
           SchoolAboutUsModel.fromJson(response.response?.data);
       aboutUsData?.value = schoolAboutUsModel.data ?? AboutUsData();
@@ -168,6 +169,19 @@ class SchoolAboutUsController extends GetxController {
     }
   }
 
+  /// Bumped by every [getSchoolByIdController] call; a response that comes
+  /// back after a newer call started belongs to a school the user has since
+  /// left, and must not overwrite the one now on screen.
+  int _schoolLoadGen = 0;
+
+  /// True when a sub-fetch's response is for a school other than the one now
+  /// in [schoolDetailsData] (the user opened another before it landed). Owner
+  /// screens call these without a [schoolID]; those are never stale.
+  bool _isStaleSchool(String? schoolID) {
+    final current = schoolDetailsData?.value.id;
+    return schoolID != null && current != null && current != schoolID;
+  }
+
   Future<void> getSchoolByIdController(
       {String? schoolID,
       String? ownerID,
@@ -177,8 +191,10 @@ class SchoolAboutUsController extends GetxController {
     // Logic for AI generation goes here
     try {
       isDetailLoading.value = true;
+      final gen = ++_schoolLoadGen;
       ResponseModel response =
           await SchoolRepo().getSchoolByIDRepo(schoolID: schoolID);
+      if (gen != _schoolLoadGen) return;
 
       if (response.isSuccess) {
         SchoolDetailsResModel schoolAboutUsModel =
@@ -226,6 +242,7 @@ class SchoolAboutUsController extends GetxController {
         logs("DEBUG: Attempting Fallback for OwnerID: $ownerID");
         ResponseModel fallbackResponse =
             await SchoolRepo().getSchoolByUserIDRepo(userID: ownerID);
+        if (gen != _schoolLoadGen) return;
 
         if (fallbackResponse.isSuccess) {
           SchoolDetailsResModel schoolAboutUsModel =
@@ -274,6 +291,7 @@ class SchoolAboutUsController extends GetxController {
     try {
       ResponseModel response = await SchoolRepo()
           .getSchoolBranchRepo(schoolID: schoolID ?? schoolIDGlobal);
+      if (_isStaleSchool(schoolID)) return;
       if (response.isSuccess && schoolDetailsData?.value != null) {
         // Update contacts in schoolDetailsData
         final List<dynamic> contactsJson =
@@ -291,6 +309,7 @@ class SchoolAboutUsController extends GetxController {
     try {
       ResponseModel response = await SchoolRepo()
           .getSchoolCoursesRepo(schoolID: schoolID ?? schoolIDGlobal);
+      if (_isStaleSchool(schoolID)) return;
       if (response.isSuccess && schoolDetailsData?.value != null) {
         // Update courses in schoolDetailsData
         final List<dynamic> coursesJson = response.getExtraData('data') ?? [];
@@ -307,6 +326,7 @@ class SchoolAboutUsController extends GetxController {
     try {
       ResponseModel response = await SchoolRepo()
           .getAllCampusLifeRepo(schoolID: schoolID ?? schoolIDGlobal);
+      if (_isStaleSchool(schoolID)) return;
       if (response.isSuccess && schoolDetailsData?.value != null) {
         final List<dynamic> categoriesJson =
             response.getExtraData('data') ?? [];
@@ -938,6 +958,7 @@ class SchoolAboutUsController extends GetxController {
     try {
       isQuickInfoLoading.value = true;
       final res = await SchoolRepo().getSchoolQuickInfoRepo(schoolID: schoolID);
+      if (_isStaleSchool(schoolID)) return;
       if (res.isSuccess) {
         final body = res.response?.data;
         final data = body?['data'];
