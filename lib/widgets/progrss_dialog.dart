@@ -23,12 +23,9 @@ class ProgressDialog {
 
         Get.dialog(
           barrierColor: AppColors.white,
-          WillPopScope(
-            onWillPop: () => Future.value(true),
-            child: CircularIndicator(
+          CircularIndicator(
               apiPath: apiPath,
             ),
-          ),
           barrierDismissible: false, /*useRootNavigator: false*/
         );
       }

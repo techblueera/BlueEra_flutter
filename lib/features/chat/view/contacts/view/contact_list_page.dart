@@ -217,19 +217,17 @@ class _ContactsPageState extends State<ContactsPage> {
     final theme = Theme.of(context);
     final bool isGroupMode = widget.from == "group";
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      // Fires on every way out (system back and the app-bar arrow alike), so
+      // the app-bar arrow only pops — emitting there too would send it twice.
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) return;
         chatViewController
             .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
-        return true;
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
-          onBackTap: () {
-            chatViewController
-                .emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
-            Navigator.pop(context);
-          },
+          onBackTap: () => Navigator.pop(context),
           title: AppStrings.myContacts,
           isLeading: true,
           isReloadContactButton: true,

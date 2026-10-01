@@ -253,6 +253,11 @@ class _PersonalProfileSetupNewScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Kept on WillPopScope on purpose: this screen is a bottom-bar tab, and a
+    // tab-level PopScope would fire alongside BottomNavigationBarWidget's own
+    // (every PopScope on a route gets the callback). WillPopScope is consulted
+    // first and its `false` stops the bar's handler, which is what we want.
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         backPressTrigger();

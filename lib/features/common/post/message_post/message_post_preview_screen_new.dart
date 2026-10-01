@@ -136,13 +136,15 @@ class _MessagePostPreviewScreenNewState
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         if (msgPostController.isLoading.value) {
           commonSnackBar(message: AppStrings.pleaseWaitProcessing);
-          return false;
+          return;
         }
-        return true;
+        Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: PreferredSize(

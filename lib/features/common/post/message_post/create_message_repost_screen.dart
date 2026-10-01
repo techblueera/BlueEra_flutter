@@ -38,13 +38,15 @@ class _CreateMessagePostScreenNewState
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
         if (msgController.isLoading.value) {
           commonSnackBar(message: "Please wait, your request is still processing...");
-          return false;
+          return;
         }
-        return true;
+        Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: PreferredSize(

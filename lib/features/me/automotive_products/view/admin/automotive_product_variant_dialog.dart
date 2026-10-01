@@ -61,8 +61,8 @@ class _AutomotiveProductVariantDialogState extends State<AutomotiveProductVarian
           .isCreateNewProductVariantLoading
           .value;
 
-      return WillPopScope(
-        onWillPop: () async => !isLoading,
+      return PopScope(
+        canPop: !isLoading,
         child: Dialog(
           insetPadding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
