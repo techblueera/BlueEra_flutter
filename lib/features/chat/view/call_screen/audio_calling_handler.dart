@@ -376,9 +376,18 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     _ringController.dispose();
     _ringbackPlayer.stop();
     _ringbackPlayer.dispose();
-    // Stop controller ringtone on screen dispose as safety net
+    // Stop controller ringtone on screen dispose as safety net — except while
+    // our own outgoing call is still ringing. Back only minimises the call to
+    // the top strip, and the caller's ringback belongs to the call, not this
+    // screen: stopping it here left the caller in silence for the rest of the
+    // ring, even after reopening the screen from the strip. The controller
+    // stops it on every way that call ends (accept, decline, cancel, the
+    // no-answer timer, end).
     if (Get.isRegistered<CallController>()) {
-      Get.find<CallController>().stopRingtone();
+      final call = Get.find<CallController>();
+      final stillRingingOut =
+          call.isCaller.value && call.callStatus.value == CallStatus.outgoing;
+      if (!stillRingingOut) call.stopRingtone();
     }
     // Nothing to un-register here: the top call strip keys off the current
     // ROUTE (CallController.currentRouteRx), which the navigator republishes
@@ -1082,7 +1091,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                       const SizedBox(height: 20),
                       // Outgoing-call status label.
                       // For the caller, this is driven by the server's
-                      // `call:ringing` event (Dialing…/Ringing…/Connecting…/
+                      // `call:ringing` event (Calling…/Ringing…/Connecting…/
                       // Connected/terminal). For the callee's accepting flow
                       // we keep the local CallStatus.accepting label since
                       // `call:ringing` is caller-only.
