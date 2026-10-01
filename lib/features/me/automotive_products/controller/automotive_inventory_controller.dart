@@ -211,6 +211,23 @@ class AutomotiveInventoryController extends GetxController {
   /// Freshness guard for the visited store's product data, keyed per store.
   final FetchCache _allProductCache = FetchCache();
 
+  /// The fetch signature of the store whose data the lists currently hold.
+  String? _shownStoreScope;
+
+  /// The owner's screens and the screens for visiting someone else's store
+  /// share this one controller. When the next screen asks for a different
+  /// store, the previous store's lists have to go BEFORE the first await:
+  /// otherwise that screen paints them for a frame, and a failed fetch leaves
+  /// them on screen as if they were this store's.
+  void _switchStoreScope(String signature) {
+    if (_shownStoreScope == signature) return;
+    _shownStoreScope = signature;
+    productNestedCategoryList.clear();
+    allProducts.clear();
+    fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
+    ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
+  }
+
   /// Load category + products only when not already loaded & fresh for this
   /// store. Use on screen (re)entry; call [fetchAllProductData] to force.
   ///
@@ -228,6 +245,7 @@ class AutomotiveInventoryController extends GetxController {
   /// tab is the escape hatch for that.
   Future<void> fetchAllProductDataIfNeeded({String? visitUserId}) async {
     final sig = 'allProduct|${visitUserId ?? 'self'}';
+    _switchStoreScope(sig);
     final hasData =
         productNestedCategoryList.isNotEmpty || allProducts.isNotEmpty;
     if (_allProductCache.isFresh(sig, hasData: hasData)) return;
@@ -244,6 +262,9 @@ class AutomotiveInventoryController extends GetxController {
     String? visitUserId,
     bool silent = false,
   }) async {
+    // A silent refresh is the owner's own write-back; it must not wipe a
+    // visited store's page. Only a real load switches stores.
+    if (!silent) _switchStoreScope('allProduct|${visitUserId ?? 'self'}');
     try {
       if (!silent) myProductLoading.value = true;
       await Future.wait([

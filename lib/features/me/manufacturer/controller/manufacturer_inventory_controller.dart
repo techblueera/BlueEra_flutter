@@ -183,6 +183,23 @@ class ManufacturerInventoryController extends GetxController {
   /// another manufacturer's catalog never reuses this one's data.
   final FetchCache _allProductCache = FetchCache();
 
+  /// The fetch signature of the store whose data the lists currently hold.
+  String? _shownStoreScope;
+
+  /// The owner's screens and the screens for visiting someone else's store
+  /// share this one controller. When the next screen asks for a different
+  /// store, the previous store's lists have to go BEFORE the first await:
+  /// otherwise that screen paints them for a frame, and a failed fetch leaves
+  /// them on screen as if they were this store's.
+  void _switchStoreScope(String signature) {
+    if (_shownStoreScope == signature) return;
+    _shownStoreScope = signature;
+    productNestedCategoryList.clear();
+    allProducts.clear();
+    fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
+    ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
+  }
+
   /// Load category + products only when not already loaded & fresh for this
   /// store. Use on tab open / screen (re)entry; call [fetchAllProductData] to
   /// force (pull-to-refresh, post-publish). Mirrors the product and automotive
@@ -201,6 +218,7 @@ class ManufacturerInventoryController extends GetxController {
   /// pull-to-refresh on the tab is the escape hatch for that.
   Future<void> fetchAllProductDataIfNeeded({String? visitBusinessId}) async {
     final sig = 'allProduct|${visitBusinessId ?? 'self'}';
+    _switchStoreScope(sig);
     final hasData =
         productNestedCategoryList.isNotEmpty || allProducts.isNotEmpty;
     if (_allProductCache.isFresh(sig, hasData: hasData)) return;
@@ -217,6 +235,9 @@ class ManufacturerInventoryController extends GetxController {
     String? visitBusinessId,
     bool silent = false,
   }) async {
+    // A silent refresh is the owner's own write-back; it must not wipe a
+    // visited store's page. Only a real load switches stores.
+    if (!silent) _switchStoreScope('allProduct|${visitBusinessId ?? 'self'}');
     try {
       if (!silent) myProductLoading.value = true;
       await Future.wait([
