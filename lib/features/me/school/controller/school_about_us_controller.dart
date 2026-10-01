@@ -21,6 +21,10 @@ import 'package:get/get.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
 
 class SchoolAboutUsController extends GetxController {
+  SchoolAboutUsController({SchoolRepo? repo}) : _repo = repo ?? SchoolRepo();
+
+  final SchoolRepo _repo;
+
   Rx<ApiResponse> getAboutUsSchoolResponse = ApiResponse.initial('Initial').obs;
 
   Rx<ApiResponse> visionMissionResponse = ApiResponse.initial('Initial').obs;
@@ -110,8 +114,7 @@ class SchoolAboutUsController extends GetxController {
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo()
-          .getSchoolAboutUsRepo(schoolID: schoolID ?? schoolIDGlobal);
+      ResponseModel response = await _repo.getSchoolAboutUsRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (_isStaleSchool(schoolID)) return;
       SchoolAboutUsModel schoolAboutUsModel =
           SchoolAboutUsModel.fromJson(response.response?.data);
@@ -153,7 +156,7 @@ class SchoolAboutUsController extends GetxController {
       UploadResult? result = await S3UploadService.uploadFile(uploadFile);
       if (result.isSuccess) {
         ResponseModel response =
-            await SchoolRepo().updateSchoolInfoRepo(reqBODY: {
+            await _repo.updateSchoolInfoRepo(reqBODY: {
           uploadVia: result.url,
         });
         if (response.isSuccess) {
@@ -193,7 +196,7 @@ class SchoolAboutUsController extends GetxController {
       isDetailLoading.value = true;
       final gen = ++_schoolLoadGen;
       ResponseModel response =
-          await SchoolRepo().getSchoolByIDRepo(schoolID: schoolID);
+          await _repo.getSchoolByIDRepo(schoolID: schoolID);
       if (gen != _schoolLoadGen) return;
 
       if (response.isSuccess) {
@@ -241,7 +244,7 @@ class SchoolAboutUsController extends GetxController {
       if (ownerID != null) {
         logs("DEBUG: Attempting Fallback for OwnerID: $ownerID");
         ResponseModel fallbackResponse =
-            await SchoolRepo().getSchoolByUserIDRepo(userID: ownerID);
+            await _repo.getSchoolByUserIDRepo(userID: ownerID);
         if (gen != _schoolLoadGen) return;
 
         if (fallbackResponse.isSuccess) {
@@ -289,8 +292,7 @@ class SchoolAboutUsController extends GetxController {
 
   Future<void> getSchoolBranchController({String? schoolID}) async {
     try {
-      ResponseModel response = await SchoolRepo()
-          .getSchoolBranchRepo(schoolID: schoolID ?? schoolIDGlobal);
+      ResponseModel response = await _repo.getSchoolBranchRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (_isStaleSchool(schoolID)) return;
       if (response.isSuccess && schoolDetailsData?.value != null) {
         // Update contacts in schoolDetailsData
@@ -307,8 +309,7 @@ class SchoolAboutUsController extends GetxController {
 
   Future<void> getSchoolCoursesController({String? schoolID}) async {
     try {
-      ResponseModel response = await SchoolRepo()
-          .getSchoolCoursesRepo(schoolID: schoolID ?? schoolIDGlobal);
+      ResponseModel response = await _repo.getSchoolCoursesRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (_isStaleSchool(schoolID)) return;
       if (response.isSuccess && schoolDetailsData?.value != null) {
         // Update courses in schoolDetailsData
@@ -324,8 +325,7 @@ class SchoolAboutUsController extends GetxController {
 
   Future<void> getSchoolCampusLifeController({String? schoolID}) async {
     try {
-      ResponseModel response = await SchoolRepo()
-          .getAllCampusLifeRepo(schoolID: schoolID ?? schoolIDGlobal);
+      ResponseModel response = await _repo.getAllCampusLifeRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (_isStaleSchool(schoolID)) return;
       if (response.isSuccess && schoolDetailsData?.value != null) {
         final List<dynamic> categoriesJson =
@@ -374,7 +374,7 @@ class SchoolAboutUsController extends GetxController {
       {required String visionMissionText}) async {
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
+      ResponseModel response = await _repo.updateSchoolAboutUsRepo(
           aboutUsID: aboutUsData?.value.id ?? "",
           reqBODY: {
             ApiKeys.visionAndMission: visionMissionText,
@@ -418,7 +418,7 @@ class SchoolAboutUsController extends GetxController {
       };
 
       ResponseModel? response =
-          await SchoolRepo().uploadEducationDocRepo(queryParams: queryParams);
+          await _repo.uploadEducationDocRepo(queryParams: queryParams);
 
       if (response?.isSuccess ?? false) {
         uploadInitResponse.value = ApiResponse.complete(response);
@@ -483,7 +483,7 @@ class SchoolAboutUsController extends GetxController {
   Future<void> updateHistoryController() async {
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
+      ResponseModel response = await _repo.updateSchoolAboutUsRepo(
           aboutUsID: aboutUsData?.value.id ?? "",
           reqBODY: {
             "history": {
@@ -529,7 +529,7 @@ class SchoolAboutUsController extends GetxController {
       result = await S3UploadService.uploadFile(
           File(managementProfileImageFile.value?.path ?? ""));
       if (result.isSuccess) {
-        ResponseModel response = await SchoolRepo().createSchoolManagementRepo(
+        ResponseModel response = await _repo.createSchoolManagementRepo(
           reqBODY: {
             "name": name,
             "position": position,
@@ -588,7 +588,7 @@ class SchoolAboutUsController extends GetxController {
         UploadResult? result;
         result = await S3UploadService.uploadFile(
             File(managementProfileImageFile.value?.path ?? ""));
-        response = await SchoolRepo().updateSchoolManagementAboutUsRepo(
+        response = await _repo.updateSchoolManagementAboutUsRepo(
           reqBODY: {
             "name": name,
             "position": position,
@@ -600,7 +600,7 @@ class SchoolAboutUsController extends GetxController {
           managementIndex: currentIndex,
         );
       } else {
-        response = await SchoolRepo().updateSchoolManagementAboutUsRepo(
+        response = await _repo.updateSchoolManagementAboutUsRepo(
           reqBODY: {
             "name": name,
             "position": position,
@@ -652,7 +652,7 @@ class SchoolAboutUsController extends GetxController {
       };
 
       ResponseModel? response =
-          await SchoolRepo().uploadEducationDocRepo(queryParams: queryParams);
+          await _repo.uploadEducationDocRepo(queryParams: queryParams);
 
       if (response?.isSuccess ?? false) {
         uploadInitResponse.value = ApiResponse.complete(response);
@@ -690,7 +690,7 @@ class SchoolAboutUsController extends GetxController {
       }
       ResponseModel response;
       if (result?.isSuccess ?? false) {
-        response = await SchoolRepo().updateSchoolAboutUsRepo(
+        response = await _repo.updateSchoolAboutUsRepo(
             aboutUsID: aboutUsData?.value.id ?? "",
             reqBODY: {
               "principalMessage": {
@@ -701,7 +701,7 @@ class SchoolAboutUsController extends GetxController {
               "schoolId": schoolIDGlobal
             });
       } else {
-        response = await SchoolRepo().updateSchoolAboutUsRepo(
+        response = await _repo.updateSchoolAboutUsRepo(
             aboutUsID: aboutUsData?.value.id ?? "",
             reqBODY: {
               "principalMessage": {
@@ -841,7 +841,7 @@ class SchoolAboutUsController extends GetxController {
     }
     try {
       isSchoolOptionsLoading.value = true;
-      final res = await SchoolRepo().getSchoolOptionsRepo();
+      final res = await _repo.getSchoolOptionsRepo();
       if (res.isSuccess) {
         final data = res.getExtraData('data');
         final boards = data?['boards'];
@@ -879,7 +879,7 @@ class SchoolAboutUsController extends GetxController {
     try {
       logs("_fetchFieldsForCategory: GET /schools/options?category='$category'");
       final res =
-          await SchoolRepo().getSchoolOptionsByCategoryRepo(category: category);
+          await _repo.getSchoolOptionsByCategoryRepo(category: category);
       if (!res.isSuccess) {
         logs("_fetchFieldsForCategory: HTTP failed for '$category'");
         return null;
@@ -957,7 +957,7 @@ class SchoolAboutUsController extends GetxController {
   Future<void> fetchSchoolQuickInfo({String? schoolID}) async {
     try {
       isQuickInfoLoading.value = true;
-      final res = await SchoolRepo().getSchoolQuickInfoRepo(schoolID: schoolID);
+      final res = await _repo.getSchoolQuickInfoRepo(schoolID: schoolID);
       if (_isStaleSchool(schoolID)) return;
       if (res.isSuccess) {
         final body = res.response?.data;
@@ -1108,7 +1108,7 @@ class SchoolAboutUsController extends GetxController {
   Future<bool> updateSchoolQuickInfoValues(Map<String, dynamic> values) async {
     try {
       isQuickInfoSaving.value = true;
-      final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: values);
+      final res = await _repo.updateSchoolQuickInfoRepo(reqBODY: values);
       if (res.isSuccess) {
         commonSnackBar(
             message: res.getExtraData('message') ?? AppStrings.successful);

@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class FinanceDiscoverController extends GetxController {
+  FinanceDiscoverController({ApiBaseHelper? api}) : _api = api ?? ApiBaseHelper();
+
+  final ApiBaseHelper _api;
+
   final profiles = <FinanceBusinessItem>[].obs;
   final isLoading = false.obs;
   final isLoadingMore = false.obs;
@@ -37,7 +41,7 @@ class FinanceDiscoverController extends GetxController {
       // `showProgress: false` suppresses the global ProgressDialog /
       // ShimmerListView overlay (see [ApiBaseHelper.addInterceptors]) —
       // callers of this controller own their own loading state.
-      final ResponseModel res = await ApiBaseHelper().getHTTP(
+      final ResponseModel res = await _api.getHTTP(
         "other-service/business-profile/$id/full",
         showProgress: false,
         onError: (e) {},
@@ -135,7 +139,7 @@ class FinanceDiscoverController extends GetxController {
       // ShimmerListView overlay so pagination doesn't stack a shimmer on
       // top of the list. FinanceListingScreen renders its own initial + bottom
       // pagination loaders keyed off `isLoading` / `isLoadingMore`.
-      final ResponseModel res = await ApiBaseHelper().getHTTP(
+      final ResponseModel res = await _api.getHTTP(
         "other-service/business-profile/search?distance=5000&limit=$_limit&page=$page&sub_type=${selectedCategory.value}",
         showProgress: false,
         onError: (e) {},
