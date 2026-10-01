@@ -99,6 +99,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   void dispose() {
     chatViewController.scrollController.removeListener(_onScroll);
     NetworkUtils.removeListener((connected) {});
+    editingController.dispose();
     super.dispose();
   }
 

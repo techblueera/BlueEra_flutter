@@ -117,6 +117,8 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
     required String driverPhone,
     required String driverDistanceKm,
   }) {
+    // Cleared however the dialog closes (paid, left, or popped from outside),
+    // so the next order's payment-pending can show its own dialog.
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -130,7 +132,7 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
           driverDistanceKm: driverDistanceKm,
         );
       },
-    );
+    ).then((_) => paymentDialogShow = false);
   }
 
   Future<void> fetchStream() async {
@@ -146,14 +148,16 @@ class _DeliveryPilotScreenState extends State<DeliveryPilotScreen> {
             final status = item['status'];
             if (status == 'payment-pending') {
 
-              // if(paymentDialogShow==false){
+              // The stream re-emits payment-pending on every update; without
+              // this guard each one stacked another dialog with its own timer.
+              if (!paymentDialogShow) {
               _showPaymentDialog(Get.context!, item['_id'],
                   driverImageUrl: '${item['assignedRider']['profile_image']}',
                   driverName: '${item['assignedRider']['name']}',
                   driverPhone: '${item['assignedRider']['contact_no']}',
                   driverDistanceKm: item['distanceToPickup']);
               paymentDialogShow = true;
-              // }
+              }
               break; // stop after first match
             } else if (status == 'rejected') {
               if (paymentDialogShow == true) {

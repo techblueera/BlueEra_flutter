@@ -3327,9 +3327,18 @@ class AppNotificationHandler {
     }
   }
 
+  /// The foreground and tapped-notification listeners. Kept so a second
+  /// [onMsgOpen] replaces them instead of adding more: it runs from the bottom
+  /// nav's initState, and that screen is rebuilt on every `offAllNamed` back
+  /// home (login, sign-up, rentals). Each rebuild used to stack another pair,
+  /// so one push showed N notifications and one tap navigated N times.
+  static StreamSubscription<RemoteMessage>? _onMessageSub;
+  static StreamSubscription<RemoteMessage>? _onMessageOpenedSub;
+
   ///call when click on notification
   void onMsgOpen() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    _onMessageSub?.cancel();
+    _onMessageSub = FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final operation =
           (message.data['operation'] ?? '').toString().toLowerCase();
 
@@ -3466,7 +3475,9 @@ class AppNotificationHandler {
     });
 
     /// when app is in background and user tap on it.
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    _onMessageOpenedSub?.cancel();
+    _onMessageOpenedSub =
+        FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugLog('[iOS-tap] data= in ${message.data}');
       // Tapping the auto-go-live banner (app was backgrounded but alive)
       // re-asserts live state + restarts the location pinger, same as the

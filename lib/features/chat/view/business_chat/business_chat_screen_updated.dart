@@ -147,6 +147,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
     WidgetsBinding.instance.removeObserver(this);
     chatViewController.scrollController.removeListener(_onScroll);
     NetworkUtils.removeListener((connected) {});
+    editingController.dispose();
     super.dispose();
   }
 
