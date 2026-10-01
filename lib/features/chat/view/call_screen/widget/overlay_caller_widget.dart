@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
@@ -14,11 +16,13 @@ class _CallerOverlayWidgetState extends State<CallerOverlayWidget> {
   String _callerName = '';
   String _callTime = '00:00';
   bool _isVideo = false;
+  StreamSubscription<dynamic>? _overlaySub;
 
   @override
   void initState() {
     super.initState();
-    FlutterOverlayWindow.overlayListener.listen((data) {
+    _overlaySub = FlutterOverlayWindow.overlayListener.listen((data) {
+      if (!mounted) return;
       if (data is Map) {
         setState(() {
           if (data['action'] == 'start') {
@@ -33,6 +37,12 @@ class _CallerOverlayWidgetState extends State<CallerOverlayWidget> {
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _overlaySub?.cancel();
+    super.dispose();
   }
 
   void _onHangUp() {
