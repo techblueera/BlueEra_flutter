@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart' show Razorpay;
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -43,6 +44,10 @@ class WaitingForPaymentDialog extends StatelessWidget {
     final orderController = Get.find<OrderNowController>();
 
     int remainingSeconds = 180; // 3 minutes
+    // Set once Razorpay reports success: Pay must not open a second checkout
+    // for an order that is already paid (the app-wide checkout lock is
+    // released before the confirm call below has finished).
+    bool paymentDone = false;
     Timer? timer;
 
     void launchDialPad(String phoneNumber) async {
@@ -323,6 +328,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
                             ),
                           ),
                           onPressed: () {
+                            if (paymentDone) return;
                             timer?.cancel();
                             // Navigator.pop(context);
                             final razorpayService = RazorpayService();
@@ -342,8 +348,51 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                   "${orderController.openedMessage?.buyer?.contact}",
                               email: 'admin@bluecs.in',
                               onPaymentSuccess: (response) async {
-                                await orderController
+                                paymentDone = true;
+                                // The money has moved; the order is only
+                                // "placed" once the server has the payment.
+                                // This used to say "order placed" whether or
+                                // not the confirm call landed.
+                                var confirmed = await orderController
                                     .updatePaymentStausByUser(orderId);
+                                while (!confirmed) {
+                                  final retry = await Get.dialog<bool>(
+                                    AlertDialog(
+                                      title: const CustomText(
+                                          'Payment received',
+                                          fontWeight: FontWeight.bold),
+                                      content: CustomText(
+                                          'Your payment went through, but we '
+                                          "couldn't confirm the order yet."
+                                          '\n\nPayment ID: '
+                                          '${response.paymentId ?? '-'}'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Get.back(result: false),
+                                          child: const CustomText('Later'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () =>
+                                              Get.back(result: true),
+                                          child: const CustomText('Retry'),
+                                        ),
+                                      ],
+                                    ),
+                                    barrierDismissible: false,
+                                  );
+                                  if (retry != true) {
+                                    safeBack();
+                                    commonSnackBar(
+                                        message:
+                                            'Keep your payment ID ${response.paymentId ?? ''} '
+                                            'for support if the order does not '
+                                            'update.');
+                                    return;
+                                  }
+                                  confirmed = await orderController
+                                      .updatePaymentStausByUser(orderId);
+                                }
                                 orderController.createRiderPickupOrder(
                                   orderController.openedMessage?.id,
                                   orderController.openedMessage?.seller?.id,
@@ -364,8 +413,21 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                 }
                               },
                               onPaymentError: (response) {
-                                orderController.cancelOrderForce(
-                                    orderId, {ApiKeys.status: "cancelled"});
+                                // Cancel only when no money can have moved:
+                                // the customer backed out, or the sheet never
+                                // opened. A network/unknown error can come
+                                // AFTER a debit, and force-cancelling then
+                                // left a paid order cancelled.
+                                final noMoneyMoved =
+                                    response.code == Razorpay.PAYMENT_CANCELLED ||
+                                        response.code ==
+                                            Razorpay.INVALID_OPTIONS ||
+                                        response.code ==
+                                            RazorpayService.CHECKOUT_OPEN_FAILED;
+                                if (noMoneyMoved) {
+                                  orderController.cancelOrderForce(
+                                      orderId, {ApiKeys.status: "cancelled"});
+                                }
                                 debugPrint(
                                     "Payment Failed: ${response.message}");
                                 // Shared mapping — a back-press / cancel reads

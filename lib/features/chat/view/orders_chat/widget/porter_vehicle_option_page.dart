@@ -9,7 +9,6 @@ import 'package:get/get.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/snackbar_helper.dart';
-import '../../../../../core/services/razor_pay_services.dart';
 import '../../../auth/controller/order_controllar.dart';
 import '../../../auth/model/get_porter_vechile_option_model.dart';
 import 'package:BlueEra/core/routes/safe_back.dart';
@@ -240,8 +239,6 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
       bottomNavigationBar: Obx(() {
         if (orderController.getVehicleOptionResponse.value.status ==
             Status.COMPLETE) {
-          List<Vehicles> vehicleList =
-              orderController.getPorterVehicleOptionModel.value.vehicles ?? [];
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -251,37 +248,15 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                 child: ElevatedButton(
                   onPressed: selectedIndex != null
                       ? () {
-                          final selectedVehicle = vehicleList[selectedIndex!];
-
-                          final razorpayService = RazorpayService();
-
-                          razorpayService.openCheckout(
-                            name: "${widget.userName}",
-                            subscriptionId: "",
-                            description: '',
-                            amount: (double.parse(
-                                    (selectedVehicle.fare?.minorAmount ??
-                                            0 / 100)
-                                        .toString()) +
-                                (double.parse(
-                                        (selectedVehicle.fare?.minorAmount ??
-                                                0 / 100)
-                                            .toString()) *
-                                    0.10)),
-                            contact: "${widget.userNum}",
-                            email: 'admin@bluecs.in',
-                            onPaymentSuccess: (response) async {
-                              debugPrint("Payment Suzzz: ${response.data}");
-                            },
-                            onPaymentError: (response) {
-                              debugPrint("Payment Failed: ${response.message}");
-                              // Shared mapping — a back-press / cancel reads as
-                              // "payment cancelled", not raw "Payment Error".
-                              commonSnackBar(
-                                  message: RazorpayService
-                                      .humanReadableError(response));
-                            },
-                          );
+                          // Payment is switched off here: the success callback
+                          // never booked anything (there is no booking or
+                          // confirm call for partner vehicles yet), so a
+                          // customer could be charged for nothing. Re-enable
+                          // once the backend exposes a booking endpoint that
+                          // takes the Razorpay order/payment ids.
+                          commonSnackBar(
+                              message:
+                                  "Booking partner vehicles isn't available yet. Please try again later.");
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
