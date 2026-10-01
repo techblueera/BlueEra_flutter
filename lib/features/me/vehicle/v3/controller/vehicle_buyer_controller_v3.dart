@@ -22,7 +22,9 @@ import 'package:get/get.dart';
 /// [_locationParams], and a missing location is surfaced as such rather than
 /// silently returning nothing.
 class VehicleBuyerControllerV3 extends GetxController {
-  final VehicleV3Repo _repo = VehicleV3Repo();
+  VehicleBuyerControllerV3({VehicleV3Repo? repo}) : _repo = repo ?? VehicleV3Repo();
+
+  final VehicleV3Repo _repo;
 
   /// Default radius in km for the lat/lng form of the search.
   static const num defaultRangeKm = 25;
