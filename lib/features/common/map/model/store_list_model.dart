@@ -81,7 +81,7 @@ class StoreDataModel {
     websiteUrl = json['website_url'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    avgRating = json['avg_rating'];
+    avgRating = (json['avg_rating'] as num?)?.round();
     totalRatings = json['total_ratings'];
   }
 

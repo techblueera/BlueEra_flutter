@@ -106,7 +106,7 @@ class RiderUser {
       name: json['name'],
       profileImage: json['profile_image'],
       distance: json['distance'],
-      rating: json['rating'],
+      rating: (json['rating'] as num?)?.round(),
       vehicleInformation: json['vehicleInformation'] != null
           ? VehicleInformation.fromJson(json['vehicleInformation'])
           : null,

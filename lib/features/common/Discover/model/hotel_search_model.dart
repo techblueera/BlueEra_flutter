@@ -279,7 +279,7 @@ class Profile {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
-    distance = json['distance'];
+    distance = (json['distance'] as num?)?.toDouble();
     if (json['contacts'] != null) {
       contacts = <Contacts>[];
       json['contacts'].forEach((v) {
@@ -297,7 +297,7 @@ class Profile {
         photos?.add(Photos.fromJson(v));
       });
     }
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
     reviews = json['reviews'];
   }
 

@@ -520,7 +520,7 @@ class TransportCategoryDetailsModel {
     return TransportCategoryDetailsModel(
       name: json['name'] ?? '',
       svgImage: json['svgImage'] ?? '',
-      charge: json['charge'],
+      charge: (json['charge'] as num?)?.toDouble(),
     );
   }
 

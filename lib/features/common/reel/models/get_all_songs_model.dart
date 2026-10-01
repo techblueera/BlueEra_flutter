@@ -76,8 +76,8 @@ class Song {
       externalUrl: json['externalUrl'] ?? '',
       coverUrl: json['coverUrl'] ?? '',
       duration: json['duration'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse('${json['updatedAt'] ?? ''}') ?? DateTime.now(),
       isFavourite: json['is_favourite'] ?? false,
     );
   }

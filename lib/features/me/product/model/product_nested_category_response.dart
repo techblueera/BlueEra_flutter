@@ -110,7 +110,7 @@ class Items {
     price = json['price'] != null ? Price.fromJson(json['price']) : null;
     isAvailable = json['isAvailable'];
     preparationTime = json['preparationTime'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
@@ -282,7 +282,7 @@ class InventoryVariant {
     preparationTime = json['preparationTime'];
     cookingMethod = json['cookingMethod'] != null ? json['cookingMethod'].cast<String>() : [];
     isAvailable = json['isAvailable'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
   }
 
   Map<String, dynamic> toJson() {

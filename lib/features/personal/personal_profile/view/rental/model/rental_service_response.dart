@@ -130,7 +130,7 @@ class RentalServiceData {
     checkOutTime = json['checkOutTime'];
     isActive = json['is_active'];
     isNegotiable = json['is_negotiable'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
     reviews = json['reviews'];
     addedBy = json['addedBy'];
     ownerDetails = json['ownerDetails'] != null

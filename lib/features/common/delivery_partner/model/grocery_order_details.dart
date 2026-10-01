@@ -20,8 +20,8 @@ class GroceryOrderDetails {
       businesses: (json['businesses'] as List? ?? [])
           .map((e) => BusinessOrder.fromJson(e))
           .toList(),
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: DateTime.tryParse('${json['createdAt'] ?? ''}') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse('${json['updatedAt'] ?? ''}') ?? DateTime.now(),
     );
   }
 
@@ -197,7 +197,7 @@ class ProductDetails {
     return ProductDetails(
       id: json['id'] ?? '',
       variantName: json['variantName'] ?? '',
-      weight: json['weight'] ?? 0,
+      weight: (json['weight'] as num?)?.round() ?? 0,
       product: Product.fromJson(json['product'] ?? {}),
     );
   }

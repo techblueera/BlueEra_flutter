@@ -65,7 +65,7 @@ class AiProductResData {
     profileName = json['profileName'];
     address = json['address'];
     websiteUrl = json['websiteUrl'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.toDouble();
     timing = json['timing'];
     description = json['description'];
     contactInfo = json['contactInfo'] != null

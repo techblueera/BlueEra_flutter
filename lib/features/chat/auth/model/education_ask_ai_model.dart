@@ -160,7 +160,7 @@ class Institutions {
     campusLifeId = json['campusLifeId'] != null
         ? new CampusLifeId.fromJson(json['campusLifeId'])
         : null;
-    score = json['score'];
+    score = (json['score'] as num?)?.toDouble();
     if (json['courses'] != null) {
       courses = <Courses>[];
       json['courses'].forEach((v) {

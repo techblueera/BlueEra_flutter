@@ -233,7 +233,7 @@ class ProductVariant {
     sku: json["sku"],
     barcode: json["barcode"],
     dimensions: json["dimensions"],
-    weight: json["weight"],
+    weight: (json["weight"] as num?)?.round(),
     createdAt: json["createdAt"] == null
         ? null
         : DateTime.parse(json["createdAt"]),

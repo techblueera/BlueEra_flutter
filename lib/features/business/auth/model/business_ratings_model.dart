@@ -59,7 +59,7 @@ class BusinessRatingsData {
     iV = json['__v'];
     comment = json['comment'];
     createdAt = json['created_at'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.round();
   }
 
   Map<String, dynamic> toJson() {

@@ -91,7 +91,7 @@ class Variant {
       product: json['product'] ?? '',
       variantName: json['variantName'] ?? '',
       unit: json['unit'] ?? '',
-      weight: json['weight'] ?? 0,
+      weight: (json['weight'] as num?)?.round() ?? 0,
       pricing: (json['pricing'] as List? ?? [])
           .map((e) => Pricing.fromJson(e))
           .toList(),
