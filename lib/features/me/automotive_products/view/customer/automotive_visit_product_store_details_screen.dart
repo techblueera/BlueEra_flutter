@@ -46,8 +46,8 @@ class AutomotiveVisitProductStoreDetailsScreen extends StatefulWidget {
 
 class _AutomotiveVisitProductStoreDetailsScreenState
     extends State<AutomotiveVisitProductStoreDetailsScreen> {
-  final AutomotiveInventoryController controller =
-      getOrPut<AutomotiveInventoryController>(() => AutomotiveInventoryController());
+  late final AutomotiveInventoryController controller;
+  late final bool _ownsController;
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
   final StoreController storeController =
@@ -62,6 +62,10 @@ class _AutomotiveVisitProductStoreDetailsScreenState
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<AutomotiveInventoryController>(widget.visitUserId, () => AutomotiveInventoryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     // Load the visiting business profile + inventory in parallel, and
     // track the store-detail view (same pattern as the grocery visit
     // screen).
@@ -98,6 +102,12 @@ class _AutomotiveVisitProductStoreDetailsScreenState
         businessAddress: bDetails?.address,
       );
     }
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) deleteIfRegistered<AutomotiveInventoryController>(tag: visitTag(widget.visitUserId));
+    super.dispose();
   }
 
   @override

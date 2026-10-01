@@ -36,7 +36,8 @@ class VisitGroceryProductsScreen extends StatefulWidget {
 }
 
 class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen> {
-  final controller = getOrPut(() => GroceryController());
+  late final GroceryController controller;
+  late final bool _ownsController;
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final ScrollController scrollController = ScrollController();
   final TextEditingController searchController = TextEditingController();
@@ -44,6 +45,10 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<GroceryController>(widget.visitBusinessId, () => GroceryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     scrollController.addListener(_onScrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchGroceryNestedCategoryWithInventory(
@@ -68,6 +73,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
   @override
   void dispose() {
     scrollController.removeListener(_onScrollListener);
+    if (_ownsController) deleteIfRegistered<GroceryController>(tag: visitTag(widget.visitBusinessId));
     super.dispose();
   }
 

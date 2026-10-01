@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/product/view/customer/visit_product_products
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -30,15 +31,25 @@ class BusinessChatProducts extends StatefulWidget {
 }
 
 class _BusinessChatProductsState extends State<BusinessChatProducts> {
-  final InventoryController controller =
-      InventoryController.to;
+  late final InventoryController controller;
+  late final bool _ownsController;
 
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<InventoryController>(widget.businessId, () => InventoryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     // Load the visited business's products + categories (same call the visit
     // store screen makes).
     controller.fetchAllProductData(visitUserId: widget.businessId);
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) deleteIfRegistered<InventoryController>(tag: visitTag(widget.businessId));
+    super.dispose();
   }
 
   @override

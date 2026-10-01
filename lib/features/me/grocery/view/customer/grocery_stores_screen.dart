@@ -12,7 +12,6 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/search/model/store_search_config.dart';
 import 'package:BlueEra/features/common/search/view/store_search_screen.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_store_card.dart';
@@ -44,7 +43,6 @@ class GroceryStoresScreen extends StatefulWidget {
 class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     with SingleTickerProviderStateMixin {
   final controller = getOrPut(() => StoreController());
-  final groceryController = getOrPut(() => GroceryController());
   final groceryCustomerController =
       getOrPut(() => GrocerySelfPickupConsumerController());
   final ScrollController _nestedScrollController = ScrollController();
@@ -153,7 +151,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     _shimmerController = null;
     // Hand the shared controller back on its app-wide default radius.
     controller.searchRadiusKm = kmRadius300;
-    deleteIfRegistered<GroceryController>();
     deleteIfRegistered<GrocerySelfPickupConsumerController>();
     super.dispose();
   }

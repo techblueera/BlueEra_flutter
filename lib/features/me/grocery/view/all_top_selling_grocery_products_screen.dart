@@ -46,7 +46,16 @@ class AllTopSellingGroceryProductsScreen extends StatefulWidget {
 
 class _AllTopSellingGroceryProductsScreenState
     extends State<AllTopSellingGroceryProductsScreen> {
-  final controller = getOrPut(() => GroceryController());
+  /// The visited store's own instance in customer mode (shared with the store
+  /// page that opened this), the owner's untagged one otherwise.
+  late final GroceryController controller;
+  bool _ownsController = false;
+
+  String? get _visitId {
+    final id = widget.visitBusinessId;
+    return (widget.otherStore && id != null && id.isNotEmpty) ? id : null;
+  }
+
   final ScrollController _scrollController = ScrollController();
 
   /// Customer-only collaborators. Resolved lazily so the owner flow (which
@@ -59,6 +68,14 @@ class _AllTopSellingGroceryProductsScreenState
   @override
   void initState() {
     super.initState();
+    final visitId = _visitId;
+    if (visitId != null) {
+      final visit = putVisitor<GroceryController>(visitId, () => GroceryController());
+      controller = visit.$1;
+      _ownsController = visit.$2;
+    } else {
+      controller = getOrPut(() => GroceryController());
+    }
     dev.log(
       '[AllTopSelling] initState otherStore=${widget.otherStore} '
       'userId=${widget.userId} visitBusinessId=${widget.visitBusinessId} '
@@ -100,6 +117,10 @@ class _AllTopSellingGroceryProductsScreenState
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    final visitId = _visitId;
+    if (_ownsController && visitId != null) {
+      deleteIfRegistered<GroceryController>(tag: visitTag(visitId));
+    }
     super.dispose();
   }
 

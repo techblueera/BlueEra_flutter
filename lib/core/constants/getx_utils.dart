@@ -21,6 +21,23 @@ T putLazy<T>(T Function() builder, {String? tag}) {
   return Get.find<T>(tag: tag);
 }
 
+/// Tag for the controller a screen uses while browsing someone else's
+/// business [id]. The owner's own screens use the untagged instance, so the
+/// two never share lists, statuses or caches.
+String visitTag(String id) => 'visit:$id';
+
+/// Finds or creates the visitor-scoped [T] for business [id].
+///
+/// Returns the instance and whether THIS call created it. The screen that
+/// created it deletes it on dispose (`deleteIfRegistered<T>(tag: visitTag(id))`);
+/// a store page and the sub-pages it opens for the same business build the
+/// same tag, so they share one instance and only the first one cleans up.
+(T, bool) putVisitor<T>(String id, T Function() builder) {
+  final tag = visitTag(id);
+  final created = !Get.isRegistered<T>(tag: tag);
+  return (getOrPut<T>(builder, tag: tag), created);
+}
+
 void deleteIfRegistered<T>({String? tag}) {
   if (Get.isRegistered<T>(tag: tag)) {
     Get.delete<T>(tag: tag, force: true);

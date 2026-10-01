@@ -38,7 +38,8 @@ class AllOfferDishScreen extends StatefulWidget {
 }
 
 class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
-  final controller = getOrPut(() => RestaurantController());
+  late final RestaurantController controller;
+  late final bool _ownsController;
   final foodCartController = getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   final ScrollController _scrollController = ScrollController();
@@ -46,6 +47,10 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<RestaurantController>(widget.businessId, () => RestaurantController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchDiscountFoodProducts(businessId: widget.businessId);
@@ -56,6 +61,7 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    if (_ownsController) deleteIfRegistered<RestaurantController>(tag: visitTag(widget.businessId));
     super.dispose();
   }
 

@@ -27,8 +27,8 @@ class ManufacturerCustomerAllTopSellingProductsScreen extends StatefulWidget {
 
 class _CustomerAllTopSellingProductsScreenState
     extends State<ManufacturerCustomerAllTopSellingProductsScreen> {
-  final ManufacturerInventoryController controller =
-      getOrPut<ManufacturerInventoryController>(() => ManufacturerInventoryController());
+  late final ManufacturerInventoryController controller;
+  late final bool _ownsController;
   final ScrollController _scrollController = ScrollController();
 
   late final ManufacturerProductSelfPickupController _cartController;
@@ -41,6 +41,10 @@ class _CustomerAllTopSellingProductsScreenState
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<ManufacturerInventoryController>(widget.visitBusinessId, () => ManufacturerInventoryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     _cartController = getOrPut<ManufacturerProductSelfPickupController>(
         () => ManufacturerProductSelfPickupController());
     _scrollController.addListener(_onScroll);
@@ -82,6 +86,7 @@ class _CustomerAllTopSellingProductsScreenState
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    if (_ownsController) deleteIfRegistered<ManufacturerInventoryController>(tag: visitTag(widget.visitBusinessId));
     super.dispose();
   }
 

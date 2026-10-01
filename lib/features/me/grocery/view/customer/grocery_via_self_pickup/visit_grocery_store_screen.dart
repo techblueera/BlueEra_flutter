@@ -52,7 +52,8 @@ class VisitGroceryStoreScreen extends StatefulWidget {
 }
 
 class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
-  final controller = getOrPut(() => GroceryController());
+  late final GroceryController controller;
+  late final bool _ownsController;
   // Self-register so the store screen works regardless of entry path (deep
   // link, share preview, search, etc.), not just from the bottom-nav/drawer
   // flows that normally register this controller. Matches how every other
@@ -65,6 +66,10 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
   @override
   void initState() {
     super.initState();
+    // Visitor-scoped: never the owner's own (untagged) instance.
+    final visit = putVisitor<GroceryController>(widget.visitBusinessId, () => GroceryController());
+    controller = visit.$1;
+    _ownsController = visit.$2;
     // Re-entry no longer refetches: these only hit the API when the cached
     // profile / grocery data is missing or stale for this store. The rate /
     // follow callbacks below still refresh explicitly (silent: true).
@@ -87,6 +92,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
 
   @override
   void dispose() {
+    if (_ownsController) deleteIfRegistered<GroceryController>(tag: visitTag(widget.visitBusinessId));
     super.dispose();
   }
 
