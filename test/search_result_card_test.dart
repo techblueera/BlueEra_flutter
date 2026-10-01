@@ -60,12 +60,12 @@ void main() {
     expect(find.text('Gupta General Store'), findsOneWidget);
     expect(find.text('4.8'), findsOneWidget);
     expect(find.text('General Store'), findsOneWidget);
+    // The trailing badge carries the distance now (it used to carry the
+    // product count), so the address line is only the address.
     expect(find.text('4.5 Km'), findsOneWidget);
     expect(find.text('Sastri Nagar, Lucknow, Uttar Pradesh, 226001'),
         findsOneWidget);
-    // 10,000 products abbreviates to the badge's "10K".
-    expect(find.text('10K'), findsOneWidget);
-    expect(find.text(AppStrings.globalSearchProducts.tr), findsOneWidget);
+    expect(find.text('10K'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -91,12 +91,26 @@ void main() {
       }),
     );
 
-    expect(find.text(AppStrings.globalSearchUntitled.tr), findsOneWidget);
+    // A business row with no name is a deleted account, not an untitled one
+    // ("Untitled" is kept for catalogue rows — see isDeletedAccount).
+    expect(find.text(AppStrings.deletedUser.tr), findsOneWidget);
     expect(find.text(AppStrings.globalSearchNoRating.tr), findsOneWidget);
     expect(find.text(AppStrings.globalSearchLocationUnavailable.tr),
         findsOneWidget);
     // No count and no price — the badge is dropped rather than left empty.
     expect(find.text(AppStrings.globalSearchProducts.tr), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an untitled catalogue row reads "Untitled", not deleted',
+      (tester) async {
+    await _pump(
+      tester,
+      _item({'entityType': 'product', 'title': '', 'price': 250}),
+    );
+
+    expect(find.text(AppStrings.globalSearchUntitled.tr), findsOneWidget);
+    expect(find.text(AppStrings.deletedUser.tr), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
