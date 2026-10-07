@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -1365,11 +1364,10 @@ class AuthController extends GetxController {
   /// Cache-first loader for the master onboarding lists.
   ///
   /// The categories / professions master lists change rarely, so the network
-  /// is hit **only when the local Hive cache is empty** — i.e. once after
-  /// login (logout wipes the Hive boxes via `Hive.deleteFromDisk()`, so the
-  /// next login refetches). Every other launch serves purely from cache and
-  /// makes no `getAllcategories` / professions API call. Pass
-  /// [forceRefresh] = true (e.g. pull-to-refresh) to fetch even when cached.
+  /// is hit only when a list's Hive cache is empty or older than a day
+  /// (`HiveServices.onboardingCatalogTtl`). Every other launch serves purely from cache and makes no
+  /// `getAllcategories` / professions API call. Pass [forceRefresh] = true
+  /// (e.g. pull-to-refresh) to fetch even when cached.
   /// Whether the business buckets already hold the catalog.
   ///
   /// ANY bucket, not all of them: the ten verticals are whatever the backend
@@ -1394,8 +1392,30 @@ class AuthController extends GetxController {
       individualOnboardingSkillWorkList.isNotEmpty ||
       individualOnboardingConsultationList.isNotEmpty;
 
+  /// In-flight fetches, shared so the seven call sites that land here at
+  /// once (see below) produce one request per list, not seven.
+  Future<void>? _businessCategoriesFetch;
+  Future<void>? _professionsFetch;
+
+  Future<void> _fetchBusinessCategoriesOnce({required bool silent}) =>
+      _businessCategoriesFetch ??= _getAllBusinessCategories(silent: silent)
+          .whenComplete(() => _businessCategoriesFetch = null);
+
+  Future<void> _fetchProfessionsOnce({required bool silent}) =>
+      _professionsFetch ??= _getAllIndividualProfession(silent: silent)
+          .whenComplete(() => _professionsFetch = null);
+
   Future<void> loadCategoriesCacheFirstThenRefresh({bool forceRefresh = false}) async {
-    // Already in memory — nothing to read, nothing to rebuild.
+    final hive = HiveServices();
+
+    // The catalog is refreshed from the network once it is older than
+    // `HiveServices.onboardingCatalogTtl` (1 day), which is also what picks
+    // up a fixed icon URL. A cache saved before the stamp existed counts as
+    // stale and refreshes once.
+    final businessStale = !hive.isCategoriesFresh();
+    final professionsStale = !hive.isProfessionsFresh();
+
+    // Already in memory and fresh — nothing to read, nothing to rebuild.
     //
     // Seven call sites reach this (both account-type screens, the bottom-nav
     // post-frame on every launch, the profile setup screen, the designation
@@ -1404,20 +1424,21 @@ class AuthController extends GetxController {
     // and `assignAll`-ed fourteen RxLists — notifying every Obx watching them —
     // to arrive at exactly the lists already on screen.
     //
-    // The catalog is the platform's and does not change under a running app,
-    // so the buckets, once filled, ARE the answer. They also outlive a logout
-    // (this controller is never disposed, and its Hive backing is preserved by
-    // LogoutHelper.readSharedLocalData), which is why the next sign-in gets the
-    // account-type screen without a shimmer or a request.
+    // The buckets also outlive a logout (this controller is never disposed,
+    // and its Hive backing is preserved by LogoutHelper.readSharedLocalData),
+    // which is why the next sign-in gets the account-type screen without a
+    // shimmer or a request.
     //
     // `forceRefresh` still goes all the way to the network — that is the escape
     // hatch for a catalog that genuinely changed server-side.
-    if (!forceRefresh && hasBusinessCategoriesInMemory && hasProfessionsInMemory) {
+    if (!forceRefresh &&
+        hasBusinessCategoriesInMemory &&
+        hasProfessionsInMemory &&
+        !businessStale &&
+        !professionsStale) {
       isInitialCategoriesLoading.value = false;
       return;
     }
-
-    final hive = HiveServices();
 
     // Only read the half that isn't already in memory. Re-reading a box to
     // rebuild a list that is identical to the one in hand is the whole cost
@@ -1445,23 +1466,28 @@ class AuthController extends GetxController {
       isInitialCategoriesLoading.value = false;
     }
 
-    // Fetch from the network ONLY for the lists whose local cache is empty
-    // (or when an explicit refresh is requested). `_getAllBusinessCategories`
-    // / `_getAllIndividualProfession` both write through to Hive on success
-    // and rebuild the in-memory buckets, so the next launch is a pure cache
-    // hit with no API call. These methods are private so external callers
-    // always go through this cache-first entry point — single source of
-    // truth, no path that bypasses Hive.
-    final pending = <Future<void>>[];
+    // Fetch from the network ONLY for a list that is empty or older than the
+    // TTL (or when an explicit refresh is requested). `_getAllBusinessCategories` / `_getAllIndividualProfession`
+    // both write through to Hive on success (re-stamping it) and rebuild the
+    // in-memory buckets, so the next launch is a pure cache hit with no API
+    // call. These methods are private so external callers always go through
+    // this cache-first entry point — single source of truth, no path that
+    // bypasses Hive.
+    //
     // Keyed on what is now IN MEMORY, not on what this pass happened to read
     // from disk: a bucket filled by an earlier call is just as loaded as one
-    // filled a line ago, and asking the network for it again is the request
-    // this whole method exists to avoid.
-    if (forceRefresh || !hasBusinessCategoriesInMemory) {
-      pending.add(_getAllBusinessCategories());
+    // filled a line ago.
+    //
+    // A refresh over a list already on screen is silent: it failing (offline,
+    // say) leaves the cached list in place, which is no reason for a snackbar.
+    final pending = <Future<void>>[];
+    if (forceRefresh || !hasBusinessCategoriesInMemory || businessStale) {
+      pending.add(_fetchBusinessCategoriesOnce(
+          silent: hasBusinessCategoriesInMemory && !forceRefresh));
     }
-    if (forceRefresh || !hasProfessionsInMemory) {
-      pending.add(_getAllIndividualProfession());
+    if (forceRefresh || !hasProfessionsInMemory || professionsStale) {
+      pending.add(_fetchProfessionsOnce(
+          silent: hasProfessionsInMemory && !forceRefresh));
     }
     if (pending.isNotEmpty) {
       await Future.wait<void>(pending);
@@ -1500,7 +1526,7 @@ class AuthController extends GetxController {
   /// Network-level fetch for the master profession list. Private — callers
   /// outside this controller MUST go through `loadCategoriesCacheFirstThenRefresh`
   /// so they can't accidentally bypass the Hive cache.
-  Future<void> _getAllIndividualProfession() async {
+  Future<void> _getAllIndividualProfession({bool silent = false}) async {
     try {
       ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
 
@@ -1518,7 +1544,9 @@ class AuthController extends GetxController {
         await HiveServices().saveProfessionList(professions);
         updateIndividualCategoriesFromApi(professions);
       } else {
-        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+        if (!silent) {
+          commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
+        }
         professionListingResponse = ApiResponse.error('error');
       }
     } catch (e) {
@@ -1607,16 +1635,23 @@ class AuthController extends GetxController {
   /// callers outside this controller MUST go through
   /// `loadCategoriesCacheFirstThenRefresh` so they can't accidentally
   /// bypass the Hive cache.
-  Future<void> _getAllBusinessCategories() async {
+  Future<void> _getAllBusinessCategories({bool silent = false}) async {
     try {
       isAllBusinessCategoriesLoading.value = true;
 
       final response = await AuthRepo().getBusinessCategoriesRepo();
 
+      // TEMP: inspect the business categories payload. Indented so each line
+      // stays short enough for logcat not to truncate it.
+      log('getBusinessCategories [${response.statusCode}]:\n'
+          '${const JsonEncoder.withIndent('  ').convert(response.response?.data)}');
+
       if (!response.isSuccess) {
-        commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
+        if (!silent) {
+          commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong,
+          );
+        }
         return;
       }
 

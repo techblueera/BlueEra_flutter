@@ -670,6 +670,10 @@ class HiveServices{
     // survive a sign-out.
     await take(_savedBusinessCategoryBox, 'category');
     await take(_savedProfessionTypeBox, 'profession');
+    // Their save stamps too, so a sign-out doesn't restart the refresh clock and
+    // turn the next sign-in into a refetch of a catalog that is still fresh.
+    await take(_savedBusinessCategoryBox, 'category__ts');
+    await take(_savedProfessionTypeBox, 'profession__ts');
     if (snapshot.isEmpty) {
       log('⚠️ logout: captured no shared catalog — business categories and '
           'professions will be refetched on the next sign-in');
@@ -703,7 +707,21 @@ class HiveServices{
     final List<Map<String, dynamic>> jsonList = categories.map((item) => item.toJson()).toList();
 
     await box.put(key, jsonList);
+    await _stamp(_savedBusinessCategoryBox, key);
   }
+
+  /// How long the onboarding catalog (business categories and professions)
+  /// is served from Hive before the loader asks the network again. A day
+  /// keeps names and icon URLs current without a request on every launch.
+  static const Duration onboardingCatalogTtl = Duration(days: 1);
+
+  /// True when the business categories were saved less than [ttl] ago.
+  bool isCategoriesFresh({Duration ttl = onboardingCatalogTtl}) =>
+      _isFresh(_savedBusinessCategoryBox, 'category', ttl);
+
+  /// True when the profession list was saved less than [ttl] ago.
+  bool isProfessionsFresh({Duration ttl = onboardingCatalogTtl}) =>
+      _isFresh(_savedProfessionTypeBox, 'profession', ttl);
 
   /// Get all saved categories
   List<CategoryData>? getAllCategories() {
@@ -748,6 +766,7 @@ class HiveServices{
     final List<Map<String, dynamic>> jsonList =
         professions.map((item) => item.toJson()).toList();
     await box.put(key, jsonList);
+    await _stamp(_savedProfessionTypeBox, key);
   }
 
   /// Get the cached master list of profession types. Returns null when no

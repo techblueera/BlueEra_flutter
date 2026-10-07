@@ -53,8 +53,8 @@ android {
         // Set by hand, and these win over pubspec.yaml for the Android build.
         // Bump both on every release, and keep `version:` in pubspec.yaml
         // matching (name+code): iOS and the in-app version text read it.
-        versionCode 352
-        versionName "14.0.93"
+        versionCode 353
+        versionName "14.0.94"
         manifestPlaceholders = [
                 mapApiKey: mapApiKey
         ]

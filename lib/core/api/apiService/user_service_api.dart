@@ -170,7 +170,7 @@ mixin UserServiceApi {
   final String businessSearch = 'user-service/business/search';
 
   // ── Categories & subcategories ──────────────────────────────────────
-  final String getAllcategories = 'user-service/business/getAllcategories';
+  final String getAllBusinessCategories = 'user-service/business/getAllcategories';
   final String getAllcategoriesByType = 'user-service/business/by-type/';
   String getBusinessCategoryByType(String type) =>
       'user-service/business/by-type/$type';

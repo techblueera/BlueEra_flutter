@@ -65,7 +65,7 @@ class AuthRepo extends BaseService {
 
   /// Get All Categories REPO...
   Future<ResponseModel> getBusinessCategoriesRepo() async {
-    final response = await ApiBaseHelper().getHTTP(getAllcategories,
+    final response = await ApiBaseHelper().getHTTP(getAllBusinessCategories,
         showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
